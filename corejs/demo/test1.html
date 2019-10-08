@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width,initial-scale=1.0">
+	<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+	<title>corejs demo</title>
+</head>
+
+<body>
+	<div id="app">
+		<main v-init-context-vars='{school: "DLMU"}'>
+			Family Name
+			<input v-on:input='oninput({"id": "hello"}, "FamilyName", $event)'/>
+			<a href="#" v-on:click='triggerEventFunc({"id": "hello"}, $event)' >Click</a>
+
+
+			<div style="border: 3px solid blue; min-height: 60px;" >
+				<go-plaid-portal v-init-context-vars='{name: "ABC", age: 1}' :visible='true' :loader-func='{"id": "hello", "params": ["1", "2"]}'>
+					<go-plaid-portal v-init-context-vars='{name: "CDE", company: "the plant"}' :visible='true' :loader-func='{"id": "hello", "params": ["1", "2"]}'>
+					{{vars.name}} - {{vars.age}} - {{vars.company}} - {{vars.school}}
+					</go-plaid-portal>
+				</go-plaid-portal>
+			</div>
+
+			<div style="border: 3px solid blue; min-height: 60px;">
+				<go-plaid-portal :visible='true'>
+					<h1>Hello</h1>
+					<button v-on:click='triggerEventFunc({"id": "hello"}, $event)' >Click</button>
+				</go-plaid-portal>
+			</div>
+		</main>
+	</div>
+
+	<script src="http://localhost:3100/app.js"></script>
+
+</body>
+
+</html>
