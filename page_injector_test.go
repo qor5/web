@@ -9,10 +9,12 @@ import (
 )
 
 var cases = []struct {
+	name      string
 	operation func(b *web.PageInjector)
 	expected  string
 }{
 	{
+		name: "title",
 		operation: func(b *web.PageInjector) {
 			b.Title("Hello")
 		},
@@ -22,6 +24,7 @@ var cases = []struct {
 		`,
 	},
 	{
+		name: "title and charset",
 		operation: func(b *web.PageInjector) {
 			b.Title("Hello")
 			b.Meta("charset", "shiftjis")
@@ -32,16 +35,7 @@ var cases = []struct {
 `,
 	},
 	{
-		operation: func(b *web.PageInjector) {
-			b.Title("Hello")
-			b.Meta("charset", "shiftjis")
-		},
-		expected: `<title>Hello</title>
-<meta charset="shiftjis"/>
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
-`,
-	},
-	{
+		name: "title and charset double",
 		operation: func(b *web.PageInjector) {
 			b.Title("Hello")
 			b.Meta("charset", "shiftjis")
@@ -57,6 +51,7 @@ var cases = []struct {
 	},
 
 	{
+		name: "script tag",
 		operation: func(b *web.PageInjector) {
 			b.HeadHTML(`
 <!-- Global site tag (gtag.js) - Google Analytics -->
@@ -94,11 +89,14 @@ var cases = []struct {
 
 func TestDefaultPageInjector(t *testing.T) {
 	for _, c := range cases {
-		var b web.PageInjector
-		c.operation(&b)
-		diff := testingutils.PrettyJsonDiff(strings.TrimSpace(c.expected), strings.TrimSpace(b.GetHeadString()))
-		if len(diff) > 0 {
-			t.Error(diff)
-		}
+		t.Run(c.name, func(t *testing.T) {
+
+			var b web.PageInjector
+			c.operation(&b)
+			diff := testingutils.PrettyJsonDiff(strings.TrimSpace(c.expected), strings.TrimSpace(b.GetHeadString()))
+			if len(diff) > 0 {
+				t.Error(diff)
+			}
+		})
 	}
 }

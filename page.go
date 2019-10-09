@@ -153,7 +153,6 @@ func (p *PageBuilder) eventBodyFromRequest(r *http.Request) *eventBody {
 }
 
 func (p *PageBuilder) executeEvent(w http.ResponseWriter, r *http.Request) {
-	// for server side restart and lost all the eventFuncs, but user keep clicking page without refresh page to call p.render to fill up eventFuncs
 
 	ctx := new(EventContext)
 	ctx.R = r
@@ -165,6 +164,9 @@ func (p *PageBuilder) executeEvent(w http.ResponseWriter, r *http.Request) {
 
 	eb := p.eventBodyFromRequest(r)
 	ctx.Event = &eb.Event
+
+	// for server side restart and lost all the eventFuncs,
+	// but user keep clicking page without refresh page to call p.render to fill up eventFuncs
 	// because default added reload
 	if len(p.eventFuncs) <= 1 && p.eventFuncById(eb.EventFuncID.ID) == nil {
 		log.Println("Re-render because event funcs gone, might server restarted")
@@ -193,7 +195,11 @@ func (p *PageBuilder) executeEvent(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	eventResponseWithContext(ctx, c, &er)
+	er.Body = h.RawHTML(h.MustString(er.Body, c))
+
+	for _, up := range er.UpdatePortals {
+		up.Body = h.RawHTML(h.MustString(up.Body, c))
+	}
 
 	err = json.NewEncoder(w).Encode(er)
 	if err != nil {
@@ -204,14 +210,6 @@ func (p *PageBuilder) executeEvent(w http.ResponseWriter, r *http.Request) {
 func reload(ctx *EventContext) (r EventResponse, err error) {
 	r.Reload = true
 	return
-}
-
-func eventResponseWithContext(ctx *EventContext, c context.Context, er *EventResponse) {
-	er.Body = h.RawHTML(h.MustString(er.Body, c))
-
-	for _, up := range er.UpdatePortals {
-		up.Body = h.RawHTML(h.MustString(up.Body, c))
-	}
 }
 
 func (p *PageBuilder) ServeHTTP(w http.ResponseWriter, r *http.Request) {

@@ -96,8 +96,14 @@ func (b *VueEventTagBuilder) setupChange() {
 		return
 	}
 
-	b.tag.SetAttr("v-on:input",
-		fmt.Sprintf(`oninput(%s, %s, $event)`, h.JSONString(b.onInputFuncID), h.JSONString(b.fieldName)))
+	b.tag.SetAttr(
+		"v-on:input",
+		fmt.Sprintf(
+			`oninput(%s, %s, $event)`,
+			h.JSONString(b.onInputFuncID),
+			h.JSONString(b.fieldName),
+		),
+	)
 }
 
 func (b *VueEventTagBuilder) Update() {

@@ -13,7 +13,7 @@ import (
 	h "github.com/theplant/htmlgo"
 	"github.com/theplant/htmltestingutils"
 	"github.com/theplant/testingutils"
-	goji "goji.io"
+	"goji.io"
 	"goji.io/pat"
 )
 
@@ -252,22 +252,25 @@ var eventCases = []struct {
 
 func TestEvents(t *testing.T) {
 	for _, c := range eventCases {
-		indexResp, eventResp := runEvent(c.eventFunc, c.renderChanger, c.eventFormChanger)
-		var diff string
-		if len(c.expectedIndexResp) > 0 {
-			diff = testingutils.PrettyJsonDiff(c.expectedIndexResp, indexResp)
+		t.Run(c.name, func(t *testing.T) {
 
-			if len(diff) > 0 {
-				t.Error(c.name, diff)
-			}
-		}
+			indexResp, eventResp := runEvent(c.eventFunc, c.renderChanger, c.eventFormChanger)
+			var diff string
+			if len(c.expectedIndexResp) > 0 {
+				diff = testingutils.PrettyJsonDiff(c.expectedIndexResp, indexResp)
 
-		if len(c.expectedEventResp) > 0 {
-			diff = testingutils.PrettyJsonDiff(c.expectedEventResp, eventResp.String())
-			if len(diff) > 0 {
-				t.Error(c.name, diff)
+				if len(diff) > 0 {
+					t.Error(c.name, diff)
+				}
 			}
-		}
+
+			if len(c.expectedEventResp) > 0 {
+				diff = testingutils.PrettyJsonDiff(c.expectedEventResp, eventResp.String())
+				if len(diff) > 0 {
+					t.Error(c.name, diff)
+				}
+			}
+		})
 	}
 }
 
@@ -326,30 +329,31 @@ func TestMultiplePagesAndEvents(t *testing.T) {
 	mux.Handle(pat.New("/home/topics"), pb.Page(topicIndex))
 
 	for _, c := range mountCases {
+		t.Run(c.name, func(t *testing.T) {
 
-		buf := new(bytes.Buffer)
-		var mw *multipart.Writer
-		if c.bodyFunc != nil {
-			mw = multipart.NewWriter(buf)
-			c.bodyFunc(mw)
-			_ = mw.Close()
-		}
+			buf := new(bytes.Buffer)
+			var mw *multipart.Writer
+			if c.bodyFunc != nil {
+				mw = multipart.NewWriter(buf)
+				c.bodyFunc(mw)
+				_ = mw.Close()
+			}
 
-		r := httptest.NewRequest(c.method, c.path, buf)
-		if mw != nil {
-			r.Header.Add("Content-Type", fmt.Sprintf("multipart/form-data; boundary=%s", mw.Boundary()))
-		}
-		w := httptest.NewRecorder()
-		mux.ServeHTTP(w, r)
-		selector := "#app div"
-		if mw != nil {
-			selector = "*"
-		}
-		diff := htmltestingutils.PrettyHtmlDiff(w.Body, selector, c.expected)
-		if len(diff) > 0 {
-			t.Error(c.name, diff)
-		}
-
+			r := httptest.NewRequest(c.method, c.path, buf)
+			if mw != nil {
+				r.Header.Add("Content-Type", fmt.Sprintf("multipart/form-data; boundary=%s", mw.Boundary()))
+			}
+			w := httptest.NewRecorder()
+			mux.ServeHTTP(w, r)
+			selector := "#app div"
+			if mw != nil {
+				selector = "*"
+			}
+			diff := htmltestingutils.PrettyHtmlDiff(w.Body, selector, c.expected)
+			if len(diff) > 0 {
+				t.Error(c.name, diff)
+			}
+		})
 	}
 
 }

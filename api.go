@@ -18,7 +18,7 @@ type PageResponse struct {
 type PortalUpdate struct {
 	Name        string          `json:"name,omitempty"`
 	Body        h.HTMLComponent `json:"body,omitempty"`
-	AfterLoaded string          `json:"afterLoaded,omitempty"`
+	AfterLoaded string          `json:"afterLoaded,omitempty"` // Javascript new Function('comp', body)'s body that `comp` is the context Vue component
 }
 
 // @snippet_begin(EventResponseDefinition)
@@ -26,7 +26,7 @@ type EventResponse struct {
 	PageTitle     string            `json:"pageTitle,omitempty"`
 	Body          h.HTMLComponent   `json:"body,omitempty"`
 	Reload        bool              `json:"reload,omitempty"`
-	PushState     *PushStateBuilder `json:"pushState"`             // This we don't omitempty, So that {} can be keeped when use url.Values{}
+	PushState     *PushStateBuilder `json:"pushState"`             // This we don't omitempty, So that {} can be kept when use url.Values{}
 	RedirectURL   string            `json:"redirectURL,omitempty"` // change window url without push state
 	ReloadPortals []string          `json:"reloadPortals,omitempty"`
 	UpdatePortals []*PortalUpdate   `json:"updatePortals,omitempty"`
