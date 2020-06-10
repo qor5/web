@@ -12,21 +12,21 @@
 		"core-js": "^3.6.5",
 		"formdata-polyfill": "^3.0.19",
 		"lodash": "^4.17.15",
-		"query-string": "^6.12.1",
+		"query-string": "^6.13.0",
 		"vue": "^2.6.11",
 		"whatwg-fetch": "^3.0.0"
 	},
 	"devDependencies": {
-		"@types/lodash": "^4.14.152",
-		"@vue/cli-plugin-babel": "^4.3.1",
-		"@vue/cli-plugin-typescript": "^4.3.1",
-		"@vue/cli-service": "^4.3.1",
-		"@types/jest": "^25.2.3",
-		"@vue/cli-plugin-unit-jest": "^4.3.1",
+		"@types/lodash": "^4.14.155",
+		"@vue/cli-plugin-babel": "^4.4.1",
+		"@vue/cli-plugin-typescript": "^4.4.1",
+		"@vue/cli-service": "^4.4.1",
+		"@types/jest": "^26.0.0",
+		"@vue/cli-plugin-unit-jest": "^4.4.1",
 		"@vue/test-utils": "1.0.3",
 		"babel-core": "7.0.0-bridge.0",
-		"ts-jest": "^26.0.0",
-		"typescript": "^3.9.3",
+		"ts-jest": "^26.1.0",
+		"typescript": "^3.9.5",
 		"vue-template-compiler": "^2.6.11"
 	}
 }
