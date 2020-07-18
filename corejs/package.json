@@ -11,7 +11,7 @@
 	"dependencies": {
 		"core-js": "^3.6.5",
 		"formdata-polyfill": "^3.0.19",
-		"lodash": "^4.17.15",
+		"lodash": "^4.17.19",
 		"query-string": "^6.13.0",
 		"vue": "^2.6.11",
 		"whatwg-fetch": "^3.0.0"
