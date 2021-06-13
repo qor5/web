@@ -9,24 +9,24 @@
 		"test": "vue-cli-service test:unit"
 	},
 	"dependencies": {
-		"core-js": "^3.7.0",
-		"formdata-polyfill": "^3.0.20",
-		"lodash": "^4.17.20",
-		"query-string": "^6.13.7",
-		"vue": "^2.6.12",
-		"whatwg-fetch": "^3.5.0"
+		"core-js": "^3.14.0",
+		"formdata-polyfill": "^4.0.3",
+		"lodash": "^4.17.21",
+		"query-string": "^7.0.0",
+		"vue": "^2.6.14",
+		"whatwg-fetch": "^3.6.2"
 	},
 	"devDependencies": {
-		"@types/lodash": "^4.14.165",
-		"@vue/cli-plugin-babel": "^4.5.8",
-		"@vue/cli-plugin-typescript": "^4.5.8",
-		"@vue/cli-service": "^4.5.8",
-		"@types/jest": "^26.0.15",
-		"@vue/cli-plugin-unit-jest": "^4.5.8",
-		"@vue/test-utils": "1.1.1",
+		"@types/lodash": "^4.14.170",
+		"@vue/cli-plugin-babel": "^5.0.0-beta.2",
+		"@vue/cli-plugin-typescript": "^5.0.0-beta.2",
+		"@vue/cli-service": "^5.0.0-beta.2",
+		"@types/jest": "^26.0.23",
+		"@vue/cli-plugin-unit-jest": "^5.0.0-beta.2",
+		"@vue/test-utils": "1.2.0",
 		"babel-core": "7.0.0-bridge.0",
-		"ts-jest": "^26.4.4",
-		"typescript": "^4.0.5",
-		"vue-template-compiler": "^2.6.12"
+		"ts-jest": "^27.0.3",
+		"typescript": "^4.3.2",
+		"vue-template-compiler": "^2.6.14"
 	}
 }
