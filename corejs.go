@@ -2,13 +2,14 @@ package web
 
 // @snippet_begin(PackrSample)
 import (
-	"github.com/gobuffalo/packr"
+	"embed"
 )
 
-var box = packr.NewBox("./corejs/dist/")
+//go:embed corejs/dist/*.js
+var box embed.FS
 
 func JSComponentsPack() ComponentsPack {
-	v, err := box.FindString("core.umd.min.js")
+	v, err := box.ReadFile("corejs/dist/core.umd.min.js")
 	if err != nil {
 		panic(err)
 	}
@@ -17,7 +18,7 @@ func JSComponentsPack() ComponentsPack {
 }
 
 func JSVueComponentsPack() ComponentsPack {
-	v, err := box.FindString("vue.min.js")
+	v, err := box.ReadFile("corejs/dist/vue.min.js")
 	if err != nil {
 		panic(err)
 	}

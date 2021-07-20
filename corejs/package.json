@@ -9,24 +9,24 @@
 		"test": "vue-cli-service test:unit"
 	},
 	"dependencies": {
-		"core-js": "^3.14.0",
-		"formdata-polyfill": "^4.0.3",
+		"core-js": "^3.15.2",
+		"formdata-polyfill": "^4.0.6",
 		"lodash": "^4.17.21",
-		"query-string": "^7.0.0",
+		"query-string": "^7.0.1",
 		"vue": "^2.6.14",
 		"whatwg-fetch": "^3.6.2"
 	},
 	"devDependencies": {
-		"@types/lodash": "^4.14.170",
+		"@types/lodash": "^4.14.171",
 		"@vue/cli-plugin-babel": "^5.0.0-beta.2",
 		"@vue/cli-plugin-typescript": "^5.0.0-beta.2",
 		"@vue/cli-service": "^5.0.0-beta.2",
-		"@types/jest": "^26.0.23",
+		"@types/jest": "^26.0.24",
 		"@vue/cli-plugin-unit-jest": "^5.0.0-beta.2",
-		"@vue/test-utils": "1.2.0",
+		"@vue/test-utils": "1.2.1",
 		"babel-core": "7.0.0-bridge.0",
 		"ts-jest": "^27.0.3",
-		"typescript": "^4.3.2",
+		"typescript": "^4.3.5",
 		"vue-template-compiler": "^2.6.14"
 	}
 }

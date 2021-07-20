@@ -357,3 +357,11 @@ func TestMultiplePagesAndEvents(t *testing.T) {
 	}
 
 }
+
+
+func TestEmbed(t *testing.T) {
+	pack := JSComponentsPack()
+	if len(pack) == 0 {
+		t.Fatal("No embed string")
+	}
+}
