@@ -154,8 +154,11 @@ export interface EventData {
 
 export function jsonEvent(evt: any) {
 	const v: EventData = {};
+	if (!evt) {
+		return v;
+	}
 
-	if (evt && evt.target) {
+	if (evt.target) {
 		// For Checkbox
 		if (evt.target.checked) {
 			v.checked = evt.target.checked;
