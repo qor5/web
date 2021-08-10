@@ -1,10 +1,12 @@
 package web_test
 
 import (
+	"context"
 	"strings"
 	"testing"
 
 	"github.com/goplaid/web"
+	h "github.com/theplant/htmlgo"
 	"github.com/theplant/testingutils"
 )
 
@@ -19,34 +21,40 @@ var cases = []struct {
 			b.Title("Hello")
 		},
 		expected: `<title>Hello</title>
-<meta charset="utf8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+
+<meta charset='utf8'></meta>
+
+<meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'></meta>
 		`,
 	},
 	{
 		name: "title and charset",
 		operation: func(b *web.PageInjector) {
 			b.Title("Hello")
-			b.Meta("charset", "shiftjis")
+			b.Meta(web.MetaKey("charset"), "charset", "shiftjis")
 		},
 		expected: `<title>Hello</title>
-<meta charset="shiftjis"/>
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+
+<meta charset='shiftjis'></meta>
+
+<meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'></meta>
 `,
 	},
 	{
 		name: "title and charset double",
 		operation: func(b *web.PageInjector) {
 			b.Title("Hello")
-			b.Meta("charset", "shiftjis")
-			b.Meta("charset", "utf8")
+			b.Meta(web.MetaKey("charset"), "charset", "shiftjis")
+			b.Meta(web.MetaKey("charset"), "charset", "utf8")
 			b.MetaNameContent("keywords", "Hello")
 		},
 		expected: `<title>Hello</title>
-<meta charset="shiftjis"/>
-<meta charset="utf8"/>
-<meta name="keywords" content="Hello"/>
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+
+<meta charset='utf8'></meta>
+
+<meta name='keywords' content='Hello'></meta>
+
+<meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'></meta>
 `,
 	},
 
@@ -67,11 +75,7 @@ var cases = []struct {
 		},
 		expected: `
 <!-- Global site tag (gtag.js) - Google Analytics -->
-
-
-<script async="" src="https://www.googletagmanager.com/gtag/js?id=UA-123123-1"></script>
-
-
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-123123-1"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -80,9 +84,9 @@ var cases = []struct {
   gtag('config', 'UA-123123-1');
 </script>
 
+<meta charset='utf8'></meta>
 
-<meta charset="utf8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+<meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'></meta>
 `,
 	},
 }
@@ -93,7 +97,9 @@ func TestDefaultPageInjector(t *testing.T) {
 
 			var b web.PageInjector
 			c.operation(&b)
-			diff := testingutils.PrettyJsonDiff(strings.TrimSpace(c.expected), strings.TrimSpace(b.GetHeadString()))
+			diff := testingutils.PrettyJsonDiff(
+				strings.TrimSpace(c.expected),
+				strings.TrimSpace(h.MustString(b.GetHeadHTMLComponent(), context.TODO())))
 			if len(diff) > 0 {
 				t.Error(diff)
 			}

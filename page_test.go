@@ -226,7 +226,7 @@ var eventCases = []struct {
 	{
 		name: "case 2",
 		renderChanger: func(ctx *EventContext, pr *PageResponse) {
-			ctx.Injector.TailHTML("<script src='/assets/main.js'></script>")
+			ctx.Injector.TailHTMLComponent("mainjs", h.RawHTML("<script src='/assets/main.js'></script>"), false)
 			pr.Body = &DummyComp{}
 		},
 		expectedEventResp: `{
@@ -237,8 +237,10 @@ var eventCases = []struct {
 		expectedIndexResp: `<!DOCTYPE html>
 
 <html>
-<head><meta charset="utf8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+<head>
+<meta charset='utf8'></meta>
+
+<meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'></meta>
 </head>
 
 <body class='front'>
@@ -357,7 +359,6 @@ func TestMultiplePagesAndEvents(t *testing.T) {
 	}
 
 }
-
 
 func TestEmbed(t *testing.T) {
 	pack := JSComponentsPack()

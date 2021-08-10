@@ -58,13 +58,14 @@ func defaultLayoutFunc(r *http.Request, injector *PageInjector, body string) (ou
 
 	root := h.HTML(
 		h.Head(
-			h.RawHTML(injector.GetHeadString()),
+			injector.GetHeadHTMLComponent(),
 		),
 		h.Body(
 			h.Div(
 				h.RawHTML(body),
+				injector.GetBodyHTMLComponent(),
 			).Id("app").Attr("v-cloak", true),
-			h.RawHTML(injector.GetTailString()),
+			injector.GetTailHTMLComponent(),
 		).Class("front"),
 	)
 
