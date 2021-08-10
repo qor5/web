@@ -28,7 +28,7 @@ type injectPosition int
 const (
 	head injectPosition = iota
 	tail
-	body
+	extra
 )
 
 func (b *PageInjector) putComp(key interface{}, comp h.HTMLComponent, pos injectPosition, replace bool) {
@@ -88,8 +88,8 @@ func (b *PageInjector) TailHTMLComponent(key interface{}, comp h.HTMLComponent, 
 	return
 }
 
-func (b *PageInjector) BodyHTMLComponent(key interface{}, comp h.HTMLComponent, replace bool) {
-	b.putComp(key, comp, body, replace)
+func (b *PageInjector) ExtraHTMLComponent(key interface{}, comp h.HTMLComponent, replace bool) {
+	b.putComp(key, comp, extra, replace)
 	return
 }
 
@@ -125,8 +125,12 @@ func (b *PageInjector) GetTailHTMLComponent() h.HTMLComponent {
 	return toHTMLComponent(b.comps[tail])
 }
 
-func (b *PageInjector) GetBodyHTMLComponent() h.HTMLComponent {
-	return toHTMLComponent(b.comps[body])
+func (b *PageInjector) GetExtraHTMLComponent(key interface{}) h.HTMLComponent {
+	kc := b.getComp(key, extra)
+	if kc == nil {
+		return nil
+	}
+	return kc.comp
 }
 
 func (b *PageInjector) addCharsetViewPortIfMissing() {
