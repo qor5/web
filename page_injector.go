@@ -125,12 +125,8 @@ func (b *PageInjector) GetTailHTMLComponent() h.HTMLComponent {
 	return toHTMLComponent(b.comps[tail])
 }
 
-func (b *PageInjector) GetExtraHTMLComponent(key interface{}) h.HTMLComponent {
-	kc := b.getComp(key, extra)
-	if kc == nil {
-		return nil
-	}
-	return kc.comp
+func (b *PageInjector) GetExtraHTMLComponent() h.HTMLComponent {
+	return toHTMLComponent(b.comps[extra])
 }
 
 func (b *PageInjector) addCharsetViewPortIfMissing() {
