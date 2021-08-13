@@ -15,6 +15,7 @@ type VueEventTagBuilder struct {
 	eventType     string
 	eventFunc     *EventFuncID
 	url           *string
+	eventScript   *string
 }
 
 func Bind(b h.MutableAttrHTMLComponent) (r *VueEventTagBuilder) {
@@ -75,6 +76,11 @@ func (b *VueEventTagBuilder) On(eventType string) (r *VueEventTagBuilder) {
 	return b
 }
 
+func (b *VueEventTagBuilder) EventScript(eventScript string) (r *VueEventTagBuilder) {
+	b.eventScript = &eventScript
+	return b
+}
+
 func (b *VueEventTagBuilder) EventFunc(eventFuncId string, params ...string) (r *VueEventTagBuilder) {
 	b.eventFunc.ID = eventFuncId
 	b.eventFunc.Params = params
@@ -118,6 +124,10 @@ func (b *VueEventTagBuilder) Update() {
 		)
 	} else if b.eventFunc.PushState != nil {
 		callFunc = fmt.Sprintf("topage(%s)", h.JSONString(b.eventFunc.PushState))
+	}
+
+	if b.eventScript != nil {
+		callFunc = fmt.Sprintf("%s; %s", *b.eventScript, callFunc)
 	}
 
 	if len(callFunc) > 0 {

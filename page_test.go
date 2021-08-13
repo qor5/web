@@ -288,7 +288,12 @@ var mountCases = []struct {
 		method:   "GET",
 		path:     "/home/topics/xgb123",
 		bodyFunc: nil,
-		expected: `<div><a href="#" v-on:click='triggerEventFunc({"id":"bookmark","pushState":null}, $event, null)'>xgb123</a></div>`,
+		expected: `
+<div>
+	<a href="#" v-on:click='triggerEventFunc({"id":"bookmark","pushState":null}, $event, null)'>xgb123</a>
+	<a href="#" v-on:blur='alert(1); triggerEventFunc({"id":"doIt","pushState":null}, $event, null)'>hello</a>
+</div>
+`,
 	},
 	{
 		name:   "with param post",
@@ -320,6 +325,10 @@ func TestMultiplePagesAndEvents(t *testing.T) {
 		r.Body = h.Div(
 			Bind(h.A().Href("#").Text(topicId)).
 				OnClick("bookmark"),
+			Bind(h.A().Href("#").Text("hello")).
+				On("blur").
+				EventScript("alert(1)").
+				EventFunc("doIt"),
 		)
 		return
 	}
