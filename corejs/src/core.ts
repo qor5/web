@@ -24,7 +24,6 @@ declare var window: any;
 export class Core {
 	public debounce = debounce;
 
-	private debounceFetchEventThenRefresh = debounce(this.fetchEventThenRefresh, 800);
 	private form: FormData;
 	private rootChangeCurrent: any;
 	private changeCurrent: any;
@@ -192,26 +191,21 @@ export class Core {
 	private newVueMethods(): any {
 		const self = this;
 		return {
-			topage(pushState: any) {
-				self.loadPage(pushState);
+			loadPage(pushState: any, debouncedWait?: number) {
+				let f = self.loadPage;
+				if (debouncedWait) {
+					f = debounce(this.loadPage, debouncedWait)
+				}
+				f(pushState);
 			},
-			triggerEventFunc(eventFuncId: EventFuncID, evt: any, pageURL?: string) {
-				self.fetchEventThenRefresh(eventFuncId, jsonEvent(evt), false, pageURL);
-			},
-			oninput(eventFuncId?: EventFuncID, fieldName?: string, evt?: any) {
-				self.controlsOnInput(eventFuncId, fieldName, evt);
+			triggerEventFunc(eventFuncId: EventFuncID, evt: any, debouncedWait?: number, pageURL?: string) {
+				let f = self.fetchEventThenRefresh;
+				if (debouncedWait) {
+					f = debounce(this.fetchEventThenRefresh, debouncedWait)
+				}
+				f(eventFuncId, jsonEvent(evt), false, pageURL);
 			},
 		};
-	}
-
-	private controlsOnInput(
-		eventFuncId?: EventFuncID,
-		fieldName?: string,
-		evt?: any,
-	) {
-		if (eventFuncId) {
-			this.debounceFetchEventThenRefresh(eventFuncId, jsonEvent(evt));
-		}
 	}
 
 }

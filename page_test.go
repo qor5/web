@@ -290,8 +290,8 @@ var mountCases = []struct {
 		bodyFunc: nil,
 		expected: `
 <div>
-	<a href="#" v-on:click='triggerEventFunc({"id":"bookmark","pushState":null}, $event, null)'>xgb123</a>
-	<a href="#" v-on:blur='alert(1); triggerEventFunc({"id":"doIt","pushState":null}, $event, null)'>hello</a>
+	<a href="#" v-on:click='triggerEventFunc({"id":"bookmark","pushState":null}, $event, null, null)'>xgb123</a>
+	<a href="#" v-on:blur='alert(1); triggerEventFunc({"id":"doIt","pushState":null}, $event, null, null)'>hello</a>
 </div>
 `,
 	},

@@ -16,6 +16,7 @@ type VueEventTagBuilder struct {
 	eventFunc     *EventFuncID
 	url           *string
 	eventScript   *string
+	debouncedWait *int
 }
 
 func Bind(b h.MutableAttrHTMLComponent) (r *VueEventTagBuilder) {
@@ -40,6 +41,11 @@ func (b *VueEventTagBuilder) OnInput(eventFuncId string, params ...string) (r *V
 // request page url without push state
 func (b *VueEventTagBuilder) URL(url string) (r *VueEventTagBuilder) {
 	b.url = &url
+	return b
+}
+
+func (b *VueEventTagBuilder) Debounce(wait int) (r *VueEventTagBuilder) {
+	b.debouncedWait = &wait
 	return b
 }
 
@@ -102,14 +108,7 @@ func (b *VueEventTagBuilder) setupChange() {
 		return
 	}
 
-	b.tag.SetAttr(
-		"v-on:input",
-		fmt.Sprintf(
-			`oninput(%s, %s, $event)`,
-			h.JSONString(b.onInputFuncID),
-			h.JSONString(b.fieldName),
-		),
-	)
+	b.tag.SetAttr("v-field-name", h.JSONString(b.fieldName))
 }
 
 func (b *VueEventTagBuilder) Update() {
@@ -118,12 +117,16 @@ func (b *VueEventTagBuilder) Update() {
 	callFunc := ""
 
 	if len(b.eventFunc.ID) > 0 {
-		callFunc = fmt.Sprintf("triggerEventFunc(%s, $event, %s)",
+		callFunc = fmt.Sprintf("triggerEventFunc(%s, $event, %s, %s)",
 			h.JSONString(b.eventFunc),
+			h.JSONString(b.debouncedWait),
 			h.JSONString(b.url),
 		)
 	} else if b.eventFunc.PushState != nil {
-		callFunc = fmt.Sprintf("topage(%s)", h.JSONString(b.eventFunc.PushState))
+		callFunc = fmt.Sprintf("loadPage(%s, %s)",
+			h.JSONString(b.eventFunc.PushState),
+			h.JSONString(b.debouncedWait),
+		)
 	}
 
 	if b.eventScript != nil {
