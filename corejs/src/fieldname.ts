@@ -9,7 +9,7 @@ export function fieldNameDirective(form: FormData) {
 
 	function setValue(target: HTMLElement, fieldName: string) {
 		if (target instanceof HTMLInputElement) {
-			console.log("target.value = ", target.value, ", target.type = ", target.type, ", target.checked = ", target.checked)
+			// console.log("target.value = ", target.value, ", target.type = ", target.type, ", target.checked = ", target.checked)
 			if (target.files) {
 				form.delete(fieldName)
 				for (const f of target.files) {
@@ -40,6 +40,7 @@ export function fieldNameDirective(form: FormData) {
 			}
 			const target = evt.target as HTMLInputElement
 			setValue(target, fieldName)
+			target.dispatchEvent(new Event("fieldChange"))
 		}
 	}
 
@@ -77,6 +78,7 @@ export function fieldNameDirective(form: FormData) {
 			)
 			onComponentInput = (values: any) => {
 				setFormValue(form, fieldName, values);
+				comp.$emit("fieldChange")
 			}
 			vnode.componentInstance.$on("change", onComponentInput)
 		} else {

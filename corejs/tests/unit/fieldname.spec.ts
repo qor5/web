@@ -1,5 +1,6 @@
 import {mount} from "@vue/test-utils";
 import {fieldNameDirective} from "@/fieldname";
+import {wrap} from "lodash";
 
 describe('field name', () => {
 	it('update and v-on order', async () => {
@@ -69,20 +70,29 @@ describe('field name', () => {
 				"base-input": BaseInput,
 			},
 			template: `
-				<div>
+				<div class="Text1">
 					<textarea v-field-name='"Textarea1"'>textarea1 value</textarea>
-					<input type="text" v-field-name='"Text1"'/>
+					<input type="text" v-field-name='"Text1"' v-on:fieldChange="Text1FieldChange = 'Text1 Field Change'"/>
 					<input type="radio" v-field-name='"Radio1"' value="Radio1 checked value" checked/>
 					<input type="radio" v-field-name='"Radio1"' value="Radio1 not checked value"/>
 					<input type="hidden" v-field-name='"Hidden1"' value="hidden1value"/>
 					<input type="checkbox" v-field-name='"Checkbox1"' value="checkbox checked value" checked/>
 					<input type="checkbox" v-field-name='"Checkbox2"' value="checkbox not checked value"/>
 					<input type="number" v-field-name='"Number1"' value="123"/>
-					<base-input v-field-name='"BaseInput1"' label="Label1" value="base input value"></base-input>
+					<base-input v-field-name='"BaseInput1"' label="Label1"
+						value="base input value"
+						@fieldChange="BaseInput1FieldChange = 'BaseInput1 Field Change'"
+					></base-input>
 				</div>
 			`,
+			methods: {
+
+			},
 			data() {
-				return {  }
+				return {
+					Text1FieldChange: "",
+					BaseInput1FieldChange: ""
+				}
 			}
 		}
 
@@ -101,9 +111,12 @@ describe('field name', () => {
 		await input.setValue(value)
 		expect(form.get("Text1")).toEqual(value);
 
-		const baseInput = wrapper.find(".base-input input")
-		await baseInput.setValue(value)
+		expect(wrapper.vm.$data.Text1FieldChange).toEqual("Text1 Field Change");
+
+		const baseInput = wrapper.find(".base-input")
+		baseInput.vm.$emit("change", value)
 		expect(form.get("BaseInput1")).toEqual(value);
+		expect(wrapper.vm.$data.BaseInput1FieldChange).toEqual("BaseInput1 Field Change");
 
 	})
 })

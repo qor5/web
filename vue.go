@@ -64,7 +64,11 @@ func (b *VueEventTagBuilder) MergeQuery(mergeQuery bool) (r *VueEventTagBuilder)
 }
 
 func (b *VueEventTagBuilder) OnClick(eventFuncId string, params ...string) (r *VueEventTagBuilder) {
-	return b.EventFunc(eventFuncId, params...)
+	return b.On("click").EventFunc(eventFuncId, params...)
+}
+
+func (b *VueEventTagBuilder) OnFieldChange(eventFuncId string, params ...string) (r *VueEventTagBuilder) {
+	return b.On("fieldChange").EventFunc(eventFuncId, params...)
 }
 
 func (b *VueEventTagBuilder) On(eventType string) (r *VueEventTagBuilder) {
