@@ -9,7 +9,7 @@ export function fieldNameDirective(form: FormData) {
 
 	function setValue(target: HTMLElement, fieldName: string) {
 		if (target instanceof HTMLInputElement) {
-			// console.log("target.value = ", target.value, ", target.type = ", target.type, ", target.checked = ", target.checked)
+			console.log("target.value = ", target.value, ", target.type = ", target.type, ", target.checked = ", target.checked)
 			if (target.files) {
 				form.delete(fieldName)
 				for (const f of target.files) {
@@ -61,19 +61,24 @@ export function fieldNameDirective(form: FormData) {
 		if (vnode.componentInstance) {
 			const comp = vnode.componentInstance
 			if(onComponentInput) {
-				comp.$off("input", onComponentInput)
+				comp.$off("change", onComponentInput)
 			}
-			// console.log("vnode.componentInstance", comp.$attrs, comp.$props)
+			// console.log("vnode.componentInstance",
+			// 	comp.$props["inputValue"],
+			// 	comp.$attrs["inputValue"],
+			// 	comp.$props["value"],
+			// 	comp.$attrs["value"]
+			// 	)
 			setFormValue(form, fieldName,
-				comp.$props["input-value"] ||
-				comp.$attrs["input-value"] ||
+				comp.$props["inputValue"] ||
+				comp.$attrs["inputValue"] ||
 				comp.$props["value"] ||
 				comp.$attrs["value"]
 			)
 			onComponentInput = (values: any) => {
 				setFormValue(form, fieldName, values);
 			}
-			vnode.componentInstance.$on("input", onComponentInput)
+			vnode.componentInstance.$on("change", onComponentInput)
 		} else {
 			if(onInput) {
 				el.removeEventListener("input", onInput)

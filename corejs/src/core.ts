@@ -196,14 +196,14 @@ export class Core {
 				if (debouncedWait) {
 					f = debounce(this.loadPage, debouncedWait)
 				}
-				f(pushState);
+				f.apply(self, [pushState]);
 			},
 			triggerEventFunc(eventFuncId: EventFuncID, evt: any, debouncedWait?: number, pageURL?: string) {
 				let f = self.fetchEventThenRefresh;
 				if (debouncedWait) {
 					f = debounce(this.fetchEventThenRefresh, debouncedWait)
 				}
-				f(eventFuncId, jsonEvent(evt), false, pageURL);
+				f.apply(self, [eventFuncId, jsonEvent(evt), false, pageURL]);
 			},
 		};
 	}

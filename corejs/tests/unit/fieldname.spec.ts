@@ -2,6 +2,41 @@ import {mount} from "@vue/test-utils";
 import {fieldNameDirective} from "@/fieldname";
 
 describe('field name', () => {
+	it('update and v-on order', async () => {
+		const form = new FormData()
+
+		const Text1 = {
+			directives: {
+				"field-name": fieldNameDirective(form),
+			},
+			template: `
+				<div>
+					<input type="text" v-field-name='"Text1"'
+						v-on:input="change2($event.target.value+'later')"
+						v-on:input.trim="change2($event.target.value+'later2')"
+					/>
+				</div>
+			`,
+			methods: {
+				change2: function(val: any) {
+					console.log("change2", val)
+					form.set("Text1", val)
+				}
+			},
+			data() {
+				return {  }
+			}
+		}
+
+		const wrapper = mount(Text1)
+
+		const input = wrapper.find("input[type=text]")
+		const value = "12345"
+		await input.setValue(value)
+		expect(form.get("Text1")).toEqual("12345later");
+
+	})
+
 	it('update value in form', async () => {
 		const form = new FormData()
 

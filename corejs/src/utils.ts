@@ -196,11 +196,19 @@ export function setFormValue(form: FormData, fieldName: string, val: any) {
 	// console.log('val', val, 'Array.isArray(val)', Array.isArray(val));
 	if (Array.isArray(val)) {
 		val.forEach((v) => {
-			form.append(fieldName, v);
+			if (v instanceof File) {
+				form.append(fieldName, v, v.name);
+			} else {
+				form.append(fieldName, v);
+			}
 		});
 		return;
 	}
-	form.set(fieldName, val);
+	if (val instanceof File) {
+		form.set(fieldName, val, val.name);
+	} else {
+		form.set(fieldName, val);
+	}
 }
 
 // export function getFormValue(form: FormData, fieldName: string): string {
