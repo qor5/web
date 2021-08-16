@@ -28,16 +28,6 @@ func Bind(b h.MutableAttrHTMLComponent) (r *VueEventTagBuilder) {
 	return
 }
 
-func (b *VueEventTagBuilder) OnInput(eventFuncId string, params ...string) (r *VueEventTagBuilder) {
-
-	b.onInputFuncID = &EventFuncID{
-		ID:     eventFuncId,
-		Params: params,
-	}
-
-	return b
-}
-
 // request page url without push state
 func (b *VueEventTagBuilder) URL(url string) (r *VueEventTagBuilder) {
 	b.url = &url
