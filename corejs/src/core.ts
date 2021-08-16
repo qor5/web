@@ -209,22 +209,6 @@ export class Core {
 		fieldName?: string,
 		evt?: any,
 	) {
-		if (fieldName) {
-			if (evt.target.files) {
-				this.form.delete(fieldName);
-				for (const f of evt.target.files) {
-					this.form.append(fieldName, f, f.name);
-				}
-			} else if (evt.target.type === 'checkbox') {
-				if (evt.target.checked) {
-					this.form.set(fieldName, evt.target.value);
-				} else {
-					this.form.delete(fieldName);
-				}
-			} else {
-				this.form.set(fieldName, evt.target.value);
-			}
-		}
 		if (eventFuncId) {
 			this.debounceFetchEventThenRefresh(eventFuncId, jsonEvent(evt));
 		}
