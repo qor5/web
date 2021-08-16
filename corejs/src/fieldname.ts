@@ -7,24 +7,28 @@ export function fieldNameDirective(form: FormData) {
 	let onInput: EventListener
 	let onComponentInput: Function
 
-	function setValue(target: HTMLInputElement, fieldName: string) {
-		// console.log("target.value", target.value, "target.type", target.type, "target.checked", target.checked, target.form)
-		if (target.files) {
-			form.delete(fieldName)
-			for (const f of target.files) {
-				form.append(fieldName, f, f.name)
-			}
-		} else if (target.type === 'checkbox') {
-			if (target.checked) {
-				form.set(fieldName, target.value)
-			} else {
+	function setValue(target: HTMLElement, fieldName: string) {
+		if (target instanceof HTMLInputElement) {
+			// console.log("target.value = ", target.value, ", target.type = ", target.type, ", target.checked = ", target.checked)
+			if (target.files) {
 				form.delete(fieldName)
-			}
-		} else if (target.type === 'radio') {
-			if (target.checked) {
+				for (const f of target.files) {
+					form.append(fieldName, f, f.name)
+				}
+			} else if (target.type === 'checkbox') {
+				if (target.checked) {
+					form.set(fieldName, target.value)
+				} else {
+					form.delete(fieldName)
+				}
+			} else if (target.type === 'radio') {
+				if (target.checked) {
+					form.set(fieldName, target.value)
+				}
+			} else {
 				form.set(fieldName, target.value)
 			}
-		} else {
+		} else if (target instanceof HTMLTextAreaElement) {
 			form.set(fieldName, target.value)
 		}
 	}
@@ -59,7 +63,13 @@ export function fieldNameDirective(form: FormData) {
 			if(onComponentInput) {
 				comp.$off("input", onComponentInput)
 			}
-			setFormValue(form, fieldName, comp.$attrs["input-value"] || comp.$attrs["value"])
+			// console.log("vnode.componentInstance", comp.$attrs, comp.$props)
+			setFormValue(form, fieldName,
+				comp.$props["input-value"] ||
+				comp.$attrs["input-value"] ||
+				comp.$props["value"] ||
+				comp.$attrs["value"]
+			)
 			onComponentInput = (values: any) => {
 				setFormValue(form, fieldName, values);
 			}
@@ -68,7 +78,8 @@ export function fieldNameDirective(form: FormData) {
 			if(onInput) {
 				el.removeEventListener("input", onInput)
 			}
-			setValue(el as HTMLInputElement, fieldName)
+			// console.log("el", el, (el as HTMLInputElement).type)
+			setValue(el, fieldName)
 			onInput = inputEventHandler(fieldName)
 			el.addEventListener("input", onInput)
 		}
