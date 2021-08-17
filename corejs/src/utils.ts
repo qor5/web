@@ -231,16 +231,17 @@ export function setFormValue(form: FormData, fieldName: string, val: any) {
 		return;
 	}
 	// console.log('val', val, 'Array.isArray(val)', Array.isArray(val));
-	if (Array.isArray(val)) {
-		val.forEach((v) => {
-			if (v instanceof File) {
-				form.append(fieldName, v, v.name);
+	if (Array.isArray(val) || val instanceof FileList) {
+		for (let i=0; i < val.length; i++) {
+			if (val[i] instanceof File) {
+				form.append(fieldName, val[i], val[i].name);
 			} else {
-				form.append(fieldName, v);
+				form.append(fieldName, val[i]);
 			}
-		});
+		}
 		return;
 	}
+
 	if (val instanceof File) {
 		form.set(fieldName, val, val.name);
 	} else {
