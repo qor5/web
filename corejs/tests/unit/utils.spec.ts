@@ -15,7 +15,7 @@ describe('utils', () => {
 		expect(fd.get('f1')).toBe('1');
 	});
 
-	it('setFormValue, getFormValue, getFormValueAsArray', () => {
+	it('setFormValue', () => {
 		const fd = new FormData();
 		setFormValue(fd, 'f1', ['1', '2']);
 		expect(fd.getAll('f1')).toEqual(['1', '2']);

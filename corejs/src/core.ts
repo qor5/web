@@ -24,7 +24,6 @@ declare var window: any;
 export class Core {
 	public debounce = debounce;
 
-	private debounceFetchEventThenRefresh = debounce(this.fetchEventThenRefresh, 800);
 	private form: FormData;
 	private rootChangeCurrent: any;
 	private changeCurrent: any;
@@ -192,42 +191,31 @@ export class Core {
 	private newVueMethods(): any {
 		const self = this;
 		return {
-			topage(pushState: any) {
-				self.loadPage(pushState);
+			loadPage(pushState: any, debouncedWait?: number) {
+				let f = self.loadPage;
+				if (debouncedWait) {
+					f = debounce(this.loadPage, debouncedWait)
+				}
+				f.apply(self, [pushState]);
 			},
-			triggerEventFunc(eventFuncId: EventFuncID, evt: any, pageURL?: string) {
-				self.fetchEventThenRefresh(eventFuncId, jsonEvent(evt), false, pageURL);
+			triggerEventFunc(eventFuncId: EventFuncID,
+							 evt: any,
+							 pageURL?: string,
+							 debouncedWait?: number,
+							 fieldName?: string
+			) {
+				if (fieldName) {
+					setFormValue(self.form, fieldName, evt)
+				}
+				let f = self.fetchEventThenRefresh;
+				if (debouncedWait) {
+					f = debounce(this.fetchEventThenRefresh, debouncedWait)
+				}
+				f.apply(self, [eventFuncId, jsonEvent(evt), false, pageURL]);
 			},
-			oninput(eventFuncId?: EventFuncID, fieldName?: string, evt?: any) {
-				self.controlsOnInput(eventFuncId, fieldName, evt);
-			},
+			setFormValue(fieldName: string, val: any) {
+				setFormValue(self.form, fieldName, val)
+			}
 		};
 	}
-
-	private controlsOnInput(
-		eventFuncId?: EventFuncID,
-		fieldName?: string,
-		evt?: any,
-	) {
-		if (fieldName) {
-			if (evt.target.files) {
-				this.form.delete(fieldName);
-				for (const f of evt.target.files) {
-					this.form.append(fieldName, f, f.name);
-				}
-			} else if (evt.target.type === 'checkbox') {
-				if (evt.target.checked) {
-					this.form.set(fieldName, evt.target.value);
-				} else {
-					this.form.delete(fieldName);
-				}
-			} else {
-				this.form.set(fieldName, evt.target.value);
-			}
-		}
-		if (eventFuncId) {
-			this.debounceFetchEventThenRefresh(eventFuncId, jsonEvent(evt));
-		}
-	}
-
 }

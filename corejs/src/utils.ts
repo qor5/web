@@ -189,18 +189,64 @@ export function setFormValue(form: FormData, fieldName: string, val: any) {
 	if (!fieldName || fieldName.length === 0) {
 		return;
 	}
+
+	if (val instanceof Event) {
+		setFormValue(form, fieldName, val.target)
+		return
+	}
+
+	if (val instanceof HTMLInputElement) {
+		// console.log("target.value = ", target.value, ", target.type = ", target.type, ", target.checked = ", target.checked)
+		if (val.files) {
+			setFormValue(form, fieldName, val.files)
+			return
+		}
+
+		switch (val.type) {
+			case 'checkbox':
+				if (val.checked) {
+					form.set(fieldName, val.value)
+				} else {
+					form.delete(fieldName)
+				}
+				return
+			case 'radio':
+				if (val.checked) {
+					form.set(fieldName, val.value)
+				}
+				return
+			default:
+				form.set(fieldName, val.value)
+				return
+		}
+	}
+
+	if (val instanceof HTMLTextAreaElement) {
+		form.set(fieldName, val.value)
+		return
+	}
+
 	form.delete(fieldName);
 	if (!val) {
 		return;
 	}
 	// console.log('val', val, 'Array.isArray(val)', Array.isArray(val));
-	if (Array.isArray(val)) {
-		val.forEach((v) => {
-			form.append(fieldName, v);
-		});
+	if (Array.isArray(val) || val instanceof FileList) {
+		for (let i=0; i < val.length; i++) {
+			if (val[i] instanceof File) {
+				form.append(fieldName, val[i], val[i].name);
+			} else {
+				form.append(fieldName, val[i]);
+			}
+		}
 		return;
 	}
-	form.set(fieldName, val);
+
+	if (val instanceof File) {
+		form.set(fieldName, val, val.name);
+	} else {
+		form.set(fieldName, val);
+	}
 }
 
 // export function getFormValue(form: FormData, fieldName: string): string {

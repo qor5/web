@@ -1,5 +1,6 @@
 import Vue, { VueConstructor, VNode } from 'vue';
 import { Core } from './core';
+import {fieldNameDirective} from "./fieldname";
 
 const app = document.getElementById('app');
 if (!app) {
@@ -89,6 +90,8 @@ Vue.directive('init-context-vars', {
 		});
 	},
 });
+
+Vue.directive('field-name', fieldNameDirective(form));
 
 const vm = new Vue({
 	...{

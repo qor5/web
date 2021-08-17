@@ -290,8 +290,8 @@ var mountCases = []struct {
 		bodyFunc: nil,
 		expected: `
 <div>
-	<a href="#" v-on:click='triggerEventFunc({"id":"bookmark","pushState":null}, $event, null)'>xgb123</a>
-	<a href="#" v-on:blur='alert(1); triggerEventFunc({"id":"doIt","pushState":null}, $event, null)'>hello</a>
+	<a href="#" v-on:click='triggerEventFunc({"id":"bookmark","pushState":null}, $event, null, null, null)'>xgb123</a>
+	<a href="#" v-field-name='"Text1"' v-on:blur='alert(1); triggerEventFunc({"id":"doIt","pushState":null}, $event, null, null, "Text1")'>hello</a>
 </div>
 `,
 	},
@@ -328,6 +328,7 @@ func TestMultiplePagesAndEvents(t *testing.T) {
 			Bind(h.A().Href("#").Text("hello")).
 				On("blur").
 				EventScript("alert(1)").
+				FieldName("Text1").
 				EventFunc("doIt"),
 		)
 		return

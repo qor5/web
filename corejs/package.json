@@ -17,16 +17,18 @@
 		"whatwg-fetch": "^3.6.2"
 	},
 	"devDependencies": {
-		"@types/lodash": "^4.14.171",
-		"@vue/cli-plugin-babel": "^5.0.0-beta.2",
-		"@vue/cli-plugin-typescript": "^5.0.0-beta.2",
-		"@vue/cli-service": "^5.0.0-beta.2",
 		"@types/jest": "^26.0.24",
-		"@vue/cli-plugin-unit-jest": "^5.0.0-beta.2",
+		"@types/lodash": "^4.14.171",
+		"@vue/cli-plugin-babel": "~5.0.0-beta.3",
+		"@vue/cli-plugin-typescript": "~5.0.0-beta.3",
+		"@vue/cli-plugin-unit-jest": "~5.0.0-beta.3",
+		"@vue/cli-service": "~5.0.0-beta.3",
 		"@vue/test-utils": "1.2.1",
 		"babel-core": "7.0.0-bridge.0",
-		"ts-jest": "^27.0.3",
+		"jest": "^26.6.3",
+		"ts-jest": "^26.5.3",
 		"typescript": "^4.3.5",
+		"vue-jest": "^4.0.1",
 		"vue-template-compiler": "^2.6.14"
 	}
 }

@@ -7,8 +7,5 @@ fi
 
 rm -r $CUR/corejs/dist
 echo "Building corejs"
-cd $CUR/corejs && yarn && yarn build
+cd $CUR/corejs && npm install && npm run build
 curl -fsSL https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js > $CUR/corejs/dist/vue.min.js
-
-
-cd $CUR && packr

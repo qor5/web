@@ -11,11 +11,11 @@ import (
 type VueEventTagBuilder struct {
 	tag           h.MutableAttrHTMLComponent
 	fieldName     *string
-	onInputFuncID *EventFuncID
 	eventType     string
 	eventFunc     *EventFuncID
 	url           *string
 	eventScript   *string
+	debouncedWait *int
 }
 
 func Bind(b h.MutableAttrHTMLComponent) (r *VueEventTagBuilder) {
@@ -27,19 +27,14 @@ func Bind(b h.MutableAttrHTMLComponent) (r *VueEventTagBuilder) {
 	return
 }
 
-func (b *VueEventTagBuilder) OnInput(eventFuncId string, params ...string) (r *VueEventTagBuilder) {
-
-	b.onInputFuncID = &EventFuncID{
-		ID:     eventFuncId,
-		Params: params,
-	}
-
-	return b
-}
-
 // request page url without push state
 func (b *VueEventTagBuilder) URL(url string) (r *VueEventTagBuilder) {
 	b.url = &url
+	return b
+}
+
+func (b *VueEventTagBuilder) Debounce(wait int) (r *VueEventTagBuilder) {
+	b.debouncedWait = &wait
 	return b
 }
 
@@ -68,7 +63,7 @@ func (b *VueEventTagBuilder) MergeQuery(mergeQuery bool) (r *VueEventTagBuilder)
 }
 
 func (b *VueEventTagBuilder) OnClick(eventFuncId string, params ...string) (r *VueEventTagBuilder) {
-	return b.EventFunc(eventFuncId, params...)
+	return b.On("click").EventFunc(eventFuncId, params...)
 }
 
 func (b *VueEventTagBuilder) On(eventType string) (r *VueEventTagBuilder) {
@@ -98,18 +93,11 @@ func (b *VueEventTagBuilder) PushState(ps *PushStateBuilder) (r *VueEventTagBuil
 }
 
 func (b *VueEventTagBuilder) setupChange() {
-	if b.fieldName == nil && b.onInputFuncID == nil {
+	if b.fieldName == nil {
 		return
 	}
 
-	b.tag.SetAttr(
-		"v-on:input",
-		fmt.Sprintf(
-			`oninput(%s, %s, $event)`,
-			h.JSONString(b.onInputFuncID),
-			h.JSONString(b.fieldName),
-		),
-	)
+	b.tag.SetAttr("v-field-name", h.JSONString(b.fieldName))
 }
 
 func (b *VueEventTagBuilder) Update() {
@@ -118,12 +106,17 @@ func (b *VueEventTagBuilder) Update() {
 	callFunc := ""
 
 	if len(b.eventFunc.ID) > 0 {
-		callFunc = fmt.Sprintf("triggerEventFunc(%s, $event, %s)",
+		callFunc = fmt.Sprintf("triggerEventFunc(%s, $event, %s, %s, %s)",
 			h.JSONString(b.eventFunc),
 			h.JSONString(b.url),
+			h.JSONString(b.debouncedWait),
+			h.JSONString(b.fieldName),
 		)
 	} else if b.eventFunc.PushState != nil {
-		callFunc = fmt.Sprintf("topage(%s)", h.JSONString(b.eventFunc.PushState))
+		callFunc = fmt.Sprintf("loadPage(%s, %s)",
+			h.JSONString(b.eventFunc.PushState),
+			h.JSONString(b.debouncedWait),
+		)
 	}
 
 	if b.eventScript != nil {
