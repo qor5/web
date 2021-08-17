@@ -198,14 +198,24 @@ export class Core {
 				}
 				f.apply(self, [pushState]);
 			},
-			triggerEventFunc(eventFuncId: EventFuncID, evt: any, debouncedWait?: number, pageURL?: string) {
+			triggerEventFunc(eventFuncId: EventFuncID,
+							 evt: any,
+							 pageURL?: string,
+							 debouncedWait?: number,
+							 fieldName?: string
+			) {
+				if (fieldName) {
+					setFormValue(self.form, fieldName, evt)
+				}
 				let f = self.fetchEventThenRefresh;
 				if (debouncedWait) {
 					f = debounce(this.fetchEventThenRefresh, debouncedWait)
 				}
 				f.apply(self, [eventFuncId, jsonEvent(evt), false, pageURL]);
 			},
+			setFormValue(fieldName: string, val: any) {
+				setFormValue(self.form, fieldName, val)
+			}
 		};
 	}
-
 }

@@ -189,6 +189,43 @@ export function setFormValue(form: FormData, fieldName: string, val: any) {
 	if (!fieldName || fieldName.length === 0) {
 		return;
 	}
+
+	if (val instanceof Event) {
+		setFormValue(form, fieldName, val.target)
+		return
+	}
+
+	if (val instanceof HTMLInputElement) {
+		// console.log("target.value = ", target.value, ", target.type = ", target.type, ", target.checked = ", target.checked)
+		if (val.files) {
+			setFormValue(form, fieldName, val.files)
+			return
+		}
+
+		switch (val.type) {
+			case 'checkbox':
+				if (val.checked) {
+					form.set(fieldName, val.value)
+				} else {
+					form.delete(fieldName)
+				}
+				return
+			case 'radio':
+				if (val.checked) {
+					form.set(fieldName, val.value)
+				}
+				return
+			default:
+				form.set(fieldName, val.value)
+				return
+		}
+	}
+
+	if (val instanceof HTMLTextAreaElement) {
+		form.set(fieldName, val.value)
+		return
+	}
+
 	form.delete(fieldName);
 	if (!val) {
 		return;

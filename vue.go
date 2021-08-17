@@ -11,7 +11,6 @@ import (
 type VueEventTagBuilder struct {
 	tag           h.MutableAttrHTMLComponent
 	fieldName     *string
-	onInputFuncID *EventFuncID
 	eventType     string
 	eventFunc     *EventFuncID
 	url           *string
@@ -67,10 +66,6 @@ func (b *VueEventTagBuilder) OnClick(eventFuncId string, params ...string) (r *V
 	return b.On("click").EventFunc(eventFuncId, params...)
 }
 
-func (b *VueEventTagBuilder) OnFieldChange(eventFuncId string, params ...string) (r *VueEventTagBuilder) {
-	return b.On("fieldChange").EventFunc(eventFuncId, params...)
-}
-
 func (b *VueEventTagBuilder) On(eventType string) (r *VueEventTagBuilder) {
 	b.eventType = eventType
 	return b
@@ -98,7 +93,7 @@ func (b *VueEventTagBuilder) PushState(ps *PushStateBuilder) (r *VueEventTagBuil
 }
 
 func (b *VueEventTagBuilder) setupChange() {
-	if b.fieldName == nil && b.onInputFuncID == nil {
+	if b.fieldName == nil {
 		return
 	}
 
@@ -111,10 +106,11 @@ func (b *VueEventTagBuilder) Update() {
 	callFunc := ""
 
 	if len(b.eventFunc.ID) > 0 {
-		callFunc = fmt.Sprintf("triggerEventFunc(%s, $event, %s, %s)",
+		callFunc = fmt.Sprintf("triggerEventFunc(%s, $event, %s, %s, %s)",
 			h.JSONString(b.eventFunc),
-			h.JSONString(b.debouncedWait),
 			h.JSONString(b.url),
+			h.JSONString(b.debouncedWait),
+			h.JSONString(b.fieldName),
 		)
 	} else if b.eventFunc.PushState != nil {
 		callFunc = fmt.Sprintf("loadPage(%s, %s)",

@@ -34,7 +34,7 @@ describe('field name', () => {
 		const input = wrapper.find("input[type=text]")
 		const value = "12345"
 		await input.setValue(value)
-		expect(form.get("Text1")).toEqual("12345later");
+		expect(form.get("Text1")).toEqual("12345");
 
 	})
 
@@ -72,7 +72,7 @@ describe('field name', () => {
 			template: `
 				<div class="Text1">
 					<textarea v-field-name='"Textarea1"'>textarea1 value</textarea>
-					<input type="text" v-field-name='"Text1"' v-on:fieldChange="Text1FieldChange = 'Text1 Field Change'"/>
+					<input type="text" v-field-name='"Text1"'/>
 					<input type="radio" v-field-name='"Radio1"' value="Radio1 checked value" checked/>
 					<input type="radio" v-field-name='"Radio1"' value="Radio1 not checked value"/>
 					<input type="hidden" v-field-name='"Hidden1"' value="hidden1value"/>
@@ -81,7 +81,6 @@ describe('field name', () => {
 					<input type="number" v-field-name='"Number1"' value="123"/>
 					<base-input v-field-name='"BaseInput1"' label="Label1"
 						value="base input value"
-						@fieldChange="BaseInput1FieldChange = 'BaseInput1 Field Change'"
 					></base-input>
 				</div>
 			`,
@@ -111,12 +110,10 @@ describe('field name', () => {
 		await input.setValue(value)
 		expect(form.get("Text1")).toEqual(value);
 
-		expect(wrapper.vm.$data.Text1FieldChange).toEqual("Text1 Field Change");
 
 		const baseInput = wrapper.find(".base-input")
 		baseInput.vm.$emit("change", value)
 		expect(form.get("BaseInput1")).toEqual(value);
-		expect(wrapper.vm.$data.BaseInput1FieldChange).toEqual("BaseInput1 Field Change");
 
 	})
 })
