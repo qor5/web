@@ -62,6 +62,7 @@ export class Core {
 		event: EventData,
 		popstate?: boolean,
 		pageURL?: string,
+		vars?: any,
 	): Promise<EventResponse> {
 		const defaultURL = (window.location.pathname + window.location.search);
 
@@ -87,6 +88,13 @@ export class Core {
 		}).then((r) => {
 			return r.json();
 		}).then((r: EventResponse) => {
+				if (vars && r.varsScript) {
+					(new Function("vars", r.varsScript))(vars);
+				}
+				console.log("vars", vars, r.varsScript)
+				return r;
+		}).
+		then((r: EventResponse) => {
 
 			if (r.pageTitle) {
 				document.title = r.pageTitle;
@@ -144,7 +152,7 @@ export class Core {
 		pageURL?: string,
 		vars?: any,
 	): Promise<EventResponse> {
-		return this.fetchEvent(eventFuncId, event, popstate, pageURL)
+		return this.fetchEvent(eventFuncId, event, popstate, pageURL, vars)
 			.then((r: EventResponse) => {
 				if (r.reloadPortals && r.reloadPortals.length > 0) {
 					for (const portalName of r.reloadPortals) {
@@ -176,14 +184,8 @@ export class Core {
 					return r;
 				}
 				return r;
-			}).then((r: EventResponse) => {
-				if (vars && r.varsScript) {
-					(new Function("vars", r.varsScript))(vars);
-				}
-				return r;
 			})
 
-		;
 	}
 
 	private newVueMethods(): any {
