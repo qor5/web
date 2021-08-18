@@ -106,7 +106,7 @@ func (b *VueEventTagBuilder) Update() {
 	callFunc := ""
 
 	if len(b.eventFunc.ID) > 0 {
-		callFunc = fmt.Sprintf("triggerEventFunc(%s, $event, %s, %s, %s)",
+		callFunc = fmt.Sprintf("triggerEventFunc(%s, $event, %s, %s, %s, vars)",
 			h.JSONString(b.eventFunc),
 			h.JSONString(b.url),
 			h.JSONString(b.debouncedWait),

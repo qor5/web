@@ -16,9 +16,8 @@ type PageResponse struct {
 }
 
 type PortalUpdate struct {
-	Name        string          `json:"name,omitempty"`
-	Body        h.HTMLComponent `json:"body,omitempty"`
-	AfterLoaded string          `json:"afterLoaded,omitempty"` // Javascript new Function('comp', body)'s body that `comp` is the context Vue component
+	Name string          `json:"name,omitempty"`
+	Body h.HTMLComponent `json:"body,omitempty"`
 }
 
 // @snippet_begin(EventResponseDefinition)
@@ -30,7 +29,8 @@ type EventResponse struct {
 	RedirectURL   string            `json:"redirectURL,omitempty"` // change window url without push state
 	ReloadPortals []string          `json:"reloadPortals,omitempty"`
 	UpdatePortals []*PortalUpdate   `json:"updatePortals,omitempty"`
-	Data          interface{}       `json:"data,omitempty"` // used for return collection data like TagsInput data source
+	Data          interface{}       `json:"data,omitempty"`       // used for return collection data like TagsInput data source
+	VarsScript    string            `json:"varsScript,omitempty"` // used with InitContextVars to set values for example vars.show to used by v-model
 }
 
 // @snippet_end

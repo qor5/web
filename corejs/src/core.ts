@@ -35,11 +35,11 @@ export class Core {
 		this.changeCurrent = changeCurrent;
 	}
 
-	public loadPage(pushState: PushState, popstate?: boolean) {
+	public loadPage(pushState: PushState, popstate?: boolean): Promise<EventResponse> {
 		for (const key of this.form.keys()) {
 			this.form.delete(key);
 		}
-		this.fetchEventThenRefresh(
+		return this.fetchEventThenRefresh(
 			{
 				id: '__reload__',
 				pushState,
@@ -103,17 +103,13 @@ export class Core {
 		});
 	}
 
-	public componentByTemplate(template: string, afterLoaded?: any): VueConstructor {
+	public componentByTemplate(template: string): VueConstructor {
 		return Vue.extend({
 			provide: { core: this },
+			inject: ['vars'],
 			template: '<div>' + template + '</div>', // to make only one root.
 			methods: this.newVueMethods(),
 			mounted() {
-				this.$nextTick(() => {
-					if (afterLoaded) {
-						afterLoaded(this);
-					}
-				});
 				window.addEventListener('fetchStart', (e: Event) => {
 					this.isFetching = true;
 				});
@@ -123,7 +119,6 @@ export class Core {
 			},
 			data() {
 				return {
-					vars: {},
 					isFetching: false,
 				};
 			},
@@ -147,8 +142,9 @@ export class Core {
 		event: EventData,
 		popstate?: boolean,
 		pageURL?: string,
-	) {
-		this.fetchEvent(eventFuncId, event, popstate, pageURL)
+		vars?: any,
+	): Promise<EventResponse> {
+		return this.fetchEvent(eventFuncId, event, popstate, pageURL)
 			.then((r: EventResponse) => {
 				if (r.reloadPortals && r.reloadPortals.length > 0) {
 					for (const portalName of r.reloadPortals) {
@@ -164,11 +160,7 @@ export class Core {
 					for (const pu of r.updatePortals) {
 						const portal = window.__goplaid.portals[pu.name];
 						if (portal) {
-							let afterLoaded;
-							if (pu.afterLoaded) {
-								afterLoaded = new Function('comp', pu.afterLoaded);
-							}
-							portal.changeCurrent(this.componentByTemplate(pu.body, afterLoaded));
+							portal.changeCurrent(this.componentByTemplate(pu.body));
 						}
 					}
 					return r;
@@ -183,27 +175,34 @@ export class Core {
 					this.changeCurrent(this.componentByTemplate(r.body));
 					return r;
 				}
-
 				return r;
-			});
+			}).then((r: EventResponse) => {
+				if (vars && r.varsScript) {
+					(new Function("vars", r.varsScript))(vars);
+				}
+				return r;
+			})
+
+		;
 	}
 
 	private newVueMethods(): any {
 		const self = this;
 		return {
-			loadPage(pushState: any, debouncedWait?: number) {
+			loadPage(pushState: any, debouncedWait?: number): Promise<EventResponse> {
 				let f = self.loadPage;
 				if (debouncedWait) {
 					f = debounce(this.loadPage, debouncedWait)
 				}
-				f.apply(self, [pushState]);
+				return f.apply(self, [pushState]);
 			},
 			triggerEventFunc(eventFuncId: EventFuncID,
 							 evt: any,
 							 pageURL?: string,
 							 debouncedWait?: number,
-							 fieldName?: string
-			) {
+							 fieldName?: string,
+							 vars?: any,
+			): Promise<EventResponse> {
 				if (fieldName) {
 					setFormValue(self.form, fieldName, evt)
 				}
@@ -211,7 +210,7 @@ export class Core {
 				if (debouncedWait) {
 					f = debounce(this.fetchEventThenRefresh, debouncedWait)
 				}
-				f.apply(self, [eventFuncId, jsonEvent(evt), false, pageURL]);
+				return f.apply(self, [eventFuncId, jsonEvent(evt), false, pageURL, vars]);
 			},
 			setFormValue(fieldName: string, val: any) {
 				setFormValue(self.form, fieldName, val)

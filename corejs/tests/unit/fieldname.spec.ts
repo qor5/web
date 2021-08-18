@@ -1,6 +1,5 @@
 import {mount} from "@vue/test-utils";
 import {fieldNameDirective} from "@/fieldname";
-import {wrap} from "lodash";
 
 describe('field name', () => {
 	it('update and v-on order', async () => {
