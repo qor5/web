@@ -5,7 +5,7 @@ import {setFormValue} from "@/utils";
 
 export function fieldNameDirective(form: FormData) {
 
-	function setListeners(el: HTMLElement, vnode: VNode, fieldName: string) {
+	function setListeners(el: any, vnode: VNode, fieldName: string) {
 		if (vnode.componentInstance) {
 			const comp = vnode.componentInstance
 
@@ -15,20 +15,21 @@ export function fieldNameDirective(form: FormData) {
 			// 	comp.$props["value"],
 			// 	comp.$attrs["value"]
 			// 	)
-			setFormValue(form, fieldName,
-				comp.$props["inputValue"] ||
+
+			const value = comp.$props["inputValue"] ||
 				comp.$attrs["inputValue"] ||
 				comp.$props["value"] ||
 				comp.$attrs["value"]
-			)
-			if (el.onchange) {
-				vnode.componentInstance.$off("change", el.onchange)
+			setFormValue(form, fieldName, value)
+			if (el.__fieldNameOninput) {
+				vnode.componentInstance.$off("change", el.__fieldNameOninput)
+				vnode.componentInstance.$off("input", el.__fieldNameOninput)
 			}
-			el.onchange = (values: any) => {
+			el.__fieldNameOninput = (values: any) => {
 				setFormValue(form, fieldName, values);
-				// comp.$emit("fieldChange")
 			}
-			vnode.componentInstance.$on("change", el.onchange)
+			vnode.componentInstance.$on("change", el.__fieldNameOninput)
+			vnode.componentInstance.$on("input", el.__fieldNameOninput)
 		} else {
 			setFormValue(form, fieldName, el)
 			el.oninput = (evt: Event) => {
@@ -44,13 +45,15 @@ export function fieldNameDirective(form: FormData) {
 		setListeners(el, vnode, binding.value)
 	}
 
-	function update(el: HTMLElement, binding: VNodeDirective, vnode: VNode) {
-		setListeners(el, vnode, binding.value)
-	}
+	// Update will trigger too much, and will update to null
+	// function update(el: HTMLElement, binding: VNodeDirective, vnode: VNode) {
+	// 	console.log("updating ===>")
+	// 	setListeners(el, vnode, binding.value)
+	// }
 
 	return {
 		inserted,
-		update,
+		// update,
 	}
 }
 

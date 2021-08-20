@@ -91,7 +91,7 @@ export class Core {
 				if (vars && r.varsScript) {
 					(new Function("vars", r.varsScript))(vars);
 				}
-				console.log("vars", vars, r.varsScript)
+				// console.log("vars", vars, r.varsScript)
 				return r;
 		}).
 		then((r: EventResponse) => {
