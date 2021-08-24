@@ -1,12 +1,11 @@
 import {Core} from "@/core";
 import Vue, {VNode, VueConstructor} from 'vue';
+import {DynaCompData} from "@/component";
+import {fetchEvent} from "@/utils";
+
 declare var window: any;
 window.__goplaid = {};
 window.__goplaid.portals = {};
-
-export interface DynaCompData {
-	current: VueConstructor | null;
-}
 
 export function GoPlaidPortal(form: FormData) {
 	return Vue.extend({
@@ -48,7 +47,7 @@ export function GoPlaidPortal(form: FormData) {
 					return;
 				}
 				const self = this;
-				core.fetchEvent(ef, {})
+				fetchEvent(ef, {}, form)
 					.then((r) => {
 						self.current = core.componentByTemplate(r.body);
 					});

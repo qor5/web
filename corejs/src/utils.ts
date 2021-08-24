@@ -4,7 +4,7 @@ import union from 'lodash/union';
 import without from 'lodash/without';
 
 import {
-	EventFuncID,
+	EventFuncID, EventResponse,
 	StatePusher,
 	ValueOp,
 } from './types';
@@ -249,21 +249,49 @@ export function setFormValue(form: FormData, fieldName: string, val: any) {
 	}
 }
 
-// export function getFormValue(form: FormData, fieldName: string): string {
-// 	const val = form.get(fieldName);
-// 	if (typeof val === 'string') {
-// 		return val;
-// 	}
-// 	return '';
-// }
+export function fetchEvent(
+	eventFuncId: EventFuncID,
+	event: EventData,
+	form: FormData,
+	popstate?: boolean,
+	pageURL?: string,
+	vars?: any,
+): Promise<EventResponse> {
+	const defaultURL = (window.location.pathname + window.location.search);
 
-// export function getFormValueAsArray(form: FormData, fieldName: string): string[] {
-// 	const vals = form.getAll(fieldName);
-// 	const r: string[] = [];
-// 	for (const v of vals) {
-// 		if (typeof v === 'string') {
-// 			r.push(v);
-// 		}
-// 	}
-// 	return r;
-// }
+	const { newEventFuncId, eventURL } = setPushState(
+		eventFuncId,
+		pageURL || defaultURL,
+		window.history,
+		popstate,
+	);
+
+	const eventData = JSON.stringify({
+		eventFuncId: newEventFuncId,
+		event,
+	});
+
+	form.set('__event_data__', eventData);
+	window.dispatchEvent(new Event('fetchStart'));
+	return fetch(eventURL, {
+		method: 'POST',
+		body: form,
+	}).finally(() => {
+		window.dispatchEvent(new Event('fetchEnd'));
+	}).then((r) => {
+		return r.json();
+	}).then((r: EventResponse) => {
+		if (vars && r.varsScript) {
+			(new Function("vars", r.varsScript))(vars);
+		}
+		return r;
+	}).
+	then((r: EventResponse) => {
+
+		if (r.pageTitle) {
+			document.title = r.pageTitle;
+		}
+
+		return r;
+	});
+}

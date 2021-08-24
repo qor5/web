@@ -4,10 +4,10 @@ import 'whatwg-fetch';
 import Vue, { VueConstructor } from 'vue';
 
 import {
-	setPushState,
 	EventData,
 	setFormValue,
 	jsonEvent,
+	fetchEvent,
 } from './utils';
 
 import {
@@ -57,59 +57,6 @@ export class Core {
 		this.loadPage(event.state, true);
 	}
 
-	public fetchEvent(
-		eventFuncId: EventFuncID,
-		event: EventData,
-		popstate?: boolean,
-		pageURL?: string,
-		vars?: any,
-	): Promise<EventResponse> {
-		const defaultURL = (window.location.pathname + window.location.search);
-
-		const { newEventFuncId, eventURL } = setPushState(
-			eventFuncId,
-			pageURL || defaultURL,
-			window.history,
-			popstate,
-		);
-
-		const eventData = JSON.stringify({
-			eventFuncId: newEventFuncId,
-			event,
-		});
-
-		this.form.set('__event_data__', eventData);
-		window.dispatchEvent(new Event('fetchStart'));
-		return fetch(eventURL, {
-			method: 'POST',
-			body: this.form,
-		}).finally(() => {
-			window.dispatchEvent(new Event('fetchEnd'));
-		}).then((r) => {
-			return r.json();
-		}).then((r: EventResponse) => {
-				if (vars && r.varsScript) {
-					(new Function("vars", r.varsScript))(vars);
-				}
-				console.log("vars", vars, r.varsScript)
-				return r;
-		}).
-		then((r: EventResponse) => {
-
-			if (r.pageTitle) {
-				document.title = r.pageTitle;
-			}
-
-			if (r.redirectURL) {
-				document.location.replace(r.redirectURL);
-			}
-
-			if (r.pushState) {
-				this.loadPage(r.pushState);
-			}
-			return r;
-		});
-	}
 
 	public componentByTemplate(template: string): VueConstructor {
 		return Vue.extend({
@@ -152,8 +99,18 @@ export class Core {
 		pageURL?: string,
 		vars?: any,
 	): Promise<EventResponse> {
-		return this.fetchEvent(eventFuncId, event, popstate, pageURL, vars)
+		return fetchEvent(eventFuncId, event, this.form, popstate, pageURL, vars)
 			.then((r: EventResponse) => {
+
+				if (r.redirectURL) {
+					document.location.replace(r.redirectURL);
+					return r
+				}
+
+				if (r.pushState) {
+					return this.loadPage(r.pushState);
+				}
+
 				if (r.reloadPortals && r.reloadPortals.length > 0) {
 					for (const portalName of r.reloadPortals) {
 						const portal = window.__goplaid.portals[portalName];

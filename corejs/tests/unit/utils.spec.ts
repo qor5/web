@@ -48,7 +48,7 @@ describe('utils', () => {
 				popstate: false,
 				expectedEventURL: '/page1?__execute_event__=hello&hello=1&name=felix&page=2',
 				expectedPushedURL: '/page1?hello=1&name=felix&page=2',
-				expectedPushedState: { name: ['felix'], hello: ['1'], page: ['2'] },
+				expectedPushedState: { name : ['felix'], hello: ['1'], page: ['2'] },
 				expectedPushedData: { query: { hello: '1', name: 'felix', page: '2' }, url: '/page1?hello=1&name=felix&page=2' },
 			},
 			{

@@ -12,6 +12,8 @@ export function initContextVars() {
 				return;
 			}
 
+			// console.log("vnode.context", vnode.context?.$el)
+
 			Object.keys(binding.value).forEach((k) => {
 				if (ctx.vars.hasOwnProperty(k)) {
 					return
