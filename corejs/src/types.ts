@@ -4,8 +4,10 @@ export interface ValueOp {
 	remove?: boolean;
 }
 
-interface PushStateQuery {
-	[key: string]: null | undefined | string | string[] | ValueOp;
+export type PushStateQueryValue = null | undefined | string | string[] | ValueOp;
+
+export interface PushStateQuery {
+	[key: string]: PushStateQueryValue;
 }
 
 export interface PushState {
