@@ -5,37 +5,14 @@ import without from 'lodash/without';
 
 import {
 	EventFuncID,
-	StatePusher,
 	ValueOp,
 } from './types';
+import Vue, {VueConstructor} from "vue";
 
-
-export function newFormWithStates(states: any): FormData {
-	const f = new FormData();
-	if (!states) {
-		return f;
-	}
-	mergeStatesIntoForm(f, states);
-	return f;
-}
-
-export function mergeStatesIntoForm(form: FormData, states: any) {
-	if (!states) {
-		return;
-	}
-	for (const k of Object.keys(states)) {
-		form.delete(k);
-		for (const v of states[k]) {
-			form.append(k, v);
-		}
-	}
-}
 
 export function setPushState(
 	eventFuncId: EventFuncID,
 	url: string,
-	pusher: StatePusher,
-	popstate: boolean | undefined,
 ): any {
 	let pstate = eventFuncId.pushState;
 
@@ -63,6 +40,8 @@ export function setPushState(
 	}
 
 	let serverPushState: any = null;
+	let pushStateArgs;
+
 	if (pstate) {
 		const st = pstate.query || orig.query;
 
@@ -87,15 +66,10 @@ export function setPushState(
 			requestQuery = { ...requestQuery, ...query };
 		}
 
-		if (popstate !== true) {
-			const newUrl = orig.url + addressBarQuery;
-			const pushedState = { query, url: newUrl };
-			pusher.pushState(
-				pushedState,
-				'',
-				newUrl,
-			);
-		}
+
+		const newUrl = orig.url + addressBarQuery;
+		const pushedState = { query, url: newUrl };
+		pushStateArgs = [pushedState, '', newUrl];
 
 		serverPushState = {};
 		Object.keys(query).forEach((key) => {
@@ -111,6 +85,7 @@ export function setPushState(
 	eventFuncId.pushState = serverPushState;
 
 	return {
+		pushStateArgs: pushStateArgs,
 		newEventFuncId: eventFuncId,
 		eventURL: `${orig.url}?${querystring.stringify(requestQuery, { arrayFormat: 'comma' })}`,
 	};
@@ -249,21 +224,11 @@ export function setFormValue(form: FormData, fieldName: string, val: any) {
 	}
 }
 
-// export function getFormValue(form: FormData, fieldName: string): string {
-// 	const val = form.get(fieldName);
-// 	if (typeof val === 'string') {
-// 		return val;
-// 	}
-// 	return '';
-// }
+export function componentByTemplate(template: string): VueConstructor {
+	return Vue.extend({
+		inject: ['vars'],
+		template: '<div>' + template + '</div>', // to make only one root.
 
-// export function getFormValueAsArray(form: FormData, fieldName: string): string[] {
-// 	const vals = form.getAll(fieldName);
-// 	const r: string[] = [];
-// 	for (const v of vals) {
-// 		if (typeof v === 'string') {
-// 			r.push(v);
-// 		}
-// 	}
-// 	return r;
-// }
+
+	});
+}

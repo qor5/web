@@ -290,8 +290,8 @@ var mountCases = []struct {
 		bodyFunc: nil,
 		expected: `
 <div>
-	<a href="#" v-on:click='triggerEventFunc({"id":"bookmark","pushState":null}, $event, null, null, null, vars)'>xgb123</a>
-	<a href="#" v-field-name='"Text1"' v-on:blur='alert(1); triggerEventFunc({"id":"doIt","pushState":null}, $event, null, null, "Text1", vars)'>hello</a>
+	<a href="#" v-on:click='$plaid().event($event).vars(vars).eventFunc("bookmark").go()'>xgb123</a>
+	<a href="#" v-on:blur='$plaid().event($event).vars(vars).run("alert(1)").fieldValue("Text1", $event).eventFunc("doIt").go()'>hello</a>
 </div>
 `,
 	},
@@ -323,13 +323,15 @@ func TestMultiplePagesAndEvents(t *testing.T) {
 
 		topicId := pat.Param(ctx.R, "topicID")
 		r.Body = h.Div(
-			Bind(h.A().Href("#").Text(topicId)).
-				OnClick("bookmark"),
-			Bind(h.A().Href("#").Text("hello")).
-				On("blur").
-				EventScript("alert(1)").
-				FieldName("Text1").
-				EventFunc("doIt"),
+			h.A().Href("#").Text(topicId).
+				Attr("v-on:click", Plaid().EventFunc("bookmark").Go()),
+			h.A().Href("#").Text("hello").
+				Attr("v-on:blur", Plaid().
+					Run("alert(1)").
+					FieldValue("Text1", Var("$event")).
+					EventFunc("doIt").
+					Go(),
+				),
 		)
 		return
 	}

@@ -1,5 +1,6 @@
-import {Core} from "@/core";
-import Vue, {VNode, VueConstructor} from 'vue';
+import Vue, {VueConstructor} from 'vue';
+import {componentByTemplate} from "@/utils";
+import {EventResponse} from "@/types";
 declare var window: any;
 window.__goplaid = {};
 window.__goplaid.portals = {};
@@ -35,11 +36,11 @@ export function GoPlaidPortal(form: FormData) {
 
 		methods: {
 			reload() {
-				const rootChangeCurrent = (this.$root as any).changeCurrent;
-				const core = new Core(form, rootChangeCurrent, this.changeCurrent);
+				// const rootChangeCurrent = (this.$root as any).changeCurrent;
+				// const core = new Core(form, rootChangeCurrent, this.changeCurrent);
 
 				if (this.$slots.default) {
-					this.current = core.componentByTemplate('<slot></slot>');
+					this.current = componentByTemplate('<slot></slot>');
 					return;
 				}
 
@@ -48,9 +49,10 @@ export function GoPlaidPortal(form: FormData) {
 					return;
 				}
 				const self = this;
-				core.fetchEvent(ef, {})
-					.then((r) => {
-						self.current = core.componentByTemplate(r.body);
+				(this as any).$plaid().
+					eventFuncID(ef).
+					go().then((r: EventResponse) => {
+						self.current = componentByTemplate(r.body);
 					});
 			},
 			changeCurrent(newView: any) {

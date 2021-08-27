@@ -1,136 +1,234 @@
 package web
 
 import (
-	"context"
 	"fmt"
 	"net/url"
+	"strings"
 
 	h "github.com/theplant/htmlgo"
 )
 
-type VueEventTagBuilder struct {
-	tag           h.MutableAttrHTMLComponent
-	fieldName     *string
-	eventType     string
-	eventFunc     *EventFuncID
-	url           *string
-	eventScript   *string
-	debouncedWait *int
+type jsCall struct {
+	method string
+	args   []interface{}
+	raw    string
 }
 
-func Bind(b h.MutableAttrHTMLComponent) (r *VueEventTagBuilder) {
+type Var string
+
+type VueEventTagBuilder struct {
+	calls []jsCall
+}
+
+func Plaid() (r *VueEventTagBuilder) {
 	r = &VueEventTagBuilder{
-		eventType: "click",
-		eventFunc: &EventFuncID{},
+		calls: []jsCall{
+			{
+				method: "$plaid",
+			},
+		},
 	}
-	r.tag = b
+	r.Event(Var("$event")).
+		Vars(Var("vars"))
 	return
 }
 
-// request page url without push state
-func (b *VueEventTagBuilder) URL(url string) (r *VueEventTagBuilder) {
-	b.url = &url
+// URL is request page url without push state
+func (b *VueEventTagBuilder) URL(url interface{}) (r *VueEventTagBuilder) {
+	b.calls = append(b.calls, jsCall{
+		method: "url",
+		args:   []interface{}{url},
+	})
 	return b
 }
 
 func (b *VueEventTagBuilder) Debounce(wait int) (r *VueEventTagBuilder) {
-	b.debouncedWait = &wait
+	b.calls = append(b.calls, jsCall{
+		method: "debounce",
+		args:   []interface{}{wait},
+	})
 	return b
 }
 
-func (b *VueEventTagBuilder) PushStateURL(pageURL string) (r *VueEventTagBuilder) {
-	if b.eventFunc.PushState == nil {
-		b.eventFunc.PushState = PushState(nil)
+func (b *VueEventTagBuilder) EventFuncID(v EventFuncID) (r *VueEventTagBuilder) {
+	b.calls = append(b.calls, jsCall{
+		method: "eventFuncID",
+		args:   []interface{}{v},
+	})
+	return b
+}
+
+func (b *VueEventTagBuilder) EventFunc(id string, params ...string) (r *VueEventTagBuilder) {
+	c := jsCall{
+		method: "eventFunc",
+		args:   []interface{}{id},
 	}
-	b.eventFunc.PushState.URL(pageURL)
-	return b
-}
-
-func (b *VueEventTagBuilder) PushStateQuery(q url.Values) (r *VueEventTagBuilder) {
-	if b.eventFunc.PushState == nil {
-		b.eventFunc.PushState = PushState(nil)
+	for _, p := range params {
+		c.args = append(c.args, p)
 	}
-	b.eventFunc.PushState.Query(q)
+	b.calls = append(b.calls, c)
 	return b
 }
 
-func (b *VueEventTagBuilder) MergeQuery(mergeQuery bool) (r *VueEventTagBuilder) {
-	if b.eventFunc.PushState == nil {
-		b.eventFunc.PushState = PushState(nil)
+func (b *VueEventTagBuilder) Reload() (r *VueEventTagBuilder) {
+	b.calls = append(b.calls, jsCall{
+		method: "reload",
+	})
+	return b
+}
+
+func (b *VueEventTagBuilder) Event(v interface{}) (r *VueEventTagBuilder) {
+	b.calls = append(b.calls, jsCall{
+		method: "event",
+		args:   []interface{}{v},
+	})
+	return b
+}
+
+func (b *VueEventTagBuilder) Vars(v interface{}) (r *VueEventTagBuilder) {
+	b.calls = append(b.calls, jsCall{
+		method: "vars",
+		args:   []interface{}{v},
+	})
+	return b
+}
+
+func (b *VueEventTagBuilder) MergeQuery(v interface{}) (r *VueEventTagBuilder) {
+	b.calls = append(b.calls, jsCall{
+		method: "mergeQuery",
+		args:   []interface{}{v},
+	})
+	return b
+}
+
+func (b *VueEventTagBuilder) Query(key string, vs interface{}) (r *VueEventTagBuilder) {
+	b.calls = append(b.calls, jsCall{
+		method: "query",
+		args:   []interface{}{key, vs},
+	})
+	return b
+}
+
+func (b *VueEventTagBuilder) PushState(v *PushStateBuilder) (r *VueEventTagBuilder) {
+	b.calls = append(b.calls, jsCall{
+		method: "pushState",
+		args:   []interface{}{v},
+	})
+	return b
+}
+
+func (b *VueEventTagBuilder) PushStateQuery(v url.Values) (r *VueEventTagBuilder) {
+	b.calls = append(b.calls, jsCall{
+		method: "pushStateQuery",
+		args:   []interface{}{v},
+	})
+	return b
+}
+
+func (b *VueEventTagBuilder) PushStateURL(v string) (r *VueEventTagBuilder) {
+	b.calls = append(b.calls, jsCall{
+		method: "pushStateURL",
+		args:   []interface{}{v},
+	})
+	return b
+}
+
+func (b *VueEventTagBuilder) Form(v interface{}) (r *VueEventTagBuilder) {
+	b.calls = append(b.calls, jsCall{
+		method: "form",
+		args:   []interface{}{v},
+	})
+	return b
+}
+
+func (b *VueEventTagBuilder) FormClear() (r *VueEventTagBuilder) {
+	b.calls = append(b.calls, jsCall{
+		method: "formClear",
+	})
+	return b
+}
+
+func (b *VueEventTagBuilder) FieldValue(name string, v interface{}) (r *VueEventTagBuilder) {
+	b.calls = append(b.calls, jsCall{
+		method: "fieldValue",
+		args:   []interface{}{name, v},
+	})
+	return b
+}
+
+func (b *VueEventTagBuilder) PopState(v interface{}) (r *VueEventTagBuilder) {
+	b.calls = append(b.calls, jsCall{
+		method: "popstate",
+		args:   []interface{}{v},
+	})
+	return b
+}
+
+func (b *VueEventTagBuilder) Run(v string) (r *VueEventTagBuilder) {
+	b.calls = append(b.calls, jsCall{
+		method: "run",
+		args:   []interface{}{v},
+	})
+	return b
+}
+
+func (b *VueEventTagBuilder) Raw(script string) (r *VueEventTagBuilder) {
+	b.calls = append(b.calls, jsCall{
+		raw: script,
+	})
+	return b
+}
+
+func (b *VueEventTagBuilder) Go() (r string) {
+	b.Raw("go()")
+	return b.String()
+}
+
+func (b *VueEventTagBuilder) String() string {
+	var cs []string
+	for _, c := range b.calls {
+		if len(c.raw) > 0 {
+			cs = append(cs, c.raw)
+			continue
+		}
+
+		if len(c.args) == 0 {
+			cs = append(cs, fmt.Sprintf("%s()", c.method))
+			continue
+		}
+
+		if len(c.args) == 1 {
+			cs = append(cs, fmt.Sprintf("%s(%s)", c.method, toJsValue(c.args[0])))
+			continue
+		}
+
+		var args []string
+		for _, arg := range c.args {
+			args = append(args, toJsValue(arg))
+		}
+		cs = append(cs, fmt.Sprintf("%s(%s)", c.method, strings.Join(args, ", ")))
 	}
-	b.eventFunc.PushState.MergeQuery(mergeQuery)
-	return b
+	return strings.Join(cs, ".")
 }
 
-func (b *VueEventTagBuilder) OnClick(eventFuncId string, params ...string) (r *VueEventTagBuilder) {
-	return b.On("click").EventFunc(eventFuncId, params...)
-}
-
-func (b *VueEventTagBuilder) On(eventType string) (r *VueEventTagBuilder) {
-	b.eventType = eventType
-	return b
-}
-
-func (b *VueEventTagBuilder) EventScript(eventScript string) (r *VueEventTagBuilder) {
-	b.eventScript = &eventScript
-	return b
-}
-
-func (b *VueEventTagBuilder) EventFunc(eventFuncId string, params ...string) (r *VueEventTagBuilder) {
-	b.eventFunc.ID = eventFuncId
-	b.eventFunc.Params = params
-	return b
-}
-
-func (b *VueEventTagBuilder) FieldName(v string) (r *VueEventTagBuilder) {
-	b.fieldName = &v
-	return b
-}
-
-func (b *VueEventTagBuilder) PushState(ps *PushStateBuilder) (r *VueEventTagBuilder) {
-	b.eventFunc.PushState = ps
-	return b
-}
-
-func (b *VueEventTagBuilder) setupChange() {
-	if b.fieldName == nil {
-		return
-	}
-
-	b.tag.SetAttr("v-field-name", h.JSONString(b.fieldName))
-}
-
-func (b *VueEventTagBuilder) Update() {
-	b.setupChange()
-
-	callFunc := ""
-
-	if len(b.eventFunc.ID) > 0 {
-		callFunc = fmt.Sprintf("triggerEventFunc(%s, $event, %s, %s, %s, vars)",
-			h.JSONString(b.eventFunc),
-			h.JSONString(b.url),
-			h.JSONString(b.debouncedWait),
-			h.JSONString(b.fieldName),
-		)
-	} else if b.eventFunc.PushState != nil {
-		callFunc = fmt.Sprintf("loadPage(%s, %s)",
-			h.JSONString(b.eventFunc.PushState),
-			h.JSONString(b.debouncedWait),
-		)
-	}
-
-	if b.eventScript != nil {
-		callFunc = fmt.Sprintf("%s; %s", *b.eventScript, callFunc)
-	}
-
-	if len(callFunc) > 0 {
-		b.tag.SetAttr(fmt.Sprintf("v-on:%s", b.eventType), callFunc)
+func toJsValue(v interface{}) string {
+	switch v.(type) {
+	case Var:
+		return fmt.Sprint(v)
+	default:
+		return h.JSONString(v)
 	}
 }
 
-func (b *VueEventTagBuilder) MarshalHTML(ctx context.Context) (r []byte, err error) {
-	b.Update()
-	return b.tag.MarshalHTML(ctx)
+func (b *VueEventTagBuilder) MarshalJSON() ([]byte, error) {
+	panic(fmt.Sprintf("call .Go() at the end, value: %s", b.String()))
 }
 
 const InitContextVars = "v-init-context-vars"
+
+func VFieldName(v string) []interface{} {
+	return []interface{}{
+		"v-field-name",
+		h.JSONString(v),
+	}
+}

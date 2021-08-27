@@ -19,7 +19,7 @@ export interface PushState {
 export interface EventFuncID {
 	id: string;
 	params?: string[];
-	pushState?: PushState;
+	pushState?: PushState | string;
 }
 
 export interface PortalUpdate {
@@ -39,8 +39,4 @@ export interface EventResponse {
 	reloadPortals?: string[];
 	updatePortals?: PortalUpdate[];
 	varsScript?: string;
-}
-
-export interface StatePusher {
-	pushState(data: any, title: string, url?: string | null): void;
 }

@@ -1,8 +1,9 @@
-import Vue, { VueConstructor, VNode } from 'vue';
-import { Core } from '@/core';
+import Vue from 'vue';
 import {fieldNameDirective} from "@/fieldname";
-import {GoPlaidPortal} from "@/portal";
+import {DynaCompData, GoPlaidPortal} from "@/portal";
 import {initContextVars} from "@/initcontextvars";
+import {Builder, plaid} from "@/builder";
+import {componentByTemplate} from "@/utils";
 
 const app = document.getElementById('app');
 if (!app) {
@@ -21,6 +22,29 @@ const form = new FormData();
 Vue.component('GoPlaidPortal', GoPlaidPortal(form));
 Vue.directive('init-context-vars', initContextVars());
 Vue.directive('field-name', fieldNameDirective(form));
+Vue.mixin({
+	mounted() {
+		window.addEventListener('fetchStart', (e: Event) => {
+			(this as any).isFetching = true;
+		});
+		window.addEventListener('fetchEnd', (e: Event) => {
+			(this as any).isFetching = false;
+		});
+	},
+	data() {
+		return {
+			isFetching: false,
+		};
+	},
+	methods: {
+		$plaid: function (): Builder {
+			return plaid().
+				vueContext(this).
+				form(form).
+				vars((this as any).vars)
+		}
+	}
+})
 
 const vm = new Vue({
 	...{
@@ -35,21 +59,14 @@ const vm = new Vue({
 	</div>
 `,
 
-		methods: {
-			changeCurrent(newView: any) {
-				this.current = newView;
-			},
-		},
-
 		mounted() {
-			const core = new Core(form, this.changeCurrent, this.changeCurrent);
-			this.changeCurrent(core.componentByTemplate(app.innerHTML));
+			this.current = componentByTemplate(app.innerHTML)
 			window.onpopstate = (evt: any) => {
-				core.onpopstate(evt);
+				(this as any).$plaid().onpopstate(evt);
 			};
 		},
 
-		data() {
+		data(): DynaCompData {
 			return {
 				current: null,
 			};
