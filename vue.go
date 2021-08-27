@@ -17,7 +17,9 @@ type jsCall struct {
 type Var string
 
 type VueEventTagBuilder struct {
-	calls []jsCall
+	beforeScript string
+	calls        []jsCall
+	afterScript  string
 }
 
 func Plaid() (r *VueEventTagBuilder) {
@@ -71,9 +73,7 @@ func (b *VueEventTagBuilder) EventFunc(id string, params ...string) (r *VueEvent
 }
 
 func (b *VueEventTagBuilder) Reload() (r *VueEventTagBuilder) {
-	b.calls = append(b.calls, jsCall{
-		method: "reload",
-	})
+	b.Raw("reload()")
 	return b
 }
 
@@ -164,14 +164,6 @@ func (b *VueEventTagBuilder) PopState(v interface{}) (r *VueEventTagBuilder) {
 	return b
 }
 
-func (b *VueEventTagBuilder) Run(v string) (r *VueEventTagBuilder) {
-	b.calls = append(b.calls, jsCall{
-		method: "run",
-		args:   []interface{}{v},
-	})
-	return b
-}
-
 func (b *VueEventTagBuilder) Raw(script string) (r *VueEventTagBuilder) {
 	b.calls = append(b.calls, jsCall{
 		raw: script,
@@ -182,6 +174,16 @@ func (b *VueEventTagBuilder) Raw(script string) (r *VueEventTagBuilder) {
 func (b *VueEventTagBuilder) Go() (r string) {
 	b.Raw("go()")
 	return b.String()
+}
+
+func (b *VueEventTagBuilder) BeforeScript(script string) (r *VueEventTagBuilder) {
+	b.beforeScript = script
+	return b
+}
+
+func (b *VueEventTagBuilder) AfterScript(script string) (r *VueEventTagBuilder) {
+	b.afterScript = script
+	return b
 }
 
 func (b *VueEventTagBuilder) String() string {
@@ -208,7 +210,16 @@ func (b *VueEventTagBuilder) String() string {
 		}
 		cs = append(cs, fmt.Sprintf("%s(%s)", c.method, strings.Join(args, ", ")))
 	}
-	return strings.Join(cs, ".")
+
+	var sems []string
+	if len(b.beforeScript) > 0 {
+		sems = append(sems, b.beforeScript)
+	}
+	sems = append(sems, strings.Join(cs, "."))
+	if len(b.afterScript) > 0 {
+		sems = append(sems, b.afterScript)
+	}
+	return strings.Join(sems, "; ")
 }
 
 func toJsValue(v interface{}) string {

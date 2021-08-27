@@ -291,7 +291,7 @@ var mountCases = []struct {
 		expected: `
 <div>
 	<a href="#" v-on:click='$plaid().event($event).vars(vars).eventFunc("bookmark").go()'>xgb123</a>
-	<a href="#" v-on:blur='$plaid().event($event).vars(vars).run("alert(1)").fieldValue("Text1", $event).eventFunc("doIt").go()'>hello</a>
+	<a href="#" v-on:blur='alert(1); $plaid().event($event).vars(vars).fieldValue("Text1", $event).eventFunc("doIt").go()'>hello</a>
 </div>
 `,
 	},
@@ -327,7 +327,7 @@ func TestMultiplePagesAndEvents(t *testing.T) {
 				Attr("v-on:click", Plaid().EventFunc("bookmark").Go()),
 			h.A().Href("#").Text("hello").
 				Attr("v-on:blur", Plaid().
-					Run("alert(1)").
+					BeforeScript("alert(1)").
 					FieldValue("Text1", Var("$event")).
 					EventFunc("doIt").
 					Go(),
