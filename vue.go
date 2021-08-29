@@ -44,10 +44,10 @@ func (b *VueEventTagBuilder) URL(url interface{}) (r *VueEventTagBuilder) {
 	return b
 }
 
-func (b *VueEventTagBuilder) Debounce(wait int) (r *VueEventTagBuilder) {
+func (b *VueEventTagBuilder) Debounce(v bool) (r *VueEventTagBuilder) {
 	b.calls = append(b.calls, jsCall{
 		method: "debounce",
-		args:   []interface{}{wait},
+		args:   []interface{}{v},
 	})
 	return b
 }
