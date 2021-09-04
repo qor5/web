@@ -319,7 +319,8 @@ func TestMultiplePagesAndEvents(t *testing.T) {
 	}
 
 	var topicDetail = func(ctx *EventContext) (r PageResponse, err error) {
-		ctx.Hub.RegisterEventFunc("bookmark", bookmark)
+		// remove to test global event func with web.New().RegisterEventFunc
+		//ctx.Hub.RegisterEventFunc("bookmark", bookmark)
 
 		topicId := pat.Param(ctx.R, "topicID")
 		r.Body = h.Div(
@@ -337,6 +338,7 @@ func TestMultiplePagesAndEvents(t *testing.T) {
 	}
 
 	pb := New()
+	pb.RegisterEventFunc("bookmark", bookmark)
 
 	mux := goji.NewMux()
 	mux.Handle(pat.New("/home/topics/:topicID"), pb.Page(topicDetail))

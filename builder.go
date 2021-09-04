@@ -11,6 +11,7 @@ import (
 )
 
 type Builder struct {
+	EventsHub
 	layoutFunc LayoutFunc
 }
 

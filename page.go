@@ -13,8 +13,8 @@ import (
 )
 
 type PageBuilder struct {
+	EventsHub
 	b              *Builder
-	eventFuncs     []*idEventFunc
 	pageRenderFunc PageFunc
 	maxFormSize    int64
 }
@@ -31,31 +31,6 @@ func (p *PageBuilder) MaxFormSize(v int64) (r *PageBuilder) {
 	p.maxFormSize = v
 	r = p
 	return
-}
-
-func (p *PageBuilder) RegisterEventFunc(eventFuncId string, ef EventFunc) (key string) {
-	key = eventFuncId
-	if p.eventFuncById(eventFuncId) != nil {
-		return
-	}
-
-	p.eventFuncs = append(p.eventFuncs, &idEventFunc{eventFuncId, ef})
-	return
-}
-
-func (p *PageBuilder) eventFuncById(id string) (r EventFunc) {
-	for _, ne := range p.eventFuncs {
-		if ne.id == id {
-			r = ne.ef
-			return
-		}
-	}
-	return
-}
-
-type idEventFunc struct {
-	id string
-	ef EventFunc
 }
 
 type eventBody struct {
@@ -168,13 +143,19 @@ func (p *PageBuilder) executeEvent(w http.ResponseWriter, r *http.Request) {
 	// for server side restart and lost all the eventFuncs,
 	// but user keep clicking page without refresh page to call p.render to fill up eventFuncs
 	// because default added reload
-	if len(p.eventFuncs) <= 1 && p.eventFuncById(eb.EventFuncID.ID) == nil {
+	if len(p.eventFuncs) <= 1 &&
+		p.eventFuncById(eb.EventFuncID.ID) == nil &&
+		p.b.eventFuncById(eb.EventFuncID.ID) == nil {
 		log.Println("Re-render because event funcs gone, might server restarted")
 		head := &PageInjector{}
 		p.render(w, r, c, head)
 	}
 
 	ef := p.eventFuncById(eb.EventFuncID.ID)
+	if ef == nil {
+		ef = p.b.eventFuncById(eb.EventFuncID.ID)
+	}
+
 	if ef == nil {
 		panic(fmt.Errorf("event %s not found", eb.EventFuncID.ID))
 	}
