@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"mime/multipart"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	. "github.com/goplaid/web"
@@ -372,6 +373,38 @@ func TestMultiplePagesAndEvents(t *testing.T) {
 		})
 	}
 
+}
+
+func TestEventFuncsOnPageAndBuilder(t *testing.T) {
+	w := httptest.NewRecorder()
+	buf := new(bytes.Buffer)
+	mw := multipart.NewWriter(buf)
+	_ = mw.WriteField("__event_data__", `{"eventFuncId":{"id":"g1","pushState":null},"event":{"value":""}}`)
+	mw.Close()
+
+	r := httptest.NewRequest("POST", "/?__execute_event__=g1", buf)
+	r.Header.Add("Content-Type", fmt.Sprintf("multipart/form-data; boundary=%s", mw.Boundary()))
+
+	b := New().EventFuncs(
+		"g1", func(ctx *EventContext) (r EventResponse, err error) {
+			r.Body = h.H2("G1")
+			return
+		},
+	)
+
+	b.Page(func(ctx *EventContext) (r PageResponse, err error) {
+		r.Body = h.H1("Page")
+		return
+	}).EventFuncs(
+		"e1", func(ctx *EventContext) (r EventResponse, err error) {
+			r.Body = h.H2("E1")
+			return
+		},
+	).ServeHTTP(w, r)
+
+	if !strings.Contains(w.Body.String(), "G1") {
+		t.Errorf("wrong response %s", w.Body.String())
+	}
 }
 
 func TestEmbed(t *testing.T) {

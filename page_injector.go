@@ -88,11 +88,6 @@ func (b *PageInjector) TailHTMLComponent(key interface{}, comp h.HTMLComponent, 
 	return
 }
 
-func (b *PageInjector) ExtraHTMLComponent(key interface{}, comp h.HTMLComponent, replace bool) {
-	b.putComp(key, comp, extra, replace)
-	return
-}
-
 func (b *PageInjector) Clear() (r *PageInjector) {
 	b.comps = make(map[injectPosition][]*keyComp)
 	return b

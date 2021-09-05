@@ -33,6 +33,11 @@ func (p *PageBuilder) MaxFormSize(v int64) (r *PageBuilder) {
 	return
 }
 
+func (p *PageBuilder) EventFuncs(vs ...interface{}) (r *PageBuilder) {
+	p.addMultipleEventFuncs(vs...)
+	return p
+}
+
 type eventBody struct {
 	EventFuncID EventFuncID `json:"eventFuncId,omitempty"`
 	Event       Event       `json:"event,omitempty"`

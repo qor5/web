@@ -29,6 +29,11 @@ func (b *Builder) LayoutFunc(mf LayoutFunc) (r *Builder) {
 	return b
 }
 
+func (p *Builder) EventFuncs(vs ...interface{}) (r *Builder) {
+	p.addMultipleEventFuncs(vs...)
+	return p
+}
+
 type ComponentsPack string
 
 var startTime = time.Now()
