@@ -235,7 +235,8 @@ func (b *VueEventTagBuilder) MarshalJSON() ([]byte, error) {
 	panic(fmt.Sprintf("call .Go() at the end, value: %s", b.String()))
 }
 
-const InitContextVars = "v-init-context-vars"
+const InitContextVars = "v-init-context:vars"
+const InitContextLocals = "v-init-context:locals"
 
 func VFieldName(v string) []interface{} {
 	return []interface{}{

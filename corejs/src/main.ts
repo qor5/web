@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import {fieldNameDirective} from "@/fieldname";
 import {DynaCompData, GoPlaidPortal} from "@/portal";
-import {initContextVars} from "@/initcontextvars";
+import {initContext} from "@/initContext";
 import {Builder, plaid} from "@/builder";
 import {componentByTemplate} from "@/utils";
 import {debounce, throttle} from "lodash";
@@ -22,7 +22,7 @@ const form = new FormData();
 const debouncedFetch = debounce(fetch, 500, {leading: false, trailing: true, maxWait: 1000})
 
 Vue.component('GoPlaidPortal', GoPlaidPortal(form));
-Vue.directive('init-context-vars', initContextVars());
+Vue.directive('init-context', initContext());
 Vue.directive('field-name', fieldNameDirective(form));
 
 Vue.mixin({

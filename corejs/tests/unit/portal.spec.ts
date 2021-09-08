@@ -1,7 +1,7 @@
 import {mount, } from "@vue/test-utils";
 import {GoPlaidPortal} from "@/portal";
 import Vue from 'vue';
-import {initContextVars} from "@/initcontextvars";
+import {initContext} from "@/initContext";
 
 describe('portal', () => {
 	it('vars', async () => {
@@ -47,7 +47,7 @@ describe('portal', () => {
 
 		const Root = {
 			directives: {
-				"init-context-vars": initContextVars(),
+				"init-context-vars": initContext(),
 			},
 			components: {
 				"portal": portal,
@@ -106,7 +106,7 @@ describe('portal', () => {
 
 		const Root = {
 			directives: {
-				"init-context-vars": initContextVars(),
+				"init-context-vars": initContext(),
 			},
 
 

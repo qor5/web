@@ -228,7 +228,10 @@ export function componentByTemplate(template: string): VueConstructor {
 	return Vue.extend({
 		inject: ['vars'],
 		template: '<div>' + template + '</div>', // to make only one root.
-
-
+		data: function () {
+			return {
+				locals: {},
+			}
+		}
 	});
 }
