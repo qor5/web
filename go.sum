@@ -11,8 +11,8 @@ github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZN
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.3.0 h1:TivCn/peBQ7UY8ooIcPgZFpTNSz0Q2U6UrFlUfqbe0Q=
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
-github.com/sunfmin/reflectutils v1.0.0 h1:8k8nKFRo3s8dw1NkGhwA49ai7P6B79vWoCs1nNOYfyY=
-github.com/sunfmin/reflectutils v1.0.0/go.mod h1:RYcr7kALElN6qVxlIMHNf0qIK/q1XrEuyW8nwx0k96k=
+github.com/sunfmin/reflectutils v1.0.1 h1:RfXAWu6Du72hpqtIyf15pAKC8t4cQ7drFoB7QFClhh0=
+github.com/sunfmin/reflectutils v1.0.1/go.mod h1:ckN+r+oXS4OXFEVU+CCRuXBujUPCGlV86oCh/QsS3h4=
 github.com/theplant/htmlgo v1.0.1 h1:WsIYJeoYDI2CT04PB8kkJYZMj3j4fQUHbN0wEDfi04I=
 github.com/theplant/htmlgo v1.0.1/go.mod h1:3u52BL0jJyJuoNDlTvVjb9TjcATDTaR42E8cfCDRzHA=
 github.com/theplant/htmltestingutils v0.0.0-20190423050759-0e06de7b6967 h1:yPrgtU8bj7Q/XbXgjjmngZtOhsUufBAraruNwxv/eXM=
