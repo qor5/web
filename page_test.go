@@ -239,9 +239,9 @@ var eventCases = []struct {
 
 <html>
 <head>
-<meta charset='utf8'></meta>
+<meta charset='utf8'>
 
-<meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'></meta>
+<meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'>
 </head>
 
 <body class='front'>

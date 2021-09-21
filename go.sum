@@ -11,10 +11,10 @@ github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZN
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.3.0 h1:TivCn/peBQ7UY8ooIcPgZFpTNSz0Q2U6UrFlUfqbe0Q=
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
-github.com/sunfmin/reflectutils v1.0.1 h1:RfXAWu6Du72hpqtIyf15pAKC8t4cQ7drFoB7QFClhh0=
-github.com/sunfmin/reflectutils v1.0.1/go.mod h1:ckN+r+oXS4OXFEVU+CCRuXBujUPCGlV86oCh/QsS3h4=
-github.com/theplant/htmlgo v1.0.1 h1:WsIYJeoYDI2CT04PB8kkJYZMj3j4fQUHbN0wEDfi04I=
-github.com/theplant/htmlgo v1.0.1/go.mod h1:3u52BL0jJyJuoNDlTvVjb9TjcATDTaR42E8cfCDRzHA=
+github.com/sunfmin/reflectutils v1.0.2 h1:r+7hTdWIlSRj0MD5Q9VgSZW0BZcuPYHBfYamCNwCrHc=
+github.com/sunfmin/reflectutils v1.0.2/go.mod h1:ckN+r+oXS4OXFEVU+CCRuXBujUPCGlV86oCh/QsS3h4=
+github.com/theplant/htmlgo v1.0.3 h1:G7/YSf8OrOIRHVQ13avd78T/GV1kDl/jMwpQURrXB0o=
+github.com/theplant/htmlgo v1.0.3/go.mod h1:pCKSFJsoVNkyW+yN2i1Mst+8130NSQzIU7L2IbnuyKg=
 github.com/theplant/htmltestingutils v0.0.0-20190423050759-0e06de7b6967 h1:yPrgtU8bj7Q/XbXgjjmngZtOhsUufBAraruNwxv/eXM=
 github.com/theplant/htmltestingutils v0.0.0-20190423050759-0e06de7b6967/go.mod h1:86iN4EAYaQbx1VTW5uPslTIviRkYH8CzslMC//g+BgY=
 github.com/theplant/testingutils v0.0.0-20190603093022-26d8b4d95c61 h1:757/ruZNgTsOf5EkQBo0i3Bx/P2wgF5ljVkODeUX/uA=

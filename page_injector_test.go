@@ -22,9 +22,9 @@ var cases = []struct {
 		},
 		expected: `<title>Hello</title>
 
-<meta charset='utf8'></meta>
+<meta charset='utf8'>
 
-<meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'></meta>
+<meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'>
 		`,
 	},
 	{
@@ -35,9 +35,9 @@ var cases = []struct {
 		},
 		expected: `<title>Hello</title>
 
-<meta charset='shiftjis'></meta>
+<meta charset='shiftjis'>
 
-<meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'></meta>
+<meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'>
 `,
 	},
 	{
@@ -50,11 +50,11 @@ var cases = []struct {
 		},
 		expected: `<title>Hello</title>
 
-<meta charset='utf8'></meta>
+<meta charset='utf8'>
 
-<meta name='keywords' content='Hello'></meta>
+<meta name='keywords' content='Hello'>
 
-<meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'></meta>
+<meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'>
 `,
 	},
 
@@ -84,9 +84,9 @@ var cases = []struct {
   gtag('config', 'UA-123123-1');
 </script>
 
-<meta charset='utf8'></meta>
+<meta charset='utf8'>
 
-<meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'></meta>
+<meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'>
 `,
 	},
 }
