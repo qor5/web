@@ -4,7 +4,7 @@ import {DynaCompData, GoPlaidPortal} from "@/portal";
 import {initContext} from "@/initContext";
 import {Builder, plaid} from "@/builder";
 import {componentByTemplate} from "@/utils";
-import {debounce, throttle} from "lodash";
+import debounce from "@/debounce";
 
 const app = document.getElementById('app');
 if (!app) {
@@ -19,11 +19,11 @@ for (const registerComp of (window.__goplaidVueComponentRegisters || [])) {
 }
 
 const form = new FormData();
-const debouncedFetch = debounce(fetch, 500, {leading: false, trailing: true, maxWait: 1000})
 
 Vue.component('GoPlaidPortal', GoPlaidPortal(form));
 Vue.directive('init-context', initContext());
 Vue.directive('field-name', fieldNameDirective(form));
+Vue.directive('debounce', debounce);
 
 Vue.mixin({
 	mounted() {
@@ -42,7 +42,6 @@ Vue.mixin({
 	methods: {
 		$plaid: function (): Builder {
 			return plaid().
-				debounceFetch(debouncedFetch).
 				vueContext(this).
 				form(form).
 				vars((this as any).vars)

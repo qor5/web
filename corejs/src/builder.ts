@@ -1,15 +1,22 @@
 import {
-	EventFuncID, EventResponse, PushState, PushStateQuery,
+	EventFuncID,
+	EventResponse,
+	PushState,
+	PushStateQuery,
 	PushStateQueryValue,
 } from './types';
-import {componentByTemplate, jsonEvent, setFormValue, setPushState} from "@/utils";
+import {
+	componentByTemplate,
+	jsonEvent,
+	setFormValue,
+	setPushState
+} from "@/utils";
+
 import Vue from "vue";
-import {debounce} from "lodash";
 declare var window: any;
 
 export class Builder {
 	_eventFuncID: EventFuncID = { id: "__reload__" };
-	_debounce?: boolean;
 	_url?: string;
 	_event?: any;
 	_vars?: any;
@@ -17,7 +24,6 @@ export class Builder {
 	_popstate?: boolean;
 	_pushState?: PushState;
 	_vueContext?: Vue;
-	_debouncedFetch?: any;
 
 	public eventFunc(id: string, ...params: string[]): Builder {
 		this._eventFuncID.id = id;
@@ -35,16 +41,6 @@ export class Builder {
 		return this;
 	}
 
-	public debounce(v: boolean): Builder {
-		this._debounce = v;
-		return this;
-	}
-
-	public debounceFetch(v: any): Builder {
-		this._debouncedFetch = v;
-		return this;
-	}
-
 	public url(v: string): Builder {
 		this._url = v;
 		return this;
@@ -54,7 +50,6 @@ export class Builder {
 		this._event = v;
 		return this;
 	}
-
 
 	public vars(v: any): Builder {
 		this._vars = v;
@@ -201,11 +196,7 @@ export class Builder {
 		this._form.set('__event_data__', eventData);
 
 		window.dispatchEvent(new Event('fetchStart'));
-		let f = fetch;
-		if (this._debounce) {
-			f = this._debouncedFetch
-		}
-		return f(this.buildFetchURL(), {
+		return fetch(this.buildFetchURL(), {
 			method: 'POST',
 			body: this._form,
 		}).finally(() => {

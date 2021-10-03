@@ -44,14 +44,6 @@ func (b *VueEventTagBuilder) URL(url interface{}) (r *VueEventTagBuilder) {
 	return b
 }
 
-func (b *VueEventTagBuilder) Debounce(v bool) (r *VueEventTagBuilder) {
-	b.calls = append(b.calls, jsCall{
-		method: "debounce",
-		args:   []interface{}{v},
-	})
-	return b
-}
-
 func (b *VueEventTagBuilder) EventFuncID(v EventFuncID) (r *VueEventTagBuilder) {
 	b.calls = append(b.calls, jsCall{
 		method: "eventFuncID",
