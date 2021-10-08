@@ -205,7 +205,9 @@ export class Builder {
 			return r.json();
 		}).then((r: EventResponse) => {
 			if (this._vars && r.varsScript) {
-				(new Function("vars", r.varsScript))(this._vars);
+				(new Function("vars", "$plaid", "$event", r.varsScript)).
+					apply(this._vueContext,
+					[this._vars, (this._vueContext as any).$plaid, null]);
 			}
 			return r;
 		}).
@@ -218,7 +220,6 @@ export class Builder {
 			if (r.redirectURL) {
 				document.location.replace(r.redirectURL);
 			}
-
 
 			if (r.reloadPortals && r.reloadPortals.length > 0) {
 				for (const portalName of r.reloadPortals) {
