@@ -157,7 +157,7 @@ export class Builder {
 			return
 		}
 
-		const defaultURL = (window.location.pathname + window.location.search);
+		const defaultURL = window.location.href;
 
 		this._setPushStateResult = setPushState({
 			...this._eventFuncID,

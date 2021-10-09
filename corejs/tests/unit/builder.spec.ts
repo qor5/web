@@ -7,13 +7,13 @@ describe('builder', () => {
 			eventFunc("hello").
 			query("name", "felix").
 			mergeQuery(true).
-			url("/page1?hello=1&page=2")
+			url("/page1?hello=1&page=2#scroll=123_0")
 
 		expect(b.buildFetchURL()).toEqual('/page1?__execute_event__=hello&hello=1&name=felix&page=2');
 		const [pushedData, title, url] = b.buildPushStateArgs()
-		expect(url).toEqual('/page1?hello=1&name=felix&page=2');
+		expect(url).toEqual('/page1?hello=1&name=felix&page=2#scroll=123_0');
 		expect(b.buildEventFuncID().pushState).toEqual({ name: ['felix'], hello: ['1'], page: ['2'] });
-		expect(pushedData).toEqual({ query: { hello: '1', name: 'felix', page: '2' }, url: '/page1?hello=1&name=felix&page=2' });
+		expect(pushedData).toEqual({ query: { hello: '1', name: 'felix', page: '2' }, url: '/page1?hello=1&name=felix&page=2#scroll=123_0' });
 	});
 
 

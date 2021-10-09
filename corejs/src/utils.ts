@@ -31,7 +31,7 @@ export function setPushState(
 		mergeURLQuery = pstate.mergeQuery || false;
 	}
 
-	const orig = querystring.parseUrl(url, { arrayFormat: 'comma' });
+	const orig = querystring.parseUrl(url, { arrayFormat: 'comma', parseFragmentIdentifier: true });
 	let query: any = {};
 
 	let requestQuery = { __execute_event__: eventFuncId.id };
@@ -67,7 +67,10 @@ export function setPushState(
 		}
 
 
-		const newUrl = orig.url + addressBarQuery;
+		let newUrl = orig.url + addressBarQuery;
+		if (orig.fragmentIdentifier) {
+			newUrl = newUrl + "#" + orig.fragmentIdentifier
+		}
 		const pushedState = { query, url: newUrl };
 		pushStateArgs = [pushedState, '', newUrl];
 

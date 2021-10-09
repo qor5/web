@@ -5,6 +5,7 @@ import {initContext} from "@/initContext";
 import {Builder, plaid} from "@/builder";
 import {componentByTemplate} from "@/utils";
 import debounce from "@/debounce";
+import {keepScroll} from "@/keepScroll";
 
 const app = document.getElementById('app');
 if (!app) {
@@ -24,6 +25,7 @@ Vue.component('GoPlaidPortal', GoPlaidPortal(form));
 Vue.directive('init-context', initContext());
 Vue.directive('field-name', fieldNameDirective(form));
 Vue.directive('debounce', debounce);
+Vue.directive('keep-scroll', keepScroll());
 
 Vue.mixin({
 	mounted() {
@@ -65,7 +67,9 @@ const vm = new Vue({
 		mounted() {
 			this.current = componentByTemplate(app.innerHTML)
 			window.onpopstate = (evt: any) => {
-				(this as any).$plaid().onpopstate(evt);
+				if (evt && evt.state != null) {
+					(this as any).$plaid().onpopstate(evt);
+				}
 			};
 		},
 
