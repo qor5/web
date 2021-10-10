@@ -35,7 +35,7 @@ export interface EventResponse {
 	redirectURL?: string;
 	pageTitle?: string;
 	pushState?: PushState;
-	reload: boolean;
+	reload?: boolean;
 	reloadPortals?: string[];
 	updatePortals?: PortalUpdate[];
 	varsScript?: string;

@@ -199,9 +199,17 @@ export class Builder {
 		return fetch(this.buildFetchURL(), {
 			method: 'POST',
 			body: this._form,
-		}).finally(() => {
-			window.dispatchEvent(new Event('fetchEnd'));
+			redirect: 'follow',
 		}).then((r) => {
+			if(r.redirected) {
+				document.location.replace(r.url);
+				return {}
+			}
+			if (r.status >= 500) {
+				alert(r.statusText)
+				return {}
+			}
+
 			return r.json();
 		}).then((r: EventResponse) => {
 			if (this._vars && r.varsScript) {
@@ -259,6 +267,11 @@ export class Builder {
 				return r;
 			}
 			return r;
+		}).catch((error) => {
+			alert("Unexpected error, try refresh the page.")
+			console.log(error)
+		}).finally(() => {
+			window.dispatchEvent(new Event('fetchEnd'));
 		});
 	}
 
