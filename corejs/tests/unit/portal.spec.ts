@@ -6,8 +6,7 @@ import {initContext} from "@/initContext";
 describe('portal', () => {
 	it('vars', async () => {
 
-		let form = new FormData()
-		const portal = GoPlaidPortal(form)
+		const portal = GoPlaidPortal()
 
 
 		const Father = Vue.extend({

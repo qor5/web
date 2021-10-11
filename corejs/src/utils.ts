@@ -224,6 +224,18 @@ export function setFormValue(form: FormData, fieldName: string, val: any) {
 	}
 }
 
+export function setFormValues(form: FormData, formElems: Map<string, any>) {
+    for (let fieldName of formElems.keys()) {
+        let elemObj = formElems.get(fieldName);
+        if ('value' in elemObj) {
+            setFormValue(form, fieldName, elemObj.value)
+            continue
+        }
+
+        setFormValue(form, fieldName, elemObj.el)
+    }
+}
+
 export function componentByTemplate(template: string): VueConstructor {
 	return Vue.extend({
 		inject: ['vars'],

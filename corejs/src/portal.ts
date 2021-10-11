@@ -9,7 +9,7 @@ export interface DynaCompData {
 	current: VueConstructor | null;
 }
 
-export function GoPlaidPortal(form: FormData) {
+export function GoPlaidPortal() {
 	return Vue.extend({
 		name: 'GoPlaidPortal',
 		props: ['loaderFunc', 'visible', 'afterLoaded', 'portalName'],
