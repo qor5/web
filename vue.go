@@ -64,6 +64,18 @@ func (b *VueEventTagBuilder) EventFunc(id string, params ...string) (r *VueEvent
 	return b
 }
 
+func (b *VueEventTagBuilder) EventFuncVar(id interface{}, params ...interface{}) (r *VueEventTagBuilder) {
+	c := jsCall{
+		method: "eventFunc",
+		args:   []interface{}{id},
+	}
+	for _, p := range params {
+		c.args = append(c.args, p)
+	}
+	b.calls = append(b.calls, c)
+	return b
+}
+
 func (b *VueEventTagBuilder) Reload() (r *VueEventTagBuilder) {
 	b.Raw("reload()")
 	return b
