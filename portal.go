@@ -37,8 +37,8 @@ func (b *PortalBuilder) Name(v string) (r *PortalBuilder) {
 	return b
 }
 
-func (b *PortalBuilder) AutoReloadInterval(v int) (r *PortalBuilder) {
-	b.tag.Attr("auto-reload-interval", v)
+func (b *PortalBuilder) AutoReloadInterval(v interface{}) (r *PortalBuilder) {
+	b.tag.Attr(":auto-reload-interval", v)
 	return b
 }
 

@@ -12,6 +12,7 @@ export interface DynaCompData {
 
 export function GoPlaidPortal(form: FormData) {
 	return Vue.extend({
+		inject: ['vars'],
 		name: 'GoPlaidPortal',
 		props: ['loaderFunc', 'visible', 'afterLoaded', 'portalName', "autoReloadInterval"],
 		template: `
@@ -27,14 +28,26 @@ export function GoPlaidPortal(form: FormData) {
 			}
 
 			this.reload();
-			if (this.$props.autoReloadInterval) {
+		},
+
+		updated() {
+			if (this.$props.autoReloadInterval && this.autoReloadIntervalID == 0) {
 				const interval = parseInt(this.$props.autoReloadInterval)
 				if (interval == 0) {
 					return
 				}
+
 				this.autoReloadIntervalID = setInterval(() => {
 					this.reload()
 				}, interval);
+
+			}
+
+
+			if (this.autoReloadIntervalID && this.autoReloadIntervalID > 0 &&
+				this.$props.autoReloadInterval == 0 ) {
+				clearInterval(this.autoReloadIntervalID)
+				this.autoReloadIntervalID = 0
 			}
 		},
 
@@ -67,6 +80,7 @@ export function GoPlaidPortal(form: FormData) {
 				}
 				const self = this;
 				(this as any).$plaid().
+					vars((this as any).vars).
 					eventFuncID(ef).
 					go().then((r: EventResponse) => {
 						self.current = componentByTemplate(r.body);
