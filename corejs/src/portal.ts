@@ -7,12 +7,13 @@ window.__goplaid.portals = {};
 
 export interface DynaCompData {
 	current: VueConstructor | null;
+	autoReloadIntervalID?: number;
 }
 
 export function GoPlaidPortal(form: FormData) {
 	return Vue.extend({
 		name: 'GoPlaidPortal',
-		props: ['loaderFunc', 'visible', 'afterLoaded', 'portalName'],
+		props: ['loaderFunc', 'visible', 'afterLoaded', 'portalName', "autoReloadInterval"],
 		template: `
 		<div class="go-plaid-portal" v-if="visible">
 			<component :is="current" v-if="current"><slot></slot></component>
@@ -26,12 +27,28 @@ export function GoPlaidPortal(form: FormData) {
 			}
 
 			this.reload();
+			if (this.$props.autoReloadInterval) {
+				const interval = parseInt(this.$props.autoReloadInterval)
+				if (interval == 0) {
+					return
+				}
+				this.autoReloadIntervalID = setInterval(() => {
+					this.reload()
+				}, interval);
+			}
 		},
 
 		data(): DynaCompData {
 			return {
 				current: null,
+				autoReloadIntervalID: 0,
 			};
+		},
+
+		beforeDestroy() {
+			if (this.autoReloadIntervalID && this.autoReloadIntervalID > 0) {
+				clearInterval(this.autoReloadIntervalID)
+			}
 		},
 
 		methods: {
