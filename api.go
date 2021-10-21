@@ -110,7 +110,7 @@ func (ctx *EventContext) UnmarshalForm(v interface{}) (err error) {
 	dec := form.NewDecoder()
 	err = dec.Decode(v, mf.Value)
 	if err != nil {
-		panic(err)
+		//panic(err)
 		return
 	}
 
