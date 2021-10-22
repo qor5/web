@@ -204,10 +204,13 @@ export function setFormValue(form: FormData, fieldName: string, val: any) {
 		return
 	}
 
-	form.delete(fieldName);
-	if (!val) {
-		return;
+	if (val === null || val === undefined ) {
+		form.set(fieldName, "")
+		return
 	}
+
+	form.delete(fieldName);
+
 	// console.log('val', val, 'Array.isArray(val)', Array.isArray(val));
 	if (Array.isArray(val) || val instanceof FileList) {
 		for (let i=0; i < val.length; i++) {
