@@ -3,13 +3,13 @@ package web_test
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
+	"github.com/goplaid/multipartestutils"
 	. "github.com/goplaid/web"
 	h "github.com/theplant/htmlgo"
 	"github.com/theplant/htmltestingutils"
@@ -31,7 +31,7 @@ type Address struct {
 func runEvent(
 	eventFunc EventFunc,
 	renderChanger func(ctx *EventContext, pr *PageResponse),
-	eventFormChanger func(mw *multipart.Writer),
+	eventFormChanger func(builder *multipartestutils.Builder),
 ) (indexResp *bytes.Buffer, eventResp *bytes.Buffer) {
 	pb := New()
 
@@ -61,21 +61,14 @@ func runEvent(
 
 	indexResp = w.Body
 
-	body := bytes.NewBuffer(nil)
-
-	mw := multipart.NewWriter(body)
-	_ = mw.WriteField("__event_data__", `{"eventFuncId":{"id":"call","pushState":null},"event":{"value":""}}
-	`)
+	builder := multipartestutils.NewMultipartBuilder().
+		EventFunc("call")
 
 	if eventFormChanger != nil {
-		eventFormChanger(mw)
+		eventFormChanger(builder)
 	}
 
-	_ = mw.Close()
-
-	r = httptest.NewRequest("POST", "/?__execute_event__=call", body)
-	r.Header.Add("Content-Type", fmt.Sprintf("multipart/form-data; boundary=%s", mw.Boundary()))
-
+	r = builder.BuildEventFuncRequest()
 	w = httptest.NewRecorder()
 	p.ServeHTTP(w, r)
 
@@ -124,19 +117,11 @@ func TestFileUpload(t *testing.T) {
 		return
 	})
 
-	body := bytes.NewBuffer(nil)
+	b := multipartestutils.NewMultipartBuilder().
+		EventFunc("uploadFile").
+		AddReader("File1", "myfile.txt", strings.NewReader("Hello"))
 
-	mw := multipart.NewWriter(body)
-	_ = mw.WriteField("__event_data__", `{"eventFuncId":{"id":"uploadFile","pushState":null},"event":{"value":""}}
-	`)
-	fw, _ := mw.CreateFormFile("File1", "myfile.txt")
-	_, _ = fw.Write([]byte("Hello"))
-
-	_ = mw.Close()
-
-	r := httptest.NewRequest("POST", "/?__execute_event__=uploadFile", body)
-	r.Header.Add("Content-Type", fmt.Sprintf("multipart/form-data; boundary=%s", mw.Boundary()))
-
+	r := b.BuildEventFuncRequest()
 	w := httptest.NewRecorder()
 	p.ServeHTTP(w, r)
 
@@ -164,7 +149,7 @@ var eventCases = []struct {
 	name              string
 	eventFunc         EventFunc
 	renderChanger     func(ctx *EventContext, pr *PageResponse)
-	eventFormChanger  func(mw *multipart.Writer)
+	eventFormChanger  func(b *multipartestutils.Builder)
 	expectedIndexResp string
 	expectedEventResp string
 }{
@@ -281,7 +266,7 @@ var mountCases = []struct {
 	name     string
 	method   string
 	path     string
-	bodyFunc func(w *multipart.Writer)
+	bodyFunc func(b *multipartestutils.Builder)
 	expected string
 }{
 	{
@@ -300,8 +285,8 @@ var mountCases = []struct {
 		name:   "with param post",
 		method: "POST",
 		path:   "/home/topics/xgb123?__execute_event__",
-		bodyFunc: func(w *multipart.Writer) {
-			_ = w.WriteField("__event_data__", `{"eventFuncId":{"id":"bookmark","pushState":null},"event":{"value":""}}`)
+		bodyFunc: func(b *multipartestutils.Builder) {
+			b.EventFunc("bookmark")
 		},
 		expected: `{"body":"\n\u003ch1\u003exgb123 bookmarked\u003c/h1\u003e\n","pushState":null}`,
 	},
@@ -348,22 +333,18 @@ func TestMultiplePagesAndEvents(t *testing.T) {
 	for _, c := range mountCases {
 		t.Run(c.name, func(t *testing.T) {
 
-			buf := new(bytes.Buffer)
-			var mw *multipart.Writer
+			r := httptest.NewRequest(c.method, c.path, nil)
 			if c.bodyFunc != nil {
-				mw = multipart.NewWriter(buf)
-				c.bodyFunc(mw)
-				_ = mw.Close()
+				b := multipartestutils.NewMultipartBuilder().
+					PageURL(c.path)
+				c.bodyFunc(b)
+				r = b.BuildEventFuncRequest()
 			}
 
-			r := httptest.NewRequest(c.method, c.path, buf)
-			if mw != nil {
-				r.Header.Add("Content-Type", fmt.Sprintf("multipart/form-data; boundary=%s", mw.Boundary()))
-			}
 			w := httptest.NewRecorder()
 			mux.ServeHTTP(w, r)
 			selector := "#app div"
-			if mw != nil {
+			if c.bodyFunc != nil {
 				selector = "*"
 			}
 			diff := htmltestingutils.PrettyHtmlDiff(w.Body, selector, c.expected)
@@ -377,13 +358,8 @@ func TestMultiplePagesAndEvents(t *testing.T) {
 
 func TestEventFuncsOnPageAndBuilder(t *testing.T) {
 	w := httptest.NewRecorder()
-	buf := new(bytes.Buffer)
-	mw := multipart.NewWriter(buf)
-	_ = mw.WriteField("__event_data__", `{"eventFuncId":{"id":"g1","pushState":null},"event":{"value":""}}`)
-	mw.Close()
-
-	r := httptest.NewRequest("POST", "/?__execute_event__=g1", buf)
-	r.Header.Add("Content-Type", fmt.Sprintf("multipart/form-data; boundary=%s", mw.Boundary()))
+	r := multipartestutils.NewMultipartBuilder().
+		EventFunc("g1").BuildEventFuncRequest()
 
 	b := New().EventFuncs(
 		"g1", func(ctx *EventContext) (r EventResponse, err error) {
