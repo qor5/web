@@ -38,6 +38,11 @@ func (p *PageBuilder) EventFuncs(vs ...interface{}) (r *PageBuilder) {
 	return p
 }
 
+func (p *PageBuilder) MergeHub(hub *EventsHub) (r *PageBuilder) {
+	p.EventsHub.eventFuncs = append(hub.eventFuncs, p.EventsHub.eventFuncs...)
+	return p
+}
+
 type eventBody struct {
 	EventFuncID EventFuncID `json:"eventFuncId,omitempty"`
 	Event       Event       `json:"event,omitempty"`
