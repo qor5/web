@@ -268,8 +268,8 @@ export class Builder {
 			}
 			return r;
 		}).catch((error) => {
-			// alert("Unexpected error, try refresh the page.")
-			document.location.reload();
+			alert("500 Internal Server Error")
+			// document.location.reload();
 			console.log(error)
 		}).finally(() => {
 			window.dispatchEvent(new Event('fetchEnd'));
