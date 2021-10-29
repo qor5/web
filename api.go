@@ -94,6 +94,14 @@ func (e *Event) ParamAsInt(i int) (r int) {
 	return
 }
 
+func (e *Event) ParamAsString(i int) (r string) {
+	if len(e.Params) <= i {
+		return
+	}
+	r = e.Params[i]
+	return
+}
+
 func (ctx *EventContext) MustUnmarshalForm(v interface{}) {
 	err := ctx.UnmarshalForm(v)
 	if err != nil {
