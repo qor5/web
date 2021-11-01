@@ -191,14 +191,16 @@ export class Builder {
 			}
 		}
 
-		const eventData = JSON.stringify({
-			event: jsonEvent(this._event),
-		});
-
 		if(!this._form) {
 			this._form = new FormData()
 		}
-		this._form.set('__event_data__', eventData);
+
+		if (this._event) {
+			const eventData = JSON.stringify({
+				event: jsonEvent(this._event),
+			});
+			this._form.set('__event_data__', eventData);
+		}
 
 		window.dispatchEvent(new Event('fetchStart'));
 		return fetch(this.buildFetchURL(), {

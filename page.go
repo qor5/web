@@ -128,15 +128,18 @@ func (p *PageBuilder) eventBodyFromRequest(r *http.Request) *eventBody {
 	mf := p.parseForm(r)
 
 	var eb eventBody
-	err = json.NewDecoder(strings.NewReader(mf.Value["__event_data__"][0])).Decode(&eb)
-	if err != nil {
-		panic(err)
+	if val, ok := mf.Value[eventDataName]; ok && len(val) > 0 {
+		err = json.NewDecoder(strings.NewReader(val[0])).Decode(&eb)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	return &eb
 }
 
 const eventFuncIDName = "__execute_event__"
+const eventDataName = "__event_data__"
 
 func (p *PageBuilder) executeEvent(w http.ResponseWriter, r *http.Request) {
 
