@@ -14,7 +14,7 @@ export function GoPlaidPortal(form: FormData) {
 	return Vue.extend({
 		inject: ['vars'],
 		name: 'GoPlaidPortal',
-		props: ['loaderFunc', 'visible', 'afterLoaded', 'portalName', "autoReloadInterval"],
+		props: ['loader', 'visible', 'afterLoaded', 'portalName', "autoReloadInterval"],
 		template: `
 		<div class="go-plaid-portal" v-if="visible">
 			<component :is="current" v-if="current"><slot></slot></component>
@@ -74,14 +74,12 @@ export function GoPlaidPortal(form: FormData) {
 					return;
 				}
 
-				const ef = this.loaderFunc;
-				if (!ef || !ef.id) {
+				const ef = this.loader;
+				if (!ef) {
 					return;
 				}
 				const self = this;
-				(this as any).$plaid().
-					vars((this as any).vars).
-					eventFuncID(ef).
+				ef.vars((this as any).vars).
 					go().then((r: EventResponse) => {
 						self.current = componentByTemplate(r.body);
 					});

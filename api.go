@@ -3,6 +3,7 @@ package web
 import (
 	"context"
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"github.com/go-playground/form"
@@ -22,15 +23,15 @@ type PortalUpdate struct {
 
 // @snippet_begin(EventResponseDefinition)
 type EventResponse struct {
-	PageTitle     string            `json:"pageTitle,omitempty"`
-	Body          h.HTMLComponent   `json:"body,omitempty"`
-	Reload        bool              `json:"reload,omitempty"`
-	PushState     *PushStateBuilder `json:"pushState"`             // This we don't omitempty, So that {} can be kept when use url.Values{}
-	RedirectURL   string            `json:"redirectURL,omitempty"` // change window url without push state
-	ReloadPortals []string          `json:"reloadPortals,omitempty"`
-	UpdatePortals []*PortalUpdate   `json:"updatePortals,omitempty"`
-	Data          interface{}       `json:"data,omitempty"`       // used for return collection data like TagsInput data source
-	VarsScript    string            `json:"varsScript,omitempty"` // used with InitContextVars to set values for example vars.show to used by v-model
+	PageTitle     string           `json:"pageTitle,omitempty"`
+	Body          h.HTMLComponent  `json:"body,omitempty"`
+	Reload        bool             `json:"reload,omitempty"`
+	PushState     *LocationBuilder `json:"pushState"`             // This we don't omitempty, So that {} can be kept when use url.Values{}
+	RedirectURL   string           `json:"redirectURL,omitempty"` // change window url without push state
+	ReloadPortals []string         `json:"reloadPortals,omitempty"`
+	UpdatePortals []*PortalUpdate  `json:"updatePortals,omitempty"`
+	Data          interface{}      `json:"data,omitempty"`       // used for return collection data like TagsInput data source
+	VarsScript    string           `json:"varsScript,omitempty"` // used with InitContextVars to set values for example vars.show to used by v-model
 }
 
 // @snippet_end
@@ -50,17 +51,8 @@ type EventFuncHub interface {
 
 // @snippet_end
 
-/*
-	PushState: Whatever put into this, will do window.history.pushState to the current page url with
-	it as query string, for example: /my-page-url/?key=name&value=felix. and It also pass the query string along
-	to the /my-page-url/__execute_event__/?key=name&value=felix, Mostly used for setting EventResponse: `er.Reload = true` case.
-	So that you can refresh the page with different query string in pushState manner, without doing a Browser redirect or refresh.
-	It is used in Pager (Pagination) component.
-*/
 type EventFuncID struct {
-	ID        string            `json:"id,omitempty"`
-	Params    []string          `json:"params,omitempty"`
-	PushState *PushStateBuilder `json:"pushState"` // This we don't omitempty, So that {} can be keeped when use url.Values{}
+	ID string `json:"id,omitempty"`
 }
 
 /*
@@ -68,11 +60,8 @@ type EventFuncID struct {
 	will pass the Event to server side. use ctx.Event.Checked etc to get the value.
 */
 type Event struct {
-	Checked bool     `json:"checked,omitempty"` // For Checkbox
-	From    string   `json:"from,omitempty"`    // For DatePicker
-	To      string   `json:"to,omitempty"`      // For DatePicker
-	Value   string   `json:"value,omitempty"`   // For Input, DatePicker
-	Params  []string `json:"-"`
+	Checked bool   `json:"checked,omitempty"` // For Checkbox
+	Value   string `json:"value,omitempty"`   // For Input, DatePicker
 }
 
 type EventContext struct {
@@ -84,21 +73,19 @@ type EventContext struct {
 	Flash    interface{} // pass value from actions to index
 }
 
-func (e *Event) ParamAsInt(i int) (r int) {
-	if len(e.Params) <= i {
+func (e *EventContext) QueryAsInt(key string) (r int) {
+	strVal := e.R.FormValue(key)
+	if len(strVal) == 0 {
 		return
 	}
-	p1 := e.Params[i]
-	val, _ := strconv.ParseInt(p1, 10, 64)
+	val, _ := strconv.ParseInt(strVal, 10, 64)
 	r = int(val)
 	return
 }
 
-func (e *Event) ParamAsString(i int) (r string) {
-	if len(e.Params) <= i {
-		return
-	}
-	r = e.Params[i]
+func (e *EventContext) Queries() (r url.Values) {
+	r = e.R.URL.Query()
+	delete(r, eventFuncIDName)
 	return
 }
 

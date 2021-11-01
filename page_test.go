@@ -276,15 +276,15 @@ var mountCases = []struct {
 		bodyFunc: nil,
 		expected: `
 <div>
-	<a href="#" v-on:click='$plaid().event($event).vars(vars).eventFunc("bookmark").go()'>xgb123</a>
-	<a href="#" v-on:blur='alert(1); $plaid().event($event).vars(vars).fieldValue("Text1", $event).eventFunc("doIt").go()'>hello</a>
+	<a href="#" v-on:click='$plaid().vars(vars).eventFunc("bookmark").go()'>xgb123</a>
+	<a href="#" v-on:blur='alert(1); $plaid().vars(vars).fieldValue("Text1", $event).eventFunc("doIt").go()'>hello</a>
 </div>
 `,
 	},
 	{
 		name:   "with param post",
 		method: "POST",
-		path:   "/home/topics/xgb123?__execute_event__",
+		path:   "/home/topics/xgb123",
 		bodyFunc: func(b *multipartestutils.Builder) {
 			b.EventFunc("bookmark")
 		},

@@ -44,8 +44,7 @@ func (p *PageBuilder) MergeHub(hub *EventsHub) (r *PageBuilder) {
 }
 
 type eventBody struct {
-	EventFuncID EventFuncID `json:"eventFuncId,omitempty"`
-	Event       Event       `json:"event,omitempty"`
+	Event Event `json:"event,omitempty"`
 }
 
 func (p *PageBuilder) render(
@@ -137,6 +136,8 @@ func (p *PageBuilder) eventBodyFromRequest(r *http.Request) *eventBody {
 	return &eb
 }
 
+const eventFuncIDName = "__execute_event__"
+
 func (p *PageBuilder) executeEvent(w http.ResponseWriter, r *http.Request) {
 
 	ctx := new(EventContext)
@@ -149,28 +150,27 @@ func (p *PageBuilder) executeEvent(w http.ResponseWriter, r *http.Request) {
 
 	eb := p.eventBodyFromRequest(r)
 	ctx.Event = &eb.Event
+	eventFuncID := r.FormValue(eventFuncIDName)
 
 	// for server side restart and lost all the eventFuncs,
 	// but user keep clicking page without refresh page to call p.render to fill up eventFuncs
 	// because default added reload
 	if len(p.eventFuncs) <= 1 &&
-		p.eventFuncById(eb.EventFuncID.ID) == nil &&
-		p.b.eventFuncById(eb.EventFuncID.ID) == nil {
+		p.eventFuncById(eventFuncID) == nil &&
+		p.b.eventFuncById(eventFuncID) == nil {
 		log.Println("Re-render because event funcs gone, might server restarted")
 		head := &PageInjector{}
 		p.render(w, r, c, head)
 	}
 
-	ef := p.eventFuncById(eb.EventFuncID.ID)
+	ef := p.eventFuncById(eventFuncID)
 	if ef == nil {
-		ef = p.b.eventFuncById(eb.EventFuncID.ID)
+		ef = p.b.eventFuncById(eventFuncID)
 	}
 
 	if ef == nil {
-		panic(fmt.Errorf("event %s not found", eb.EventFuncID.ID))
+		panic(fmt.Errorf("event %s not found", eventFuncID))
 	}
-
-	eb.Event.Params = eb.EventFuncID.Params
 
 	er, err := ef(ctx)
 	if err != nil {
@@ -204,7 +204,7 @@ func reload(ctx *EventContext) (r EventResponse, err error) {
 }
 
 func (p *PageBuilder) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "POST" && strings.Index(r.URL.String(), "__execute_event__") >= 0 {
+	if r.Method == "POST" && strings.Index(r.URL.String(), eventFuncIDName) >= 0 {
 		p.executeEvent(w, r)
 		return
 	}

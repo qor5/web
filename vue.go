@@ -30,7 +30,7 @@ func Plaid() (r *VueEventTagBuilder) {
 			},
 		},
 	}
-	r.Event(Var("$event")).
+	r. /*Event(Var("$event")).*/
 		Vars(Var("vars"))
 	return
 }
@@ -44,33 +44,10 @@ func (b *VueEventTagBuilder) URL(url interface{}) (r *VueEventTagBuilder) {
 	return b
 }
 
-func (b *VueEventTagBuilder) EventFuncID(v EventFuncID) (r *VueEventTagBuilder) {
-	b.calls = append(b.calls, jsCall{
-		method: "eventFuncID",
-		args:   []interface{}{v},
-	})
-	return b
-}
-
-func (b *VueEventTagBuilder) EventFunc(id string, params ...string) (r *VueEventTagBuilder) {
+func (b *VueEventTagBuilder) EventFunc(id interface{}) (r *VueEventTagBuilder) {
 	c := jsCall{
 		method: "eventFunc",
 		args:   []interface{}{id},
-	}
-	for _, p := range params {
-		c.args = append(c.args, p)
-	}
-	b.calls = append(b.calls, c)
-	return b
-}
-
-func (b *VueEventTagBuilder) EventFuncVar(id interface{}, params ...interface{}) (r *VueEventTagBuilder) {
-	c := jsCall{
-		method: "eventFunc",
-		args:   []interface{}{id},
-	}
-	for _, p := range params {
-		c.args = append(c.args, p)
 	}
 	b.calls = append(b.calls, c)
 	return b
@@ -105,7 +82,7 @@ func (b *VueEventTagBuilder) MergeQuery(v interface{}) (r *VueEventTagBuilder) {
 	return b
 }
 
-func (b *VueEventTagBuilder) Query(key string, vs interface{}) (r *VueEventTagBuilder) {
+func (b *VueEventTagBuilder) Query(key interface{}, vs interface{}) (r *VueEventTagBuilder) {
 	b.calls = append(b.calls, jsCall{
 		method: "query",
 		args:   []interface{}{key, vs},
@@ -113,7 +90,7 @@ func (b *VueEventTagBuilder) Query(key string, vs interface{}) (r *VueEventTagBu
 	return b
 }
 
-func (b *VueEventTagBuilder) PushState(v *PushStateBuilder) (r *VueEventTagBuilder) {
+func (b *VueEventTagBuilder) PushState(v interface{}) (r *VueEventTagBuilder) {
 	b.calls = append(b.calls, jsCall{
 		method: "pushState",
 		args:   []interface{}{v},
@@ -121,9 +98,17 @@ func (b *VueEventTagBuilder) PushState(v *PushStateBuilder) (r *VueEventTagBuild
 	return b
 }
 
-func (b *VueEventTagBuilder) PushStateQuery(v url.Values) (r *VueEventTagBuilder) {
+func (b *VueEventTagBuilder) Location(v *LocationBuilder) (r *VueEventTagBuilder) {
 	b.calls = append(b.calls, jsCall{
-		method: "pushStateQuery",
+		method: "pushState",
+		args:   []interface{}{v},
+	})
+	return b
+}
+
+func (b *VueEventTagBuilder) Queries(v url.Values) (r *VueEventTagBuilder) {
+	b.calls = append(b.calls, jsCall{
+		method: "queries",
 		args:   []interface{}{v},
 	})
 	return b
@@ -152,7 +137,7 @@ func (b *VueEventTagBuilder) FormClear() (r *VueEventTagBuilder) {
 	return b
 }
 
-func (b *VueEventTagBuilder) FieldValue(name string, v interface{}) (r *VueEventTagBuilder) {
+func (b *VueEventTagBuilder) FieldValue(name interface{}, v interface{}) (r *VueEventTagBuilder) {
 	b.calls = append(b.calls, jsCall{
 		method: "fieldValue",
 		args:   []interface{}{name, v},

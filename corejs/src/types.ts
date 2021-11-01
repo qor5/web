@@ -4,22 +4,21 @@ export interface ValueOp {
 	remove?: boolean;
 }
 
-export type PushStateQueryValue = null | undefined | string | string[] | ValueOp;
+export type QueryValue = null | undefined | string | string[] | ValueOp;
 
-export interface PushStateQuery {
-	[key: string]: PushStateQueryValue;
+export interface Queries {
+	[key: string]: QueryValue;
 }
 
-export interface PushState {
+export interface Location {
 	mergeQuery?: boolean;
 	url?: string;
-	query?: PushStateQuery;
+	query?: Queries;
 }
 
 export interface EventFuncID {
 	id: string;
-	params?: string[];
-	pushState?: PushState | string;
+	location?: Location | string;
 }
 
 export interface PortalUpdate {
@@ -34,7 +33,7 @@ export interface EventResponse {
 	data?: any;
 	redirectURL?: string;
 	pageTitle?: string;
-	pushState?: PushState;
+	pushState?: Location;
 	reload?: boolean;
 	reloadPortals?: string[];
 	updatePortals?: PortalUpdate[];

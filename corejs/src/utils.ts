@@ -14,7 +14,7 @@ export function setPushState(
 	eventFuncId: EventFuncID,
 	url: string,
 ): any {
-	let pstate = eventFuncId.pushState;
+	let pstate = eventFuncId.location;
 
 	// If pushState is string, then replace query string to it
 	// If pushState it object, merge url query
@@ -85,7 +85,7 @@ export function setPushState(
 		});
 	}
 
-	eventFuncId.pushState = serverPushState;
+	eventFuncId.location = serverPushState;
 
 	return {
 		pushStateArgs: pushStateArgs,

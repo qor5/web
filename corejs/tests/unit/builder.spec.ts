@@ -12,7 +12,7 @@ describe('builder', () => {
 		expect(b.buildFetchURL()).toEqual('/page1?__execute_event__=hello&hello=1&name=felix&page=2');
 		const [pushedData, title, url] = b.buildPushStateArgs()
 		expect(url).toEqual('/page1?hello=1&name=felix&page=2#scroll=123_0');
-		expect(b.buildEventFuncID().pushState).toEqual({ name: ['felix'], hello: ['1'], page: ['2'] });
+		expect(b.buildEventFuncID().location).toEqual({ name: ['felix'], hello: ['1'], page: ['2'] });
 		expect(pushedData).toEqual({ query: { hello: '1', name: 'felix', page: '2' }, url: '/page1?hello=1&name=felix&page=2#scroll=123_0' });
 	});
 
@@ -26,7 +26,7 @@ describe('builder', () => {
 		expect(b.buildFetchURL()).toEqual('/page1?__execute_event__=hello&name=felix');
 		const [pushedData, title, url] = b.buildPushStateArgs()
 		expect(url).toEqual('/page1?name=felix');
-		expect(b.buildEventFuncID().pushState).toEqual({ name: ['felix'] });
+		expect(b.buildEventFuncID().location).toEqual({ name: ['felix'] });
 		expect(pushedData).toEqual({ query: { name: 'felix' }, url: '/page1?name=felix' });
 	});
 
@@ -40,7 +40,7 @@ describe('builder', () => {
 		expect(b.buildFetchURL()).toEqual('/page1?__execute_event__=hello&page=2&selectedIds=1,2,3,5');
 		const [pushedData, title, url] = b.buildPushStateArgs()
 		expect(url).toEqual('/page1?page=2&selectedIds=1,2,3,5');
-		expect(b.buildEventFuncID().pushState).toEqual({ page: ['2'], selectedIds: ['1', '2', '3', '5'] });
+		expect(b.buildEventFuncID().location).toEqual({ page: ['2'], selectedIds: ['1', '2', '3', '5'] });
 		expect(pushedData).toEqual({ query: { page: '2', selectedIds: ['1', '2', '3', '5'] }, url: '/page1?page=2&selectedIds=1,2,3,5' });
 	});
 
@@ -54,7 +54,7 @@ describe('builder', () => {
 		expect(b.buildFetchURL()).toEqual('/page1?__execute_event__=hello&page=2&selectedIds=1,2,3');
 		const [pushedData, title, url] = b.buildPushStateArgs()
 		expect(url).toEqual('/page1?page=2&selectedIds=1,2,3');
-		expect(b.buildEventFuncID().pushState).toEqual({ page: ['2'], selectedIds: ['1', '2', '3'] });
+		expect(b.buildEventFuncID().location).toEqual({ page: ['2'], selectedIds: ['1', '2', '3'] });
 		expect(pushedData).toEqual({ query: { page: '2', selectedIds: ['1', '2', '3'] }, url: '/page1?page=2&selectedIds=1,2,3' });
 	});
 
@@ -69,7 +69,7 @@ describe('builder', () => {
 		expect(b.buildFetchURL()).toEqual('/page1?__execute_event__=hello&names=Hello%2C%20Felix,How%20are%20you&page=2&selectedIds=1,2,3,5');
 		const [pushedData, title, url] = b.buildPushStateArgs()
 		expect(url).toEqual('/page1?names=Hello%2C%20Felix,How%20are%20you&page=2&selectedIds=1,2,3,5');
-		expect(b.buildEventFuncID().pushState).toEqual({ page: ['2'], selectedIds: ['1', '2', '3', '5'], names: ['Hello, Felix', 'How are you'] });
+		expect(b.buildEventFuncID().location).toEqual({ page: ['2'], selectedIds: ['1', '2', '3', '5'], names: ['Hello, Felix', 'How are you'] });
 		expect(pushedData).toEqual({ query: { page: '2', selectedIds: ['1', '2', '3', '5'], names: ['Hello, Felix', 'How are you'] }, url: '/page1?names=Hello%2C%20Felix,How%20are%20you&page=2&selectedIds=1,2,3,5' });
 	});
 
@@ -84,7 +84,7 @@ describe('builder', () => {
 		expect(b.buildFetchURL()).toEqual('/page1?__execute_event__=hello&name=1');
 		const [pushedData, title, url] = b.buildPushStateArgs()
 		expect(url).toEqual('/page1?name=1');
-		expect(b.buildEventFuncID().pushState).toEqual({ name: ['1'] });
+		expect(b.buildEventFuncID().location).toEqual({ name: ['1'] });
 		expect(pushedData).toEqual({ query: { name: ['1'] }, url: '/page1?name=1' });
 	});
 
@@ -99,7 +99,7 @@ describe('builder', () => {
 		expect(b.buildFetchURL()).toEqual('/page1?__execute_event__=hello&name=1,2');
 		const [pushedData, title, url] = b.buildPushStateArgs()
 		expect(url).toEqual('/page1?name=1,2');
-		expect(b.buildEventFuncID().pushState).toEqual({ name: ['1', '2'] });
+		expect(b.buildEventFuncID().location).toEqual({ name: ['1', '2'] });
 		expect(pushedData).toEqual({ query: { name: ['1', '2'] }, url: '/page1?name=1,2' });
 	});
 
@@ -113,20 +113,20 @@ describe('builder', () => {
 		expect(b.buildFetchURL()).toEqual('/page1?__execute_event__=hello&name=3,4,6,7,9');
 		const [pushedData, title, url] = b.buildPushStateArgs()
 		expect(url).toEqual('/page1?name=3,4,6,7,9');
-		expect(b.buildEventFuncID().pushState).toEqual({ name: ['3', '4', '6', '7', '9'] });
+		expect(b.buildEventFuncID().location).toEqual({ name: ['3', '4', '6', '7', '9'] });
 		expect(pushedData).toEqual({ query: { name: ['3', '4', '6', '7', '9'] }, url: '/page1?name=3,4,6,7,9' });
 	});
 
 	it('remove operator with url and value array', () => {
 		const b = plaid().
 			eventFunc("hello").
-			pushState({ url: '/page2?name=1,2,3,4,5,6,7,8,9', query: { name: { value: ['1', '2', '5', '8'], remove: true } }, mergeQuery: true }).
+			location({ url: '/page2?name=1,2,3,4,5,6,7,8,9', query: { name: { value: ['1', '2', '5', '8'], remove: true } }, mergeQuery: true }).
 			url("/page1?name=1,2,3,4,5,6,7,8,9")
 
 		expect(b.buildFetchURL()).toEqual('/page2?__execute_event__=hello&name=3,4,6,7,9');
 		const [pushedData, title, url] = b.buildPushStateArgs()
 		expect(url).toEqual('/page2?name=3,4,6,7,9');
-		expect(b.buildEventFuncID().pushState).toEqual({ name: ['3', '4', '6', '7', '9'] });
+		expect(b.buildEventFuncID().location).toEqual({ name: ['3', '4', '6', '7', '9'] });
 		expect(pushedData).toEqual({ query: { name: ['3', '4', '6', '7', '9'] }, url: '/page2?name=3,4,6,7,9' });
 	});
 
@@ -134,13 +134,13 @@ describe('builder', () => {
 	it('with url', () => {
 		const b = plaid().
 			eventFunc("hello").
-			pushState({ url: '/page2?name=2,3' }).
+			location({ url: '/page2?name=2,3' }).
 			url("/page1?name=1,2")
 
 		expect(b.buildFetchURL()).toEqual('/page2?__execute_event__=hello&name=2,3');
 		const [pushedData, title, url] = b.buildPushStateArgs()
 		expect(url).toEqual('/page2?name=2,3');
-		expect(b.buildEventFuncID().pushState).toEqual({ name: ['2', '3'] });
+		expect(b.buildEventFuncID().location).toEqual({ name: ['2', '3'] });
 		expect(pushedData).toEqual({ query: { name: ['2', '3'] }, url: '/page2?name=2,3' });
 	});
 

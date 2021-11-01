@@ -1,9 +1,9 @@
 import {
 	EventFuncID,
 	EventResponse,
-	PushState,
-	PushStateQuery,
-	PushStateQueryValue,
+	Location,
+	Queries,
+	QueryValue,
 } from './types';
 import {
 	componentByTemplate,
@@ -22,12 +22,12 @@ export class Builder {
 	_vars?: any;
 	_form?: FormData;
 	_popstate?: boolean;
-	_pushState?: PushState;
+	_pushState?: boolean;
+	_location?: Location;
 	_vueContext?: Vue;
 
-	public eventFunc(id: string, ...params: string[]): Builder {
+	public eventFunc(id: string): Builder {
 		this._eventFuncID.id = id;
-		this._eventFuncID.params = params;
 		return this;
 	}
 
@@ -56,43 +56,49 @@ export class Builder {
 		return this;
 	}
 
-	public query(key: string, val: PushStateQueryValue): Builder {
-		if (!this._pushState) {
-			this._pushState = {}
+	public query(key: string, val: QueryValue): Builder {
+		if (!this._location) {
+			this._location = {}
 		}
-		if (!this._pushState.query) {
-			this._pushState.query = {};
+		if (!this._location.query) {
+			this._location.query = {};
 		}
-		this._pushState.query[key] = val;
+		this._location.query[key] = val;
 		return this;
 	}
 
 	public mergeQuery(v: boolean): Builder {
-		if (!this._pushState) {
-			this._pushState = {}
+		if (!this._location) {
+			this._location = {}
 		}
-		this._pushState.mergeQuery = v
+		this._location.mergeQuery = v
 		return this;
 	}
 
-	public pushState(v: PushState): Builder {
+	public location(v: Location): Builder {
+		this._location = v;
+		return this;
+	}
+
+	public pushState(v: boolean): Builder {
 		this._pushState = v;
 		return this;
 	}
 
-	public pushStateQuery(v: PushStateQuery): Builder {
-		if (!this._pushState) {
-			this._pushState = {}
+	public queries(v: Queries): Builder {
+		if (!this._location) {
+			this._location = {}
 		}
-		this._pushState.query = v;
+		this._location.query = v;
 		return this;
 	}
 
 	public pushStateURL(v: string): Builder {
-		if (!this._pushState) {
-			this._pushState = {}
+		if (!this._location) {
+			this._location = {}
 		}
-		this._pushState.url = v;
+		this._location.url = v;
+		this.pushState(true);
 		return this;
 	}
 
@@ -161,7 +167,7 @@ export class Builder {
 
 		this._setPushStateResult = setPushState({
 			...this._eventFuncID,
-			... { pushState: this._pushState}
+			... { location: this._location}
 		}, this._url || defaultURL)
 	}
 
@@ -170,7 +176,7 @@ export class Builder {
 			// hashtag changes will trigger popstate, when this happen, event.state is null.
 			return Promise.reject("event state is undefined");
 		}
-		return this.popstate(true).pushState(event.state).reload().go()
+		return this.popstate(true).location(event.state).reload().go()
 	}
 
 	public go(): Promise<EventResponse> {
@@ -178,7 +184,7 @@ export class Builder {
 			this.formClear()
 		}
 
-		if (this._popstate !== true) {
+		if (this._popstate !== true && this._pushState === true) {
 			const args = this.buildPushStateArgs()
 			if(args) {
 				window.history.pushState(...args)
@@ -186,7 +192,6 @@ export class Builder {
 		}
 
 		const eventData = JSON.stringify({
-			eventFuncId: this.buildEventFuncID(),
 			event: jsonEvent(this._event),
 		});
 
@@ -254,7 +259,7 @@ export class Builder {
 			}
 
 			if (r.pushState) {
-				return (this._vueContext as any).$plaid().reload().pushState(r.pushState).go();
+				return (this._vueContext as any).$plaid().reload().location(r.pushState).go();
 			}
 
 			if (r.body && r.reload) {

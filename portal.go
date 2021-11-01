@@ -7,8 +7,7 @@ import (
 )
 
 type PortalBuilder struct {
-	loaderFunc *EventFuncID
-	tag        *h.HTMLTagBuilder
+	tag *h.HTMLTagBuilder
 }
 
 func Portal(children ...h.HTMLComponent) (r *PortalBuilder) {
@@ -19,11 +18,8 @@ func Portal(children ...h.HTMLComponent) (r *PortalBuilder) {
 	return
 }
 
-func (b *PortalBuilder) EventFunc(eventFuncId string, params ...string) (r *PortalBuilder) {
-	b.loaderFunc = &EventFuncID{
-		ID:     eventFuncId,
-		Params: params,
-	}
+func (b *PortalBuilder) Loader(v *VueEventTagBuilder) (r *PortalBuilder) {
+	b.tag.SetAttr(":loader", v.String())
 	return b
 }
 
@@ -58,6 +54,5 @@ func (b *PortalBuilder) ParentForceUpdateAfterLoaded() (r *PortalBuilder) {
 }
 
 func (b *PortalBuilder) MarshalHTML(ctx context.Context) (r []byte, err error) {
-	b.tag.SetAttr(":loader-func", b.loaderFunc)
 	return b.tag.MarshalHTML(ctx)
 }
