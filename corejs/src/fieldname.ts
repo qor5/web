@@ -57,8 +57,8 @@ export function fieldNameDirective(form: FormData) {
 	// }
 
 	return {
-		inserted: inserted,
-		update: inserted,
+		inserted,
+		// update: inserted,
 	}
 }
 
