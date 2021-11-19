@@ -31,7 +31,8 @@ func Plaid() (r *VueEventTagBuilder) {
 		},
 	}
 	r. /*Event(Var("$event")).*/
-		Vars(Var("vars"))
+		Vars(Var("vars")).
+		Form(Var("plaidForm"))
 	return
 }
 
@@ -227,9 +228,30 @@ func (b *VueEventTagBuilder) MarshalJSON() ([]byte, error) {
 const InitContextVars = "v-init-context:vars"
 const InitContextLocals = "v-init-context:locals"
 
-func VFieldName(v string) []interface{} {
+type VFieldNameOption interface {
+	private()
+}
+
+type VFieldNameForm struct {
+	form string
+}
+
+func (v *VFieldNameForm) private() {}
+
+func UseForm(f string) *VFieldNameForm {
+	return &VFieldNameForm{form: f}
+}
+
+func VFieldName(v string, opts ...VFieldNameOption) []interface{} {
+	formVar := "plaidForm"
+	for _, op := range opts {
+		if vf, ok := op.(*VFieldNameForm); ok {
+			formVar = vf.form
+		}
+	}
+
 	return []interface{}{
 		"v-field-name",
-		h.JSONString(v),
+		fmt.Sprintf("[%s, %s]", formVar, h.JSONString(v)),
 	}
 }

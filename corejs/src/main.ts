@@ -6,6 +6,7 @@ import {Builder, plaid} from "@/builder";
 import {componentByTemplate} from "@/utils";
 import debounce from "@/debounce";
 import {keepScroll} from "@/keepScroll";
+import GoPlaidScope from "@/scope";
 
 const app = document.getElementById('app');
 if (!app) {
@@ -22,6 +23,7 @@ for (const registerComp of (window.__goplaidVueComponentRegisters || [])) {
 const form = new FormData();
 
 Vue.component('GoPlaidPortal', GoPlaidPortal(form));
+Vue.component('GoPlaidScope', GoPlaidScope);
 Vue.directive('init-context', initContext());
 Vue.directive('field-name', fieldNameDirective(form));
 Vue.directive('debounce', debounce);
@@ -39,14 +41,12 @@ Vue.mixin({
 	data() {
 		return {
 			isFetching: false,
+			plaidForm: form,
 		};
 	},
 	methods: {
 		$plaid: function (): Builder {
-			return plaid().
-				vueContext(this).
-				form(form).
-				vars((this as any).vars)
+			return plaid().vueContext(this).form(form).vars((this as any).vars)
 		}
 	}
 })
