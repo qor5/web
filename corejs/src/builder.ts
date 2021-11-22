@@ -1,22 +1,12 @@
-import {
-	EventFuncID,
-	EventResponse,
-	Location,
-	Queries,
-	QueryValue,
-} from './types';
-import {
-	componentByTemplate,
-	jsonEvent,
-	setFormValue,
-	setPushState
-} from "@/utils";
+import {EventFuncID, EventResponse, Location, Queries, QueryValue,} from './types';
+import {componentByTemplate, jsonEvent, setFormValue, setPushState} from "@/utils";
 
 import Vue from "vue";
+
 declare var window: any;
 
 export class Builder {
-	_eventFuncID: EventFuncID = { id: "__reload__" };
+	_eventFuncID: EventFuncID = {id: "__reload__"};
 	_url?: string;
 	_event?: any;
 	_vars?: any;
@@ -25,6 +15,7 @@ export class Builder {
 	_pushState?: boolean;
 	_location?: Location;
 	_vueContext?: Vue;
+	_setPushStateResult?: any
 
 	public eventFunc(id: string): Builder {
 		this._eventFuncID.id = id;
@@ -113,7 +104,7 @@ export class Builder {
 	}
 
 	public formClear(): Builder {
-		if(!this._form) {
+		if (!this._form) {
 			return this;
 		}
 		for (const key of this._form.keys()) {
@@ -123,7 +114,7 @@ export class Builder {
 	}
 
 	public fieldValue(name: string, v: any): Builder {
-		if(!this._form) {
+		if (!this._form) {
 			throw new Error("form not exist")
 		}
 		setFormValue(this._form, name, v)
@@ -141,8 +132,6 @@ export class Builder {
 		return this;
 	}
 
-	_setPushStateResult?: any
-
 	public buildFetchURL(): string {
 		this.ensurePushStateResult();
 		return this._setPushStateResult.eventURL;
@@ -156,19 +145,6 @@ export class Builder {
 	public buildEventFuncID(): EventFuncID {
 		this.ensurePushStateResult();
 		return this._setPushStateResult.newEventFuncId;
-	}
-
-	private ensurePushStateResult() {
-		if (this._setPushStateResult) {
-			return
-		}
-
-		const defaultURL = window.location.href;
-
-		this._setPushStateResult = setPushState({
-			...this._eventFuncID,
-			... { location: this._location}
-		}, this._url || defaultURL)
 	}
 
 	public onpopstate(event: any): Promise<EventResponse> {
@@ -186,12 +162,12 @@ export class Builder {
 
 		if (this._popstate !== true && this._pushState === true) {
 			const args = this.buildPushStateArgs()
-			if(args) {
+			if (args) {
 				window.history.pushState(...args)
 			}
 		}
 
-		if(!this._form) {
+		if (!this._form) {
 			this._form = new FormData()
 		}
 
@@ -208,7 +184,7 @@ export class Builder {
 			body: this._form,
 			redirect: 'follow',
 		}).then((r) => {
-			if(r.redirected) {
+			if (r.redirected) {
 				document.location.replace(r.url);
 				return {}
 			}
@@ -220,13 +196,12 @@ export class Builder {
 			return r.json();
 		}).then((r: EventResponse) => {
 			if (this._vars && r.varsScript) {
-				(new Function("vars", "$plaid", "$event", r.varsScript)).
-					apply(this._vueContext,
-					[this._vars, (this._vueContext as any).$plaid, null]);
+				(new Function("vars", "$plaid", "$event", "plaidForm", r.varsScript)).apply(
+					this._vueContext,
+					[this._vars, (this._vueContext as any).$plaid, null, this._form]);
 			}
 			return r;
-		}).
-		then((r: EventResponse) => {
+		}).then((r: EventResponse) => {
 
 			if (r.pageTitle) {
 				document.title = r.pageTitle;
@@ -275,12 +250,25 @@ export class Builder {
 			}
 			return r;
 		}).catch((error) => {
+			console.log(error)
 			alert("500 Internal Server Error")
 			// document.location.reload();
-			console.log(error)
 		}).finally(() => {
 			window.dispatchEvent(new Event('fetchEnd'));
 		});
+	}
+
+	private ensurePushStateResult() {
+		if (this._setPushStateResult) {
+			return
+		}
+
+		const defaultURL = window.location.href;
+
+		this._setPushStateResult = setPushState({
+			...this._eventFuncID,
+			...{location: this._location}
+		}, this._url || defaultURL)
 	}
 
 }
