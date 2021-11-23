@@ -11,22 +11,8 @@
 </template>
 
 <script>
-import {initContext} from "@/initContext";
-import {fieldNameDirective} from "@/fieldname";
-import GoPlaidScope from "@/scope";
-import {GoPlaidPortal} from "@/portal";
 
-const rootForm = new FormData()
 export default {
-	directives: {
-		"init-context-vars": initContext(),
-		"field-name": fieldNameDirective(rootForm)
-	},
-
-	components: {
-		"go-plaid-scope": GoPlaidScope,
-		"go-plaid-portal": GoPlaidPortal(),
-	},
 
 	provide() {
 		return {

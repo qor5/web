@@ -1,21 +1,11 @@
 import {mount,} from "@vue/test-utils";
-import GoPlaidScope from "@/scope";
-import {fieldNameDirective} from "@/fieldname";
+import "@/setup"
+import {componentByTemplate} from "@/utils";
 
 describe('scope', () => {
 	it('vars and form', async () => {
-
 		const form = new FormData()
-		const Root = {
-			components: {
-				"go-plaid-scope": GoPlaidScope,
-			},
-
-			directives: {
-				"field-name": fieldNameDirective(form)
-			},
-
-			template: `
+		const MyComp = componentByTemplate(`
 				<div>
 				<go-plaid-scope :init='{hello: "123"}' v-slot="{locals: vars}">
 					<div id="l1">{{ vars.hello }}</div>
@@ -26,17 +16,39 @@ describe('scope', () => {
 
 						<go-plaid-scope v-slot="{plaidForm}">
 							<div id="l3">{{ plaidForm.get("Name") }}</div>
-							<input type="text" v-field-name='[plaidForm, "Name"]' value="AAA">
-							<button id="l3Btn" @click='locals.hello = plaidForm.get("Name")'></button>
+							<input type="text" v-field-name='[plaidForm, "Name"]'
+								   value="AAA">
+							<button id="l3Btn"
+									@click='locals.hello = plaidForm.get("Name")'></button>
+
+							<go-plaid-scope v-slot="{plaidForm}">
+								<div id="l4">{{ plaidForm.get("Name") }}</div>
+								<input id="input4" type="text"
+									   v-field-name='[plaidForm, "Name"]'
+									   value="BBB">
+
+							</go-plaid-scope>
+
 						</go-plaid-scope>
 
 					</go-plaid-scope>
 				</go-plaid-scope>
+				<div class="globalForm">{{plaidForm.get("Name")}}</div>
 				</div>
-			`,
+			`, form)
+
+		const Root = {
+			components: {
+				"mycomp": MyComp,
+			},
+			template: `
+				<mycomp></mycomp>`,
+			provide() {
+				return {
+					vars: {},
+				}
+			},
 		}
-
-
 		const wrapper = await mount(Root)
 		console.log(wrapper.html())
 
@@ -51,7 +63,10 @@ describe('scope', () => {
 		expect(l2.text()).toEqual(`999`);
 
 		const btn3: any = wrapper.find("#l3Btn")
+		const input4: any = wrapper.find("#input4")
+		await input4.setValue("CCC")
 		await btn3.trigger("click")
+		console.log(wrapper.html())
 		const l3: any = wrapper.find("#l3")
 		expect(l2.text()).toEqual(`AAA`);
 		expect(l3.text()).toEqual(`AAA`);
