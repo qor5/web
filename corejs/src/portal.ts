@@ -1,6 +1,7 @@
 import Vue, {VueConstructor} from 'vue';
 import {componentByTemplate} from "@/utils";
 import {EventResponse} from "@/types";
+
 declare var window: any;
 window.__goplaid = {};
 window.__goplaid.portals = {};
@@ -10,16 +11,18 @@ export interface DynaCompData {
 	autoReloadIntervalID?: number;
 }
 
-export function GoPlaidPortal(form: FormData) {
+export function GoPlaidPortal() {
 	return Vue.extend({
 		inject: ['vars'],
 		name: 'GoPlaidPortal',
-		props: ['loader', 'visible', 'afterLoaded', 'portalName', "autoReloadInterval"],
+		props: ['loader', 'portalForm', 'visible', 'afterLoaded', 'portalName', "autoReloadInterval"],
 		template: `
-		<div class="go-plaid-portal" v-if="visible">
-			<component :is="current" v-if="current"><slot></slot></component>
-		</div>
-	`,
+			<div class="go-plaid-portal" v-if="visible">
+			<component :is="current" v-if="current">
+				<slot></slot>
+			</component>
+			</div>
+		`,
 
 		mounted() {
 			const pn = this.$props.portalName;
@@ -45,7 +48,7 @@ export function GoPlaidPortal(form: FormData) {
 
 
 			if (this.autoReloadIntervalID && this.autoReloadIntervalID > 0 &&
-				this.$props.autoReloadInterval == 0 ) {
+				this.$props.autoReloadInterval == 0) {
 				clearInterval(this.autoReloadIntervalID)
 				this.autoReloadIntervalID = 0
 			}
@@ -70,7 +73,7 @@ export function GoPlaidPortal(form: FormData) {
 				// const core = new Core(form, rootChangeCurrent, this.changeCurrent);
 
 				if (this.$slots.default) {
-					this.current = componentByTemplate('<slot></slot>');
+					this.current = componentByTemplate('<slot></slot>', this.portalForm);
 					return;
 				}
 
@@ -79,14 +82,16 @@ export function GoPlaidPortal(form: FormData) {
 					return;
 				}
 				const self = this;
-				ef.vars((this as any).vars).
-					go().then((r: EventResponse) => {
-						self.current = componentByTemplate(r.body);
-					});
+				ef.vars((this as any).vars).go().then((r: EventResponse) => {
+					self.current = componentByTemplate(r.body, this.portalForm);
+				});
+			},
+			changeCurrentTemplate(template: string) {
+				this.changeCurrent(componentByTemplate(template, this.portalForm));
 			},
 			changeCurrent(newView: any) {
 				this.current = newView;
-			},
+			}
 		},
 	})
 }

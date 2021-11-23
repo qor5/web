@@ -1,13 +1,16 @@
-import {mount, } from "@vue/test-utils";
-import {GoPlaidPortal} from "@/portal";
 import Vue from 'vue';
-import {initContext} from "@/initContext";
+import {mount,} from "@vue/test-utils";
+import {GoPlaidPortal} from "@/portal";
+import GoPlaidScope from "@/scope";
+// @ts-ignore
+import plaidFormTest from "./plaidFormTest";
+import "@/setup"
+import {inspectFormData} from "@/utils";
 
 describe('portal', () => {
 	it('vars', async () => {
 
-		let form = new FormData()
-		const portal = GoPlaidPortal(form)
+		const portal = GoPlaidPortal()
 
 
 		const Father = Vue.extend({
@@ -46,24 +49,21 @@ describe('portal', () => {
 		})
 
 		const Root = {
-			directives: {
-				"init-context-vars": initContext(),
-			},
+
 			components: {
-				"portal": portal,
 				"son": Son,
 			},
 
 			template: `
 				<div>
-					<son></son>
-					<portal :visible="true">
-						<input type="text" v-init-context-vars='{value: "222"}' />
-					</portal>
+				<son></son>
+				<go-plaid-portal :visible="true">
+					<input type="text" v-init-context:vars='{value: "222"}'/>
+				</go-plaid-portal>
 				</div>
 			`,
 			methods: {
-				change2: function(val: any) {
+				change2: function (val: any) {
 					console.log("change2", val)
 				}
 			},
@@ -81,7 +81,6 @@ describe('portal', () => {
 				}
 			},
 		}
-
 
 
 		const wrapper = await mount(Root)
@@ -105,18 +104,14 @@ describe('portal', () => {
 
 
 		const Root = {
-			directives: {
-				"init-context-vars": initContext(),
-			},
-
 
 			template: `
-				<div v-init-context-vars='{value: "222"}'>
-					<input type="text" v-init-context-vars='{value: "333"}' />
+				<div v-init-context:vars='{value: "222"}'>
+				<input type="text" v-init-context:vars='{value: "333"}'/>
 				</div>
 			`,
 			methods: {
-				change2: function(val: any) {
+				change2: function (val: any) {
 					console.log("change2", val)
 				}
 			},
@@ -136,7 +131,22 @@ describe('portal', () => {
 		}
 
 
-
 		expect((mount(Root).vm as any).vars["value"]).toEqual("333")
+	})
+
+	it('plaidForm', async () => {
+		const wrapper = await mount(plaidFormTest)
+		console.log(wrapper.html())
+
+		const portalComp: any = wrapper.find(".go-plaid-portal")
+		await portalComp.vm.changeCurrentTemplate(`
+<input from="server" type="text" :value='555' v-field-name='[plaidForm, "Name"]'/>
+`)
+
+		console.log(wrapper.html())
+		const scope: any = wrapper.findComponent(GoPlaidScope)
+		console.log(inspectFormData(scope.vm.plaidForm))
+		expect(scope.vm.plaidForm.get("Name")).toEqual("555")
+
 	})
 })

@@ -40,9 +40,14 @@ export function fieldNameDirective(form: FormData) {
 				setFormValue(myform, fieldName, evt)
 			}
 		}
+
+		// console.log("After", inspectFormData(myform))
+
 	}
 
 	function inserted(el: HTMLElement, binding: DirectiveBinding, vnode: VNode) {
+		// console.log("inserted ===>")
+
 		if (Array.isArray(binding.value)) {
 			setListeners(el, vnode, binding.value[0], binding.value[1])
 			return
@@ -51,9 +56,9 @@ export function fieldNameDirective(form: FormData) {
 	}
 
 	// Update will trigger too much, and will update to null
-	// function update(el: HTMLElement, binding: VNodeDirective, vnode: VNode) {
-	// 	console.log("updating ===>")
-	// 	setListeners(el, vnode, binding.value)
+	// function update(el: HTMLElement, binding: DirectiveBinding, vnode: VNode) {
+	// 	console.log("update ===>")
+	// 	inserted(el, binding, vnode)
 	// }
 
 	return {

@@ -3,10 +3,7 @@ import querystring from 'query-string';
 import union from 'lodash/union';
 import without from 'lodash/without';
 
-import {
-	EventFuncID,
-	ValueOp,
-} from './types';
+import {EventFuncID, ValueOp,} from './types';
 import Vue, {VueConstructor} from "vue";
 
 
@@ -20,7 +17,10 @@ export function setPushState(
 	// If pushState it object, merge url query
 	if (typeof pstate === 'string') {
 		// mergeQuery: false, so that filter remove filter item checkbox could clear the query item
-		pstate = { query: querystring.parse(pstate, { arrayFormat: 'comma' }), mergeQuery: false };
+		pstate = {
+			query: querystring.parse(pstate, {arrayFormat: 'comma'}),
+			mergeQuery: false
+		};
 	}
 
 	let mergeURLQuery = false;
@@ -31,12 +31,15 @@ export function setPushState(
 		mergeURLQuery = pstate.mergeQuery || false;
 	}
 
-	const orig = querystring.parseUrl(url, { arrayFormat: 'comma', parseFragmentIdentifier: true });
+	const orig = querystring.parseUrl(url, {
+		arrayFormat: 'comma',
+		parseFragmentIdentifier: true
+	});
 	let query: any = {};
 
-	let requestQuery = { __execute_event__: eventFuncId.id };
+	let requestQuery = {__execute_event__: eventFuncId.id};
 	if (mergeURLQuery) {
-		query = { ...query, ...orig.query };
+		query = {...query, ...orig.query};
 	}
 
 	let serverPushState: any = null;
@@ -58,12 +61,12 @@ export function setPushState(
 					query[key] = v;
 				}
 			});
-			addressBarQuery = querystring.stringify(query, { arrayFormat: 'comma' });
+			addressBarQuery = querystring.stringify(query, {arrayFormat: 'comma'});
 			if (addressBarQuery.length > 0) {
 				addressBarQuery = `?${addressBarQuery}`;
 			}
 
-			requestQuery = { ...requestQuery, ...query };
+			requestQuery = {...requestQuery, ...query};
 		}
 
 
@@ -71,7 +74,7 @@ export function setPushState(
 		if (orig.fragmentIdentifier) {
 			newUrl = newUrl + "#" + orig.fragmentIdentifier
 		}
-		const pushedState = { query, url: newUrl };
+		const pushedState = {query, url: newUrl};
 		pushStateArgs = [pushedState, '', newUrl];
 
 		serverPushState = {};
@@ -90,7 +93,7 @@ export function setPushState(
 	return {
 		pushStateArgs: pushStateArgs,
 		newEventFuncId: eventFuncId,
-		eventURL: `${orig.url}?${querystring.stringify(requestQuery, { arrayFormat: 'comma' })}`,
+		eventURL: `${orig.url}?${querystring.stringify(requestQuery, {arrayFormat: 'comma'})}`,
 	};
 }
 
@@ -162,8 +165,16 @@ export function jsonEvent(evt: any) {
 	return v;
 }
 
+export function inspectFormData(form: FormData) {
+	let r: any = {}
+	for (const pair of form.entries()) {
+		r[pair[0].toString()] = pair[1]
+	}
+	return r
+}
 
 export function setFormValue(form: FormData, fieldName: string, val: any) {
+	// console.log("setFormValue", inspectFormData(form), fieldName, val)
 	if (!fieldName || fieldName.length === 0) {
 		return;
 	}
@@ -204,7 +215,7 @@ export function setFormValue(form: FormData, fieldName: string, val: any) {
 		return
 	}
 
-	if (val === null || val === undefined ) {
+	if (val === null || val === undefined) {
 		form.set(fieldName, "")
 		return
 	}
@@ -213,7 +224,7 @@ export function setFormValue(form: FormData, fieldName: string, val: any) {
 
 	// console.log('val', val, 'Array.isArray(val)', Array.isArray(val));
 	if (Array.isArray(val) || val instanceof FileList) {
-		for (let i=0; i < val.length; i++) {
+		for (let i = 0; i < val.length; i++) {
 			if (val[i] instanceof File) {
 				form.append(fieldName, val[i], val[i].name);
 			} else {
@@ -230,12 +241,13 @@ export function setFormValue(form: FormData, fieldName: string, val: any) {
 	}
 }
 
-export function componentByTemplate(template: string): VueConstructor {
+export function componentByTemplate(template: string, plaidForm: any): VueConstructor {
 	return Vue.extend({
 		inject: ['vars'],
 		template: '<div>' + template + '</div>', // to make only one root.
 		data: function () {
 			return {
+				plaidForm: plaidForm,
 				locals: {},
 			}
 		}

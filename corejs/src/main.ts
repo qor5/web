@@ -1,12 +1,7 @@
 import Vue from 'vue';
-import {fieldNameDirective} from "@/fieldname";
-import {DynaCompData, GoPlaidPortal} from "@/portal";
-import {initContext} from "@/initContext";
-import {Builder, plaid} from "@/builder";
+import {DynaCompData} from "@/portal";
 import {componentByTemplate} from "@/utils";
-import debounce from "@/debounce";
-import {keepScroll} from "@/keepScroll";
-import GoPlaidScope from "@/scope";
+import "@/setup"
 
 const app = document.getElementById('app');
 if (!app) {
@@ -20,37 +15,6 @@ for (const registerComp of (window.__goplaidVueComponentRegisters || [])) {
 	registerComp(Vue, vueOptions);
 }
 
-const form = new FormData();
-
-Vue.component('GoPlaidPortal', GoPlaidPortal(form));
-Vue.component('GoPlaidScope', GoPlaidScope);
-Vue.directive('init-context', initContext());
-Vue.directive('field-name', fieldNameDirective(form));
-Vue.directive('debounce', debounce);
-Vue.directive('keep-scroll', keepScroll());
-
-Vue.mixin({
-	mounted() {
-		window.addEventListener('fetchStart', (e: Event) => {
-			(this as any).isFetching = true;
-		});
-		window.addEventListener('fetchEnd', (e: Event) => {
-			(this as any).isFetching = false;
-		});
-	},
-	data() {
-		return {
-			isFetching: false,
-			plaidForm: form,
-		};
-	},
-	methods: {
-		$plaid: function (): Builder {
-			return plaid().vueContext(this).form(form).vars((this as any).vars)
-		}
-	}
-})
-
 const vm = new Vue({
 	...{
 
@@ -59,13 +23,13 @@ const vm = new Vue({
 		},
 
 		template: `
-	<div id="app" v-cloak>
-		<component :is="current"></component>
-	</div>
-`,
+			<div id="app" v-cloak>
+			<component :is="current"></component>
+			</div>
+		`,
 
 		mounted() {
-			this.current = componentByTemplate(app.innerHTML)
+			this.current = componentByTemplate(app.innerHTML, (this as any).plaidForm)
 			window.onpopstate = (evt: any) => {
 				if (evt && evt.state != null) {
 					(this as any).$plaid().onpopstate(evt);

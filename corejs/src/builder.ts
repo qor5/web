@@ -225,7 +225,7 @@ export class Builder {
 				for (const pu of r.updatePortals) {
 					const portal = window.__goplaid.portals[pu.name];
 					if (portal) {
-						portal.changeCurrent(componentByTemplate(pu.body));
+						portal.changeCurrentTemplate(pu.body);
 					}
 				}
 				return r;
@@ -240,12 +240,12 @@ export class Builder {
 			}
 
 			if (r.body && r.reload) {
-				(this._vueContext.$root as any).current = componentByTemplate(r.body);
+				(this._vueContext.$root as any).current = componentByTemplate(r.body, this._form);
 				return r;
 			}
 
 			if (r.body) {
-				(this._vueContext as any).current = componentByTemplate(r.body);
+				(this._vueContext as any).current = componentByTemplate(r.body, this._form);
 				return r;
 			}
 			return r;
