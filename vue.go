@@ -232,21 +232,14 @@ type VFieldNameOption interface {
 	private()
 }
 
-type VFieldNameForm struct {
-	form string
-}
-
-func (v *VFieldNameForm) private() {}
-
-func UseForm(f string) *VFieldNameForm {
-	return &VFieldNameForm{form: f}
-}
+type UseForm string
+func (UseForm) private() {}
 
 func VFieldName(v string, opts ...VFieldNameOption) []interface{} {
 	formVar := "plaidForm"
 	for _, op := range opts {
-		if vf, ok := op.(*VFieldNameForm); ok {
-			formVar = vf.form
+		if vf, ok := op.(UseForm); ok {
+			formVar = string(vf)
 		}
 	}
 
