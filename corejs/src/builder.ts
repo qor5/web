@@ -193,6 +193,7 @@ export class Builder {
 				return {}
 			}
 
+			(this._form as any).dirty = false
 			return r.json();
 		}).then((r: EventResponse) => {
 			if (this._vars && r.varsScript) {

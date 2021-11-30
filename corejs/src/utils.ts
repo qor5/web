@@ -173,72 +173,85 @@ export function inspectFormData(form: FormData) {
 	return r
 }
 
-export function setFormValue(form: FormData, fieldName: string, val: any) {
+export function setFormValue(form: FormData, fieldName: string, val: any): boolean {
 	// console.log("setFormValue", inspectFormData(form), fieldName, val)
 	if (!fieldName || fieldName.length === 0) {
-		return;
+		return false;
 	}
 
 	if (val instanceof Event) {
-		setFormValue(form, fieldName, val.target)
-		return
+		return setFormValue(form, fieldName, val.target)
 	}
 
 	if (val instanceof HTMLInputElement) {
 		// console.log("target.value = ", target.value, ", target.type = ", target.type, ", target.checked = ", target.checked)
 		if (val.files) {
-			setFormValue(form, fieldName, val.files)
-			return
+			return setFormValue(form, fieldName, val.files)
 		}
 
 		switch (val.type) {
 			case 'checkbox':
 				if (val.checked) {
-					form.set(fieldName, val.value)
+					return formSet(form, fieldName, val.value)
 				} else {
-					form.delete(fieldName)
+					if (form.has(fieldName)) {
+						form.delete(fieldName)
+						return true
+					}
 				}
-				return
+				return false
 			case 'radio':
 				if (val.checked) {
-					form.set(fieldName, val.value)
+					return formSet(form, fieldName, val.value)
 				}
-				return
+				return false
 			default:
-				form.set(fieldName, val.value)
-				return
+				return formSet(form, fieldName, val.value)
 		}
 	}
 
 	if (val instanceof HTMLTextAreaElement) {
-		form.set(fieldName, val.value)
-		return
+		return formSet(form, fieldName, val.value)
 	}
 
 	if (val === null || val === undefined) {
-		form.set(fieldName, "")
-		return
+		return formSet(form, fieldName, "")
 	}
 
-	form.delete(fieldName);
+	let changed = false;
+	if (form.has(fieldName)) {
+		changed = true
+		form.delete(fieldName);
+	}
 
 	// console.log('val', val, 'Array.isArray(val)', Array.isArray(val));
 	if (Array.isArray(val) || val instanceof FileList) {
 		for (let i = 0; i < val.length; i++) {
 			if (val[i] instanceof File) {
+				changed = true
 				form.append(fieldName, val[i], val[i].name);
 			} else {
+				changed = true
 				form.append(fieldName, val[i]);
 			}
 		}
-		return;
+		return changed;
 	}
 
 	if (val instanceof File) {
 		form.set(fieldName, val, val.name);
+		return true
 	} else {
-		form.set(fieldName, val);
+		return formSet(form, fieldName, val);
 	}
+}
+
+function formSet(form: FormData, fieldName: string, val: string): boolean {
+	if (form.get(fieldName) === val) {
+		return false
+	}
+	form.set(fieldName, val)
+	return true
 }
 
 export function componentByTemplate(template: string, plaidForm: any): VueConstructor {

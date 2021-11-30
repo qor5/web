@@ -27,7 +27,7 @@ export function fieldNameDirective(form: FormData) {
 				vnode.componentInstance.$off("input", el.__fieldNameOninput)
 			}
 			el.__fieldNameOninput = (values: any) => {
-				setFormValue(myform, fieldName, values);
+				(myform as any).dirty = setFormValue(myform, fieldName, values);
 			}
 			vnode.componentInstance.$on("change", el.__fieldNameOninput)
 			vnode.componentInstance.$on("input", el.__fieldNameOninput)
@@ -37,7 +37,7 @@ export function fieldNameDirective(form: FormData) {
 				if (!evt.target) {
 					return
 				}
-				setFormValue(myform, fieldName, evt)
+				(myform as any).dirty = setFormValue(myform, fieldName, evt)
 			}
 		}
 
