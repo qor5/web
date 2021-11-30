@@ -233,6 +233,7 @@ type VFieldNameOption interface {
 }
 
 type UseForm string
+
 func (UseForm) private() {}
 
 func VFieldName(v string, opts ...VFieldNameOption) []interface{} {
@@ -247,4 +248,8 @@ func VFieldName(v string, opts ...VFieldNameOption) []interface{} {
 		"v-field-name",
 		fmt.Sprintf("[%s, %s]", formVar, h.JSONString(v)),
 	}
+}
+
+func GlobalEvents() *h.HTMLTagBuilder {
+	return h.Tag("global-events")
 }

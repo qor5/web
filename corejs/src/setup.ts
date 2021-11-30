@@ -6,11 +6,14 @@ import {fieldNameDirective} from "@/fieldname";
 import debounce from "@/debounce";
 import {keepScroll} from "@/keepScroll";
 import {Builder, plaid} from "@/builder";
+// @ts-ignore
+import GlobalEvents from 'vue-global-events'
 
 const form = new FormData();
 
 Vue.component('GoPlaidPortal', GoPlaidPortal());
 Vue.component('GoPlaidScope', GoPlaidScope);
+Vue.component('GlobalEvents', GlobalEvents);
 Vue.directive('init-context', initContext());
 Vue.directive('field-name', fieldNameDirective(form));
 Vue.directive('debounce', debounce);
