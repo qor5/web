@@ -155,17 +155,21 @@ export class Builder {
 		return this.popstate(true).location(event.state).reload().go()
 	}
 
-	public go(): Promise<EventResponse> {
-		if (this._eventFuncID.id == "__reload__") {
-			this.formClear()
-		}
-
+	public runPushState() {
 		if (this._popstate !== true && this._pushState === true) {
 			const args = this.buildPushStateArgs()
 			if (args) {
 				window.history.pushState(...args)
 			}
 		}
+	}
+
+	public go(): Promise<EventResponse> {
+		if (this._eventFuncID.id == "__reload__") {
+			this.formClear()
+		}
+
+		this.runPushState()
 
 		if (!this._form) {
 			this._form = new FormData()

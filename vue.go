@@ -166,6 +166,11 @@ func (b *VueEventTagBuilder) Go() (r string) {
 	return b.String()
 }
 
+func (b *VueEventTagBuilder) RunPushState() (r string) {
+	b.Raw("runPushState()")
+	return b.String()
+}
+
 func (b *VueEventTagBuilder) BeforeScript(script string) (r *VueEventTagBuilder) {
 	b.beforeScript = script
 	return b
