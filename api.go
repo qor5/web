@@ -55,21 +55,11 @@ type EventFuncID struct {
 	ID string `json:"id,omitempty"`
 }
 
-/*
-	Event is for an individual component like checkbox, input, data picker etc's onChange callback
-	will pass the Event to server side. use ctx.Event.Checked etc to get the value.
-*/
-type Event struct {
-	Checked bool   `json:"checked,omitempty"` // For Checkbox
-	Value   string `json:"value,omitempty"`   // For Input, DatePicker
-}
-
 type EventContext struct {
 	R        *http.Request
 	W        http.ResponseWriter
 	Hub      EventFuncHub
 	Injector *PageInjector
-	Event    *Event
 	Flash    interface{} // pass value from actions to index
 }
 
@@ -85,7 +75,7 @@ func (e *EventContext) QueryAsInt(key string) (r int) {
 
 func (e *EventContext) Queries() (r url.Values) {
 	r = e.R.URL.Query()
-	delete(r, eventFuncIDName)
+	delete(r, EventFuncIDName)
 	return
 }
 
@@ -105,7 +95,7 @@ func (ctx *EventContext) UnmarshalForm(v interface{}) (err error) {
 	dec := form.NewDecoder()
 	err = dec.Decode(v, mf.Value)
 	if err != nil {
-		//panic(err)
+		// panic(err)
 		return
 	}
 

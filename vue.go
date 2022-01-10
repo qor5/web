@@ -20,6 +20,7 @@ type VueEventTagBuilder struct {
 	beforeScript string
 	calls        []jsCall
 	afterScript  string
+	thenScript   string
 }
 
 func Plaid() (r *VueEventTagBuilder) {
@@ -30,10 +31,17 @@ func Plaid() (r *VueEventTagBuilder) {
 			},
 		},
 	}
-	r. /*Event(Var("$event")).*/
-		Vars(Var("vars")).
+	r.Vars(Var("vars")).
 		Form(Var("plaidForm"))
 	return
+}
+
+func GET() (r *VueEventTagBuilder) {
+	return Plaid().Method("GET")
+}
+
+func POST() (r *VueEventTagBuilder) {
+	return Plaid().Method("POST")
 }
 
 // URL is request page url without push state
@@ -54,16 +62,17 @@ func (b *VueEventTagBuilder) EventFunc(id interface{}) (r *VueEventTagBuilder) {
 	return b
 }
 
-func (b *VueEventTagBuilder) Reload() (r *VueEventTagBuilder) {
-	b.Raw("reload()")
+func (b *VueEventTagBuilder) Method(v interface{}) (r *VueEventTagBuilder) {
+	c := jsCall{
+		method: "method",
+		args:   []interface{}{v},
+	}
+	b.calls = append(b.calls, c)
 	return b
 }
 
-func (b *VueEventTagBuilder) Event(v interface{}) (r *VueEventTagBuilder) {
-	b.calls = append(b.calls, jsCall{
-		method: "event",
-		args:   []interface{}{v},
-	})
+func (b *VueEventTagBuilder) Reload() (r *VueEventTagBuilder) {
+	b.Raw("reload()")
 	return b
 }
 
@@ -180,6 +189,10 @@ func (b *VueEventTagBuilder) AfterScript(script string) (r *VueEventTagBuilder) 
 	b.afterScript = script
 	return b
 }
+func (b *VueEventTagBuilder) ThenScript(script string) (r *VueEventTagBuilder) {
+	b.thenScript = script
+	return b
+}
 
 func (b *VueEventTagBuilder) String() string {
 	var cs []string
@@ -204,6 +217,10 @@ func (b *VueEventTagBuilder) String() string {
 			args = append(args, toJsValue(arg))
 		}
 		cs = append(cs, fmt.Sprintf("%s(%s)", c.method, strings.Join(args, ", ")))
+	}
+
+	if len(b.thenScript) > 0 {
+		cs = append(cs, fmt.Sprintf("then(function(r){ %s })", b.thenScript))
 	}
 
 	var sems []string

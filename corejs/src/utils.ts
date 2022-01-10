@@ -2,7 +2,6 @@ import 'formdata-polyfill';
 import querystring from 'query-string';
 import union from 'lodash/union';
 import without from 'lodash/without';
-
 import {EventFuncID, ValueOp,} from './types';
 import Vue, {VueConstructor} from "vue";
 
@@ -126,43 +125,6 @@ function queryUpdateByValueOp(query: any, key: string, valueOp: ValueOp): void {
 		}
 	}
 	return;
-}
-
-export interface EventData {
-	value?: string;
-	checked?: boolean;
-}
-
-export function jsonEvent(evt: any) {
-	const v: EventData = {};
-	if (!evt) {
-		return v;
-	}
-
-	if (evt.target) {
-		// For Checkbox
-		if (evt.target.checked) {
-			v.checked = evt.target.checked;
-		}
-
-		// For Input
-		if (evt.target.value !== undefined) {
-			v.value = evt.target.value;
-		}
-		return v;
-	}
-
-	// For List
-	if (evt.key) {
-		v.value = evt.key;
-		return v;
-	}
-
-	if (typeof evt === 'string' || typeof evt === 'number') {
-		v.value = evt.toString(); // For Radio, Pager
-	}
-
-	return v;
 }
 
 export function inspectFormData(form: FormData) {

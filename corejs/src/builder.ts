@@ -1,5 +1,5 @@
 import {EventFuncID, EventResponse, Location, Queries, QueryValue,} from './types';
-import {componentByTemplate, jsonEvent, setFormValue, setPushState} from "@/utils";
+import {componentByTemplate, setFormValue, setPushState} from "@/utils";
 
 import Vue from "vue";
 
@@ -8,7 +8,7 @@ declare var window: any;
 export class Builder {
 	_eventFuncID: EventFuncID = {id: "__reload__"};
 	_url?: string;
-	_event?: any;
+	_method?: string;
 	_vars?: any;
 	_form?: FormData;
 	_popstate?: boolean;
@@ -34,11 +34,6 @@ export class Builder {
 
 	public url(v: string): Builder {
 		this._url = v;
-		return this;
-	}
-
-	public event(v: any): Builder {
-		this._event = v;
 		return this;
 	}
 
@@ -132,6 +127,11 @@ export class Builder {
 		return this;
 	}
 
+	public method(m: string): Builder {
+		this._method = m;
+		return this;
+	}
+
 	public buildFetchURL(): string {
 		this.ensurePushStateResult();
 		return this._setPushStateResult.eventURL;
@@ -171,23 +171,24 @@ export class Builder {
 
 		this.runPushState()
 
-		if (!this._form) {
-			this._form = new FormData()
+		let fetchOpts: RequestInit = {
+			method: 'POST',
+			redirect: 'follow',
 		}
 
-		if (this._event) {
-			const eventData = JSON.stringify({
-				event: jsonEvent(this._event),
-			});
-			this._form.set('__event_data__', eventData);
+		if (this._method) {
+			fetchOpts.method = this._method
+		}
+
+		if (fetchOpts.method === 'POST') {
+			if (!this._form) {
+				this._form = new FormData()
+			}
+			fetchOpts.body = this._form
 		}
 
 		window.dispatchEvent(new Event('fetchStart'));
-		return fetch(this.buildFetchURL(), {
-			method: 'POST',
-			body: this._form,
-			redirect: 'follow',
-		}).then((r) => {
+		return fetch(this.buildFetchURL(), fetchOpts).then((r) => {
 			if (r.redirected) {
 				document.location.replace(r.url);
 				return {}

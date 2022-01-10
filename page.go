@@ -43,10 +43,6 @@ func (p *PageBuilder) MergeHub(hub *EventsHub) (r *PageBuilder) {
 	return p
 }
 
-type eventBody struct {
-	Event Event `json:"event,omitempty"`
-}
-
 func (p *PageBuilder) render(
 	w http.ResponseWriter,
 	r *http.Request,
@@ -123,23 +119,7 @@ func (p *PageBuilder) parseForm(r *http.Request) *multipart.Form {
 	return r.MultipartForm
 }
 
-func (p *PageBuilder) eventBodyFromRequest(r *http.Request) *eventBody {
-	var err error
-	mf := p.parseForm(r)
-
-	var eb eventBody
-	if val, ok := mf.Value[eventDataName]; ok && len(val) > 0 {
-		err = json.NewDecoder(strings.NewReader(val[0])).Decode(&eb)
-		if err != nil {
-			panic(err)
-		}
-	}
-
-	return &eb
-}
-
-const eventFuncIDName = "__execute_event__"
-const eventDataName = "__event_data__"
+const EventFuncIDName = "__execute_event__"
 
 func (p *PageBuilder) executeEvent(w http.ResponseWriter, r *http.Request) {
 
@@ -151,9 +131,7 @@ func (p *PageBuilder) executeEvent(w http.ResponseWriter, r *http.Request) {
 
 	c := WrapEventContext(r.Context(), ctx)
 
-	eb := p.eventBodyFromRequest(r)
-	ctx.Event = &eb.Event
-	eventFuncID := r.FormValue(eventFuncIDName)
+	eventFuncID := r.FormValue(EventFuncIDName)
 
 	// for server side restart and lost all the eventFuncs,
 	// but user keep clicking page without refresh page to call p.render to fill up eventFuncs
@@ -207,7 +185,7 @@ func reload(ctx *EventContext) (r EventResponse, err error) {
 }
 
 func (p *PageBuilder) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "POST" && strings.Index(r.URL.String(), eventFuncIDName) >= 0 {
+	if strings.Index(r.URL.String(), EventFuncIDName) >= 0 {
 		p.executeEvent(w, r)
 		return
 	}
