@@ -23,11 +23,13 @@ export function setPushState(
 	}
 
 	let mergeURLQuery = false;
+	let excludeParams: string[] = [];
 	if (pstate) {
 		if (pstate.url) {
 			url = pstate.url;
 		}
 		mergeURLQuery = pstate.mergeQuery || false;
+		excludeParams = pstate.mergeQueryWithoutParams || [];
 	}
 
 	const orig = querystring.parseUrl(url, {
@@ -38,7 +40,13 @@ export function setPushState(
 
 	let requestQuery = {__execute_event__: eventFuncId.id};
 	if (mergeURLQuery) {
-		query = {...query, ...orig.query};
+		for (const [key, value] of Object.entries(orig.query)) {
+			// If excludeParams is present then skip current location queries which contained by excludeParams
+			// If excludeParams is empty, all queries from current location will be kept
+			if (excludeParams.indexOf(key) < 0) {
+				query[key] = value
+			}
+		}
 	}
 
 	let serverPushState: any = null;

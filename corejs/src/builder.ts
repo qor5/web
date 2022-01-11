@@ -61,6 +61,15 @@ export class Builder {
 		return this;
 	}
 
+	public mergeQueryWithoutParams(params: any): Builder {
+		this.mergeQuery(true)
+		if (!this._location) {
+			this._location = {}
+		}
+		this._location.mergeQueryWithoutParams = params
+		return this;
+	}
+
 	public location(v: Location): Builder {
 		this._location = v;
 		return this;

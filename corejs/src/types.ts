@@ -14,6 +14,7 @@ export interface Location {
 	mergeQuery?: boolean;
 	url?: string;
 	query?: Queries;
+	mergeQueryWithoutParams?: string[];
 }
 
 export interface EventFuncID {

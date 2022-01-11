@@ -16,7 +16,6 @@ describe('builder', () => {
 		expect(pushedData).toEqual({ query: { hello: '1', name: 'felix', page: '2' }, url: '/page1?hello=1&name=felix&page=2#scroll=123_0' });
 	});
 
-
 	it('pushState with string will replace url queries', () => {
 		const b = plaid().
 			eventFunc("hello").
@@ -28,6 +27,19 @@ describe('builder', () => {
 		expect(url).toEqual('/page1?name=felix');
 		expect(b.buildEventFuncID().location).toEqual({ name: ['felix'] });
 		expect(pushedData).toEqual({ query: { name: 'felix' }, url: '/page1?name=felix' });
+	});
+
+	it('pushState with merge query without params will keep current url queries except for given params', () => {
+		const b = plaid().
+			eventFunc("hello").
+			query("name", "felix").mergeQueryWithoutParams(["page"]).
+			url("/page1?keep_me=1&page=2")
+
+		expect(b.buildFetchURL()).toEqual('/page1?__execute_event__=hello&keep_me=1&name=felix');
+		const [pushedData, title, url] = b.buildPushStateArgs()
+		expect(url).toEqual('/page1?keep_me=1&name=felix');
+		expect(b.buildEventFuncID().location).toEqual({ keep_me: ['1'], name: ['felix'] });
+		expect(pushedData).toEqual({ query: { keep_me: '1', name: 'felix' }, url: '/page1?keep_me=1&name=felix' });
 	});
 
 	it('add operator will add to current query values', () => {
