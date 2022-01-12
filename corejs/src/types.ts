@@ -13,13 +13,14 @@ export interface Queries {
 export interface Location {
 	mergeQuery?: boolean;
 	url?: string;
+	search?: string;
 	query?: Queries;
 	mergeQueryWithoutParams?: string[];
 }
 
 export interface EventFuncID {
 	id: string;
-	location?: Location | string;
+	location?: Location;
 }
 
 export interface PortalUpdate {

@@ -75,6 +75,15 @@ export class Builder {
 		return this;
 	}
 
+	public stringLocation(v: string): Builder {
+		if (!this._location) {
+			this._location = {}
+		}
+
+		this._location.search = v;
+		return this;
+	}
+
 	public pushState(v: boolean): Builder {
 		this._pushState = v;
 		return this;

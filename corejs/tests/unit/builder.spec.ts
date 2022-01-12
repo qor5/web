@@ -31,15 +31,14 @@ describe('builder', () => {
 
 	it('pushState with merge query without params will keep current url queries except for given params', () => {
 		const b = plaid().
-			eventFunc("hello").
-			query("name", "felix").mergeQueryWithoutParams(["page"]).
-			url("/page1?keep_me=1&page=2")
+			stringLocation("missing_value=2&channel=2").
+			mergeQueryWithoutParams(["missing_value", "channel"]).
+			url("/page1?active_filter_tab=missing_value&missing_value=1&order_by=CreatedAt_ASC")
 
-		expect(b.buildFetchURL()).toEqual('/page1?__execute_event__=hello&keep_me=1&name=felix');
 		const [pushedData, title, url] = b.buildPushStateArgs()
-		expect(url).toEqual('/page1?keep_me=1&name=felix');
-		expect(b.buildEventFuncID().location).toEqual({ keep_me: ['1'], name: ['felix'] });
-		expect(pushedData).toEqual({ query: { keep_me: '1', name: 'felix' }, url: '/page1?keep_me=1&name=felix' });
+		expect(url).toEqual('/page1?active_filter_tab=missing_value&channel=2&missing_value=2&order_by=CreatedAt_ASC');
+		expect(b.buildEventFuncID().location).toEqual({ "active_filter_tab":  ["missing_value"], "channel": ["2"], "missing_value": ["2"], "order_by": ["CreatedAt_ASC",]});
+		expect(pushedData).toEqual({ query: { active_filter_tab: 'missing_value', channel: '2', missing_value: '2', order_by: 'CreatedAt_ASC'}, url: '/page1?active_filter_tab=missing_value&channel=2&missing_value=2&order_by=CreatedAt_ASC' });
 	});
 
 	it('add operator will add to current query values', () => {
