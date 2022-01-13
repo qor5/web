@@ -2,96 +2,76 @@ import 'formdata-polyfill';
 import querystring from 'query-string';
 import union from 'lodash/union';
 import without from 'lodash/without';
-import {EventFuncID, ValueOp,} from './types';
+import {EventFuncID, ValueOp} from './types';
 import Vue, {VueConstructor} from "vue";
 
 
-export function setPushState(
+export function buildPushState(
 	eventFuncId: EventFuncID,
 	url: string,
 ): any {
+
 	let loc = eventFuncId.location;
-
-	// If pushState is string, then replace query string to it
-	// If pushState it object, merge url query
-	if (loc && loc.stringQuery) {
-		let strQuery = querystring.parse(loc.stringQuery, {arrayFormat: 'comma'})
-		loc.query = { ...strQuery, ...loc.query};
-	}
-
-	if (loc && loc.url) {
-		url = loc.url;
-	}
-
-	const orig = querystring.parseUrl(url, {
+	const orig = querystring.parseUrl(loc?.url || url, {
 		arrayFormat: 'comma',
 		parseFragmentIdentifier: true
 	});
-	let query: any = {};
+
+	let resultQuery: any = {};
+	let locQuery;
+	// If pushState is string, then replace query string to it
+	// If pushState it object, merge url query
+	if (loc) {
+		if (loc.stringQuery) {
+			let strQuery = querystring.parse(loc.stringQuery, {arrayFormat: 'comma'})
+			loc.query = {...strQuery, ...loc.query};
+		}
+
+		if (loc.mergeQuery) {
+			let clearKeys = loc.clearMergeQueryKeys || []
+			for (const [key, value] of Object.entries(orig.query)) {
+				// If clearMergeQueryKeys is present then skip current location queries which contained by clearMergeQueryKeys
+				// If clearMergeQueryKeys is empty, all queries from current location will be kept
+				if (clearKeys.indexOf(key.split(".")[0]) < 0) {
+					resultQuery[key] = value
+				}
+			}
+			if (!loc.query) {
+				loc.query = {}
+			}
+		}
+		locQuery = loc.query
+	}
 
 	let requestQuery = {__execute_event__: eventFuncId.id};
-	if (loc && loc.mergeQuery) {
-		let clearKeys = loc.clearMergeQueryKeys || []
-		for (const [key, value] of Object.entries(orig.query)) {
-			// If clearMergeQueryKeys is present then skip current location queries which contained by clearMergeQueryKeys
-			// If clearMergeQueryKeys is empty, all queries from current location will be kept
-			if (clearKeys.indexOf(key.split(".")[0]) < 0) {
-				query[key] = value
-			}
+	const st = locQuery || orig.query;
+	let addressBarQuery = '';
+	for (const [key, v] of Object.entries(st)) {
+		if (Array.isArray(v)) {
+			resultQuery[key] = v;
+		} else if (typeof v === 'object') {
+			const valueOp = v as ValueOp;
+			queryUpdateByValueOp(resultQuery, key, valueOp);
+		} else {
+			resultQuery[key] = v;
 		}
 	}
 
-	let serverPushState: any = null;
-	let pushStateArgs;
+	requestQuery = {...requestQuery, ...resultQuery};
 
-	if (loc) {
-		const st = loc.query || orig.query;
-
-		let addressBarQuery = '';
-		if (Object.keys(st).length > 0) {
-			Object.keys(st).forEach((key) => {
-				const v = st[key];
-				if (Array.isArray(v)) {
-					query[key] = v;
-				} else if (typeof v === 'object') {
-					const valueOp = v as ValueOp;
-					queryUpdateByValueOp(query, key, valueOp);
-				} else {
-					query[key] = v;
-				}
-			});
-			addressBarQuery = querystring.stringify(query, {arrayFormat: 'comma'});
-			if (addressBarQuery.length > 0) {
-				addressBarQuery = `?${addressBarQuery}`;
-			}
-
-			requestQuery = {...requestQuery, ...query};
-		}
-
-
-		let newUrl = orig.url + addressBarQuery;
-		if (orig.fragmentIdentifier) {
-			newUrl = newUrl + "#" + orig.fragmentIdentifier
-		}
-		const pushedState = {query, url: newUrl};
-		pushStateArgs = [pushedState, '', newUrl];
-
-		serverPushState = {};
-		Object.keys(query).forEach((key) => {
-			const v = query[key];
-			if (Array.isArray(v)) {
-				serverPushState[key] = v;
-			} else {
-				serverPushState[key] = [`${v}`];
-			}
-		});
+	addressBarQuery = querystring.stringify(resultQuery, {arrayFormat: 'comma'});
+	if (addressBarQuery.length > 0) {
+		addressBarQuery = `?${addressBarQuery}`;
 	}
 
-	eventFuncId.location = serverPushState;
+	let newUrl = orig.url + addressBarQuery;
+	if (orig.fragmentIdentifier) {
+		newUrl = newUrl + "#" + orig.fragmentIdentifier
+	}
+	const pushedState = {query: resultQuery, url: newUrl};
 
 	return {
-		pushStateArgs: pushStateArgs,
-		newEventFuncId: eventFuncId,
+		pushStateArgs: [pushedState, '', newUrl],
 		eventURL: `${orig.url}?${querystring.stringify(requestQuery, {arrayFormat: 'comma'})}`,
 	};
 }

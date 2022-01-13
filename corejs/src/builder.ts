@@ -1,5 +1,5 @@
 import {EventFuncID, EventResponse, Location, Queries, QueryValue,} from './types';
-import {componentByTemplate, setFormValue, setPushState} from "@/utils";
+import {buildPushState, componentByTemplate, setFormValue} from "@/utils";
 
 import Vue from "vue";
 
@@ -15,7 +15,7 @@ export class Builder {
 	_pushState?: boolean;
 	_location?: Location;
 	_vueContext?: Vue;
-	_setPushStateResult?: any
+	_buildPushStateResult?: any
 
 	public eventFunc(id: string): Builder {
 		this._eventFuncID.id = id;
@@ -153,17 +153,12 @@ export class Builder {
 
 	public buildFetchURL(): string {
 		this.ensurePushStateResult();
-		return this._setPushStateResult.eventURL;
+		return this._buildPushStateResult.eventURL;
 	}
 
 	public buildPushStateArgs(): [data: any, title: string, url?: string | null] {
 		this.ensurePushStateResult();
-		return this._setPushStateResult.pushStateArgs;
-	}
-
-	public buildEventFuncID(): EventFuncID {
-		this.ensurePushStateResult();
-		return this._setPushStateResult.newEventFuncId;
+		return this._buildPushStateResult.pushStateArgs;
 	}
 
 	public onpopstate(event: any): Promise<EventResponse> {
@@ -261,7 +256,10 @@ export class Builder {
 			}
 
 			if (r.pushState) {
-				return (this._vueContext as any).$plaid().reload().location(r.pushState).go();
+				return (this._vueContext as any).$plaid()
+					.reload()
+					.location(r.pushState)
+					.go();
 			}
 
 			if (r.body && r.reload) {
@@ -284,13 +282,13 @@ export class Builder {
 	}
 
 	private ensurePushStateResult() {
-		if (this._setPushStateResult) {
+		if (this._buildPushStateResult) {
 			return
 		}
 
 		const defaultURL = window.location.href;
 
-		this._setPushStateResult = setPushState({
+		this._buildPushStateResult = buildPushState({
 			...this._eventFuncID,
 			...{location: this._location}
 		}, this._url || defaultURL)
