@@ -10,23 +10,17 @@ export function setPushState(
 	eventFuncId: EventFuncID,
 	url: string,
 ): any {
-	let pstate = eventFuncId.location;
+	let loc = eventFuncId.location;
 
 	// If pushState is string, then replace query string to it
 	// If pushState it object, merge url query
-	if (pstate && pstate.search) {
-		pstate.query = querystring.parse(pstate.search, {arrayFormat: 'comma'});
+	if (loc && loc.stringQuery) {
+		let strQuery = querystring.parse(loc.stringQuery, {arrayFormat: 'comma'})
+		loc.query = { ...strQuery, ...loc.query};
 	}
 
-	let mergeURLQuery = false;
-	let excludeParams: string[] = [];
-	if (pstate) {
-		if (pstate.url) {
-			url = pstate.url;
-		}
-		
-		mergeURLQuery = pstate.mergeQuery || false;
-		excludeParams = pstate.mergeQueryWithoutParams || [];
+	if (loc && loc.url) {
+		url = loc.url;
 	}
 
 	const orig = querystring.parseUrl(url, {
@@ -36,11 +30,12 @@ export function setPushState(
 	let query: any = {};
 
 	let requestQuery = {__execute_event__: eventFuncId.id};
-	if (mergeURLQuery) {
+	if (loc && loc.mergeQuery) {
+		let clearKeys = loc.clearMergeQueryKeys || []
 		for (const [key, value] of Object.entries(orig.query)) {
-			// If excludeParams is present then skip current location queries which contained by excludeParams
-			// If excludeParams is empty, all queries from current location will be kept
-			if (excludeParams.indexOf(key) < 0) {
+			// If clearMergeQueryKeys is present then skip current location queries which contained by clearMergeQueryKeys
+			// If clearMergeQueryKeys is empty, all queries from current location will be kept
+			if (clearKeys.indexOf(key.split(".")[0]) < 0) {
 				query[key] = value
 			}
 		}
@@ -49,8 +44,8 @@ export function setPushState(
 	let serverPushState: any = null;
 	let pushStateArgs;
 
-	if (pstate) {
-		const st = pstate.query || orig.query;
+	if (loc) {
+		const st = loc.query || orig.query;
 
 		let addressBarQuery = '';
 		if (Object.keys(st).length > 0) {

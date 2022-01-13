@@ -10,12 +10,13 @@ export interface Queries {
 	[key: string]: QueryValue;
 }
 
+// This could be used by server side with: r.PushState = web.Location(url.Values{})
 export interface Location {
 	mergeQuery?: boolean;
 	url?: string;
-	search?: string;
+	stringQuery?: string;
 	query?: Queries;
-	mergeQueryWithoutParams?: string[];
+	clearMergeQueryKeys?: string[];
 }
 
 export interface EventFuncID {

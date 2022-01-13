@@ -32,6 +32,7 @@ export class Builder {
 		return this;
 	}
 
+	// if you call url(), it will post event func to this url, or else it will post to current window url
 	public url(v: string): Builder {
 		this._url = v;
 		return this;
@@ -61,12 +62,12 @@ export class Builder {
 		return this;
 	}
 
-	public mergeQueryWithoutParams(params: any): Builder {
-		this.mergeQuery(true)
+	public clearMergeQuery(clearKeys: string[]): Builder {
 		if (!this._location) {
 			this._location = {}
 		}
-		this._location.mergeQueryWithoutParams = params
+		this._location.mergeQuery = true
+		this._location.clearMergeQueryKeys = clearKeys
 		return this;
 	}
 
@@ -75,12 +76,12 @@ export class Builder {
 		return this;
 	}
 
-	public stringLocation(v: string): Builder {
+	public stringQuery(v: string): Builder {
 		if (!this._location) {
 			this._location = {}
 		}
 
-		this._location.search = v;
+		this._location.stringQuery = v;
 		return this;
 	}
 

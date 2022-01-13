@@ -52,16 +52,29 @@ func (b *LocationBuilder) PutQuery(key string, values []string) (r *LocationBuil
 	return b
 }
 
+func (b *LocationBuilder) StringQuery(v string) (r *LocationBuilder) {
+	b.MyStringQuery = v
+	return b
+}
+
+func (b *LocationBuilder) ClearMergeQuery(clearKeys []string) (r *LocationBuilder) {
+	b.MyClearMergeQueryKeys = clearKeys
+	return b
+}
+
 type valuesMarshaller []string
 
 func (vm valuesMarshaller) MarshalJSON() ([]byte, error) {
 	return json.Marshal([]string(vm))
 }
 
+// LocationBuilder mapping to type.ts Location interface
 type LocationBuilder struct {
-	MyMergeQuery bool                      `json:"mergeQuery,omitempty"`
-	MyURL        string                    `json:"url,omitempty"`
-	MyQuery      map[string]json.Marshaler `json:"query,omitempty"`
+	MyMergeQuery          bool                      `json:"mergeQuery,omitempty"`
+	MyURL                 string                    `json:"url,omitempty"`
+	MyStringQuery         string                    `json:"stringQuery,omitempty"`
+	MyClearMergeQueryKeys []string                  `json:"clearMergeQueryKeys,omitempty"`
+	MyQuery               map[string]json.Marshaler `json:"query,omitempty"`
 }
 
 type valueOp struct {

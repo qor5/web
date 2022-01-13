@@ -29,16 +29,26 @@ describe('builder', () => {
 		expect(pushedData).toEqual({ query: { name: 'felix' }, url: '/page1?name=felix' });
 	});
 
-	it('pushState with merge query without params will keep current url queries except for given params', () => {
+	it('pushState with clearMergeQuery will delete provided keys then mergeQuery', () => {
 		const b = plaid().
-			stringLocation("missing_value=2&channel=2").
-			mergeQueryWithoutParams(["missing_value", "channel"]).
-			url("/page1?active_filter_tab=missing_value&missing_value=1&order_by=CreatedAt_ASC")
+			url("/page1?active_filter_tab=missing_value&missing_value=1&approved.gte=1642003200&order_by=CreatedAt_ASC").
+			stringQuery("missing_value=2&channel=2").
+			query("name", "felix").
+			clearMergeQuery(["missing_value", "channel", "approved"])
 
 		const [pushedData, title, url] = b.buildPushStateArgs()
-		expect(url).toEqual('/page1?active_filter_tab=missing_value&channel=2&missing_value=2&order_by=CreatedAt_ASC');
-		expect(b.buildEventFuncID().location).toEqual({ "active_filter_tab":  ["missing_value"], "channel": ["2"], "missing_value": ["2"], "order_by": ["CreatedAt_ASC",]});
-		expect(pushedData).toEqual({ query: { active_filter_tab: 'missing_value', channel: '2', missing_value: '2', order_by: 'CreatedAt_ASC'}, url: '/page1?active_filter_tab=missing_value&channel=2&missing_value=2&order_by=CreatedAt_ASC' });
+		expect(url).toEqual('/page1?active_filter_tab=missing_value&channel=2&missing_value=2&name=felix&order_by=CreatedAt_ASC');
+		expect(b.buildEventFuncID().location).toEqual({ "active_filter_tab":  ["missing_value"], "channel": ["2"], "name": ["felix"], "missing_value": ["2"], "order_by": ["CreatedAt_ASC",]});
+		expect(pushedData).toEqual({ query: { active_filter_tab: 'missing_value', channel: '2', name: "felix", missing_value: '2', order_by: 'CreatedAt_ASC'}, url: '/page1?active_filter_tab=missing_value&channel=2&missing_value=2&name=felix&order_by=CreatedAt_ASC' });
+	});
+
+	it('pushState with stringQuery empty will delete provided keys', () => {
+		const b = plaid().
+		url("/page1?active_filter_tab=missing_value&missing_value=1&approved.gte=1642003200&order_by=CreatedAt_ASC").
+		clearMergeQuery(["missing_value", "channel", "approved"])
+
+		const [pushedData, title, url] = b.buildPushStateArgs()
+		expect(url).toEqual('/page1?active_filter_tab=missing_value&order_by=CreatedAt_ASC');
 	});
 
 	it('add operator will add to current query values', () => {
