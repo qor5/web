@@ -258,6 +258,7 @@ export class Builder {
 			if (r.pushState) {
 				return (this._vueContext as any).$plaid()
 					.reload()
+					.pushState(true)
 					.location(r.pushState)
 					.go();
 			}
