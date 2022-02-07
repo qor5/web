@@ -128,7 +128,7 @@ func (b *VueEventTagBuilder) PushState(v interface{}) (r *VueEventTagBuilder) {
 
 func (b *VueEventTagBuilder) Location(v *LocationBuilder) (r *VueEventTagBuilder) {
 	b.calls = append(b.calls, jsCall{
-		method: "pushState",
+		method: "location",
 		args:   []interface{}{v},
 	})
 	return b
