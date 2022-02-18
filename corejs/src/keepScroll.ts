@@ -14,7 +14,7 @@ export function keepScroll() {
 			const values = initParsed[param]
 			let value = ""
 			if (Array.isArray(values)) {
-				value = values[0]
+				value = values[0] || ""
 			} else {
 				value = values || ""
 			}

@@ -24,6 +24,7 @@ export function buildPushState(
 	if (loc) {
 		if (loc.stringQuery) {
 			let strQuery = querystring.parse(loc.stringQuery, {arrayFormat: 'comma'})
+			// @ts-ignore
 			loc.query = {...strQuery, ...loc.query};
 		}
 
