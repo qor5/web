@@ -171,6 +171,9 @@ export class Builder {
 
 	public runPushState() {
 		if (this._popstate !== true && this._pushState === true) {
+			if (window.history.length <= 2) {
+				window.history.pushState({url: window.location.href}, "", window.location.href)
+			}
 			const args = this.buildPushStateArgs()
 			if (args) {
 				window.history.pushState(...args)
