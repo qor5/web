@@ -241,7 +241,6 @@ export class Builder {
 						portal.reload();
 					}
 				}
-				return r;
 			}
 
 			if (r.updatePortals && r.updatePortals.length > 0) {
@@ -251,7 +250,6 @@ export class Builder {
 						portal.changeCurrentTemplate(pu.body);
 					}
 				}
-				return r;
 			}
 
 			if (!this._vueContext) {
