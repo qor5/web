@@ -210,7 +210,7 @@ export class Builder {
 				document.location.replace(r.url);
 				return {}
 			}
-			if (r.status >= 500) {
+			if (r.status >= 400) {
 				alert(r.statusText)
 				return {}
 			}

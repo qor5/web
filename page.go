@@ -150,7 +150,9 @@ func (p *PageBuilder) executeEvent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if ef == nil {
-		panic(fmt.Errorf("event %s not found", eventFuncID))
+		log.Printf("event %s not found\n", eventFuncID)
+		http.NotFound(w, r)
+		return
 	}
 
 	er, err := ef(ctx)
