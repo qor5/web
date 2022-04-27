@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/go-playground/form"
 	"github.com/sunfmin/reflectutils"
@@ -50,6 +51,13 @@ type EventFuncHub interface {
 }
 
 // @snippet_end
+
+func AppendVarsScripts(er *EventResponse, scripts ...string) {
+	if er.VarsScript != "" {
+		scripts = append([]string{er.VarsScript}, scripts...)
+	}
+	er.VarsScript = strings.Join(scripts, "; ")
+}
 
 type EventFuncID struct {
 	ID string `json:"id,omitempty"`
