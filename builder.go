@@ -38,6 +38,10 @@ type ComponentsPack string
 
 var startTime = time.Now()
 
+func PacksHandler(contentType string, packs ...ComponentsPack) http.Handler {
+	return Default.PacksHandler(contentType, packs...)
+}
+
 func (b *Builder) PacksHandler(contentType string, packs ...ComponentsPack) http.Handler {
 	var buf = bytes.NewBuffer(nil)
 	for _, pk := range packs {

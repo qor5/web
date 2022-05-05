@@ -45,7 +45,6 @@ func runEvent(
 	}
 
 	var p = pb.Page(func(ctx *EventContext) (pr PageResponse, err error) {
-		ctx.Hub.RegisterEventFunc("call", f)
 
 		if renderChanger != nil {
 			renderChanger(ctx, &pr)
@@ -53,7 +52,7 @@ func runEvent(
 			pr.Body = h.H1("Hello")
 		}
 		return
-	})
+	}).EventFunc("call", f)
 
 	r := httptest.NewRequest("GET", "/", nil)
 	w := httptest.NewRecorder()
@@ -111,11 +110,9 @@ func TestFileUpload(t *testing.T) {
 			}
 		}
 
-		ctx.Hub.RegisterEventFunc("uploadFile", uploadFile)
-
 		pr.Body = h.H1(string(data))
 		return
-	})
+	}).EventFunc("uploadFile", uploadFile)
 
 	b := multipartestutils.NewMultipartBuilder().
 		EventFunc("uploadFile").

@@ -12,6 +12,18 @@ import (
 	h "github.com/theplant/htmlgo"
 )
 
+var Default = New()
+
+func Page(pf PageFunc, efs ...interface{}) (p *PageBuilder) {
+	p = &PageBuilder{
+		b: Default,
+	}
+	p.pageRenderFunc = pf
+	p.RegisterEventFunc("__reload__", reload)
+	p.EventFuncs(efs...)
+	return
+}
+
 type PageBuilder struct {
 	EventsHub
 	b              *Builder
@@ -20,10 +32,23 @@ type PageBuilder struct {
 }
 
 func (b *Builder) Page(pf PageFunc) (p *PageBuilder) {
-	p = &PageBuilder{}
-	p.b = b
+	p = Page(pf).Builder(b)
+	return
+}
+
+func (p *PageBuilder) Builder(v *Builder) (r *PageBuilder) {
+	p.b = v
+	r = p
+	return
+}
+
+func (p *PageBuilder) Wrap(middlewares ...func(in PageFunc) PageFunc) (r *PageBuilder) {
+	pf := p.pageRenderFunc
+	for _, m := range middlewares {
+		pf = m(pf)
+	}
 	p.pageRenderFunc = pf
-	p.RegisterEventFunc("__reload__", reload)
+	r = p
 	return
 }
 
@@ -35,6 +60,11 @@ func (p *PageBuilder) MaxFormSize(v int64) (r *PageBuilder) {
 
 func (p *PageBuilder) EventFuncs(vs ...interface{}) (r *PageBuilder) {
 	p.addMultipleEventFuncs(vs...)
+	return p
+}
+
+func (p *PageBuilder) EventFunc(name string, ef EventFunc) (r *PageBuilder) {
+	p.RegisterEventFunc(name, ef)
 	return p
 }
 
@@ -56,7 +86,6 @@ func (p *PageBuilder) render(
 
 	ctx := MustGetEventContext(c)
 
-	ctx.Hub = p
 	ctx.R = r
 	ctx.W = w
 	ctx.Injector = head
@@ -126,7 +155,6 @@ func (p *PageBuilder) executeEvent(w http.ResponseWriter, r *http.Request) {
 	ctx := new(EventContext)
 	ctx.R = r
 	ctx.W = w
-	ctx.Hub = p
 	ctx.Injector = &PageInjector{}
 
 	c := WrapEventContext(r.Context(), ctx)
