@@ -211,7 +211,7 @@ export class Builder {
 				return {}
 			}
 			if (r.status >= 400) {
-				alert(r.statusText)
+				alert(r.status + ": " + r.statusText || "Unknown Error")
 				return {}
 			}
 
@@ -276,7 +276,7 @@ export class Builder {
 			return r;
 		}).catch((error) => {
 			console.log(error)
-			alert("500 Internal Server Error")
+			alert("Unknown Error")
 			// document.location.reload();
 		}).finally(() => {
 			window.dispatchEvent(new Event('fetchEnd'));
