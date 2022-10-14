@@ -44,7 +44,6 @@ export function buildPushState(
 		locQuery = loc.query
 	}
 
-	let requestQuery = {__execute_event__: eventFuncId.id};
 	const st = locQuery || orig.query;
 	let addressBarQuery = '';
 	for (const [key, v] of Object.entries(st)) {
@@ -58,7 +57,7 @@ export function buildPushState(
 		}
 	}
 
-	requestQuery = {...requestQuery, ...resultQuery};
+	let requestQuery = {...resultQuery, ...{__execute_event__: eventFuncId.id}};
 
 	addressBarQuery = querystring.stringify(resultQuery, {arrayFormat: 'comma'});
 	if (addressBarQuery.length > 0) {
