@@ -30,7 +30,6 @@ export function buildPushState(
 
 		if (loc.mergeQuery) {
 			let clearKeys = loc.clearMergeQueryKeys || []
-			clearKeys = ['__execute_event__', ...clearKeys]
 			for (const [key, value] of Object.entries(orig.query)) {
 				// If clearMergeQueryKeys is present then skip current location queries which contained by clearMergeQueryKeys
 				// If clearMergeQueryKeys is empty, all queries from current location will be kept
@@ -45,7 +44,6 @@ export function buildPushState(
 		locQuery = loc.query
 	}
 
-	let requestQuery = {__execute_event__: eventFuncId.id};
 	const st = locQuery || orig.query;
 	let addressBarQuery = '';
 	for (const [key, v] of Object.entries(st)) {
@@ -59,7 +57,7 @@ export function buildPushState(
 		}
 	}
 
-	requestQuery = {...requestQuery, ...resultQuery};
+	let requestQuery = {...resultQuery, ...{__execute_event__: eventFuncId.id}};
 
 	addressBarQuery = querystring.stringify(resultQuery, {arrayFormat: 'comma'});
 	if (addressBarQuery.length > 0) {
