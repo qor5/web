@@ -30,6 +30,7 @@ export function buildPushState(
 
 		if (loc.mergeQuery) {
 			let clearKeys = loc.clearMergeQueryKeys || []
+			clearKeys = ['__execute_event__', ...clearKeys]
 			for (const [key, value] of Object.entries(orig.query)) {
 				// If clearMergeQueryKeys is present then skip current location queries which contained by clearMergeQueryKeys
 				// If clearMergeQueryKeys is empty, all queries from current location will be kept
