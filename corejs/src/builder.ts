@@ -17,6 +17,20 @@ export class Builder {
 	_vueContext?: Vue;
 	_buildPushStateResult?: any
 
+	readonly ignoreErrors = [
+		'Failed to fetch', // Chrome
+		'NetworkError when attempting to fetch resource.', // Firefox
+		'The Internet connection appears to be offline.', // Safari
+		'Network request failed' // `cross-fetch`
+	];
+
+	isIgnoreError = (err: any) => {
+		if (err instanceof Error) {
+			return this.ignoreErrors?.includes(err.message);
+		}
+		return false;
+	}
+
 	public eventFunc(id: string): Builder {
 		this._eventFuncID.id = id;
 		return this;
@@ -276,7 +290,9 @@ export class Builder {
 			return r;
 		}).catch((error) => {
 			console.log(error)
-			alert("Unknown Error")
+			if (!this.isIgnoreError(error)) {
+				alert("Unknown Error")
+			}
 			// document.location.reload();
 		}).finally(() => {
 			window.dispatchEvent(new Event('fetchEnd'));
