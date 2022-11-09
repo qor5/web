@@ -1,11 +1,10 @@
-module github.com/goplaid/web
+module github.com/qor5/web
 
-go 1.17
+go 1.19
 
 require (
 	github.com/NYTimes/gziphandler v1.1.1
 	github.com/go-playground/form v3.1.4+incompatible
-	github.com/goplaid/multipartestutils v0.0.3
 	github.com/sunfmin/reflectutils v1.0.2
 	github.com/theplant/htmlgo v1.0.3
 	github.com/theplant/htmltestingutils v0.0.0-20190423050759-0e06de7b6967
