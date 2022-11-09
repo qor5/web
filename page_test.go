@@ -9,8 +9,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/goplaid/multipartestutils"
-	. "github.com/goplaid/web"
+	. "github.com/qor5/web"
+	"github.com/qor5/web/multipartestutils"
 	h "github.com/theplant/htmlgo"
 	"github.com/theplant/htmltestingutils"
 	"github.com/theplant/testingutils"
