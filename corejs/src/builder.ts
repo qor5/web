@@ -224,10 +224,6 @@ export class Builder {
 				document.location.replace(r.url);
 				return {}
 			}
-			if (r.status >= 400) {
-				alert(r.status + ": " + r.statusText || "Unknown Error")
-				return {}
-			}
 
 			(this._form as any).dirty = false
 			return r.json();
