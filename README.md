@@ -1,3 +1,3 @@
 # Documentation
 
-https://docs.goplaid.dev
+https://docs.qor5.com
