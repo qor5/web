@@ -100,6 +100,17 @@ func (b *VueEventTagBuilder) Query(key interface{}, vs interface{}) (r *VueEvent
 	return b
 }
 
+func (b *VueEventTagBuilder) QueryIf(key interface{}, vs interface{}, add bool) (r *VueEventTagBuilder) {
+	if !add {
+		return b
+	}
+	b.calls = append(b.calls, jsCall{
+		method: "query",
+		args:   []interface{}{key, vs},
+	})
+	return b
+}
+
 // ClearMergeQuery param v use interface{} because you can not only pass []string,
 // but also pass in javascript variables by using web.Var("$event")
 func (b *VueEventTagBuilder) ClearMergeQuery(v interface{}) (r *VueEventTagBuilder) {
