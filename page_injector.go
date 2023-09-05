@@ -21,6 +21,7 @@ type keyComp struct {
 
 type PageInjector struct {
 	comps map[injectPosition][]*keyComp
+	lang  string
 }
 
 type injectPosition int
@@ -122,6 +123,15 @@ func (b *PageInjector) GetTailHTMLComponent() h.HTMLComponent {
 
 func (b *PageInjector) GetExtraHTMLComponent() h.HTMLComponent {
 	return toHTMLComponent(b.comps[extra])
+}
+
+func (b *PageInjector) HTMLLang(lang string) {
+	b.lang = lang
+	return
+}
+
+func (b *PageInjector) GetHTMLLang() string {
+	return b.lang
 }
 
 func (b *PageInjector) addCharsetViewPortIfMissing() {

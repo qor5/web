@@ -65,18 +65,20 @@ func NoopLayoutFunc(r *http.Request, injector *PageInjector, body string) (outpu
 }
 
 func defaultLayoutFunc(r *http.Request, injector *PageInjector, body string) (output string, err error) {
-
-	root := h.HTML(
-		h.Head(
-			injector.GetHeadHTMLComponent(),
-		),
-		h.Body(
-			h.Div(
-				h.RawHTML(body),
-			).Id("app").Attr("v-cloak", true),
-			injector.GetTailHTMLComponent(),
-		).Class("front"),
-	)
+	root := h.HTMLComponents{
+		h.RawHTML("<!DOCTYPE html>\n"),
+		h.Tag("html").Children(
+			h.Head(
+				injector.GetHeadHTMLComponent(),
+			),
+			h.Body(
+				h.Div(
+					h.RawHTML(body),
+				).Id("app").Attr("v-cloak", true),
+				injector.GetTailHTMLComponent(),
+			).Class("front"),
+		).AttrIf("lang", injector.GetHTMLLang(), injector.GetHTMLLang() != ""),
+	}
 
 	buf := bytes.NewBuffer(nil)
 	ctx := new(EventContext)
