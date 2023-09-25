@@ -97,6 +97,7 @@ func TestDefaultPageInjector(t *testing.T) {
 
 			var b web.PageInjector
 			c.operation(&b)
+			web.SetDefault(&b, "")
 			diff := testingutils.PrettyJsonDiff(
 				strings.TrimSpace(c.expected),
 				strings.TrimSpace(h.MustString(b.GetHeadHTMLComponent(), context.TODO())))
