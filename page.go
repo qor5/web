@@ -119,9 +119,7 @@ func (p *PageBuilder) index(w http.ResponseWriter, r *http.Request) {
 	c := WrapEventContext(r.Context(), ctx)
 	pr, body := p.render(w, r, c, head)
 
-	if len(pr.PageTitle) > 0 {
-		head.Title(pr.PageTitle)
-	}
+	head.setDefault(pr.PageTitle)
 
 	var resp string
 	resp, err = p.b.layoutFunc(r, head, body)

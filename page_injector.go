@@ -20,8 +20,9 @@ type keyComp struct {
 }
 
 type PageInjector struct {
-	comps map[injectPosition][]*keyComp
-	lang  string
+	skipDefaultSetting bool
+	comps              map[injectPosition][]*keyComp
+	lang               string
 }
 
 type injectPosition int
@@ -58,6 +59,27 @@ func (b *PageInjector) getComp(key interface{}, pos injectPosition) *keyComp {
 	}
 
 	return nil
+}
+
+// SkipDefaultSetting skips the setting of default nodes
+func (b *PageInjector) SkipDefaultSetting() {
+	b.skipDefaultSetting = true
+}
+
+func (b *PageInjector) setDefault(pageTitle string) {
+	if b.skipDefaultSetting {
+		return
+	}
+
+	if !b.HasTitle() && len(pageTitle) > 0 {
+		b.Title(pageTitle)
+	}
+	if b.getComp(MetaKey("charset"), head) == nil {
+		b.Meta(MetaKey("charset"), "charset", "utf8")
+	}
+	if b.getComp(MetaKey("viewport"), head) == nil {
+		b.MetaNameContent("viewport", "width=device-width, initial-scale=1, shrink-to-fit=no")
+	}
 }
 
 func (b *PageInjector) Title(title string) {
@@ -113,7 +135,6 @@ func toHTMLComponent(list []*keyComp) h.HTMLComponent {
 }
 
 func (b *PageInjector) GetHeadHTMLComponent() h.HTMLComponent {
-	b.addCharsetViewPortIfMissing()
 	return toHTMLComponent(b.comps[head])
 }
 
@@ -132,15 +153,6 @@ func (b *PageInjector) HTMLLang(lang string) {
 
 func (b *PageInjector) GetHTMLLang() string {
 	return b.lang
-}
-
-func (b *PageInjector) addCharsetViewPortIfMissing() {
-	if b.getComp(MetaKey("charset"), head) == nil {
-		b.Meta(MetaKey("charset"), "charset", "utf8")
-	}
-	if b.getComp(MetaKey("viewport"), head) == nil {
-		b.MetaNameContent("viewport", "width=device-width, initial-scale=1, shrink-to-fit=no")
-	}
 }
 
 func (b *PageInjector) addNode(tag *h.HTMLTagBuilder, key interface{}, replace bool, body string, attrs ...string) {
