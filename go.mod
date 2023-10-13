@@ -16,6 +16,6 @@ require (
 	github.com/andybalholm/cascadia v1.2.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/yosssi/gohtml v0.0.0-20201013000340-ee4748c638f4 // indirect
-	golang.org/x/net v0.8.0 // indirect
+	golang.org/x/net v0.17.0 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 )
