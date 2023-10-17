@@ -97,7 +97,7 @@ func (p *PageBuilder) render(
 	pager = &pr
 
 	if pager.Body == nil {
-		panic("page's RenderFunc returns nil body, use pr.Body = root to set it")
+		return
 	}
 
 	// fmt.Println("eventFuncs count: ", len(p.eventFuncs))
