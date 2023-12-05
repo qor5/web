@@ -17,9 +17,9 @@ export function fieldNameDirective(form: FormData) {
 			// 	comp.$attrs["value"]
 			// 	)
 
-			const value = comp.$props["inputValue"] ||
-				comp.$attrs["inputValue"] ||
-				comp.$props["value"] ||
+			const value = comp.$props["inputValue"] ??
+				comp.$attrs["inputValue"] ??
+				comp.$props["value"] ??
 				comp.$attrs["value"]
 			setFormValue(myform, fieldName, value)
 			if (el.__fieldNameOninput) {
