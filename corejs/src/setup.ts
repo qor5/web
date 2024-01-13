@@ -1,4 +1,4 @@
-import Vue from "vue";
+import type {App} from "vue";
 import {GoPlaidPortal} from "@/portal";
 import GoPlaidScope from "@/scope";
 import {initContext} from "@/initContext";
@@ -6,37 +6,39 @@ import {fieldNameDirective} from "@/fieldname";
 import debounce from "@/debounce";
 import {keepScroll} from "@/keepScroll";
 import {Builder, plaid} from "@/builder";
-// @ts-ignore
-import GlobalEvents from 'vue-global-events'
+// import GlobalEvents from 'vue-global-events'
 
 const form = new FormData();
+export function setup(app: App<Element>) {
 
-Vue.component('GoPlaidPortal', GoPlaidPortal());
-Vue.component('GoPlaidScope', GoPlaidScope);
-Vue.component('GlobalEvents', GlobalEvents);
-Vue.directive('init-context', initContext());
-Vue.directive('field-name', fieldNameDirective(form));
-Vue.directive('debounce', debounce);
-Vue.directive('keep-scroll', keepScroll());
+	app.component('GoPlaidPortal', GoPlaidPortal());
+	app.component('GoPlaidScope', GoPlaidScope);
+	// app.component('GlobalEvents', GlobalEvents);
+	app.directive('init-context', initContext());
+	app.directive('field-name', fieldNameDirective(form));
+	app.directive('debounce', debounce);
+	app.directive('keep-scroll', keepScroll());
 
-Vue.mixin({
-	mounted() {
-		window.addEventListener('fetchStart', (e: Event) => {
-			(this as any).isFetching = true;
-		});
-		window.addEventListener('fetchEnd', (e: Event) => {
-			(this as any).isFetching = false;
-		});
-	},
-	data() {
-		return {
-			isFetching: false,
-			plaidForm: form,
-		};
-	},
-	methods: {
-		$plaid: function (): Builder {
-			return plaid().vueContext(this).form(form).vars((this as any).vars)
+	app.mixin({
+		mounted() {
+			window.addEventListener('fetchStart', (e: Event) => {
+				(this as any).isFetching = true;
+			});
+			window.addEventListener('fetchEnd', (e: Event) => {
+				(this as any).isFetching = false;
+			});
+		},
+		data() {
+			return {
+				isFetching: false,
+				plaidForm: form,
+			};
+		},
+		methods: {
+			$plaid: function (): Builder {
+				return plaid().vueContext(this).form(form).vars((this as any).vars)
+			}
 		}
-	}
-})
+	})
+
+}

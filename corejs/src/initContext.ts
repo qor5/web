@@ -1,10 +1,10 @@
-import {VNode, VNodeDirective} from "vue";
+import type {VNode, DirectiveBinding, Directive} from "vue";
 
-export function initContext() {
+export function initContext(): Directive {
 	return {
-		inserted: (el: HTMLElement, binding: VNodeDirective, vnode: VNode) => {
+		created: (el: HTMLElement, binding: DirectiveBinding, vnode: VNode) => {
 			var arg = binding.arg || "vars"
-			const ctx: any = vnode.context;
+			const ctx: any = vnode.component?.proxy;
 			if (!ctx) {
 				throw new Error('v-init-context:vars set on node that have no context');
 			}

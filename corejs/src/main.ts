@@ -1,5 +1,5 @@
-import Vue from 'vue';
-import {DynaCompData} from "@/portal";
+import { createApp, reactive } from 'vue'
+import type {DynaCompData} from "@/portal";
 import {componentByTemplate} from "@/utils";
 import "@/setup"
 
@@ -11,15 +11,12 @@ if (!app) {
 declare var window: any;
 
 const vueOptions = {};
-for (const registerComp of (window.__goplaidVueComponentRegisters || [])) {
-	registerComp(Vue, vueOptions);
-}
 
-const vm = new Vue({
+const vm = createApp({
 	...{
 
 		provide: {
-			vars: Vue.observable({}),
+			vars: reactive({}),
 		},
 
 		template: `
@@ -47,4 +44,8 @@ const vm = new Vue({
 	...vueOptions,
 });
 
-vm.$mount('#app');
+for (const registerComp of (window.__goplaidVueComponentRegisters || [])) {
+	registerComp(vm, vueOptions);
+}
+
+vm.mount('#app');

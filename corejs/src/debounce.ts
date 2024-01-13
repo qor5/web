@@ -1,26 +1,28 @@
 import debounce from "lodash/debounce";
-import {VNode, VNodeDirective} from "vue";
+import type { DirectiveBinding, ObjectDirective } from 'vue';
 
 // Attach directive to element and wait for input to stop. Default timeout 800ms or 0.8s.
-export default function (el: HTMLElement, binding: VNodeDirective, vnode: VNode) {
-	const evt = binding.arg || "input"
+const debounceDirective: ObjectDirective<HTMLElement> = {
 
-	const fire = debounce(function (e) {
-		if (vnode.componentInstance) {
-			vnode.componentInstance.$emit(evt+":debounced", e)
-		} else {
-			el.dispatchEvent(createNewEvent(evt +':debounced'))
-		}
-	}, parseInt(binding.value) || 800)
+	mounted(el, binding) {
+		const evt = binding.arg || "input";
 
-	if (binding.value !== binding.oldValue) {
-		if (vnode.componentInstance) {
-			vnode.componentInstance.$on(evt, fire)
-		} else {
-			(el as any)["on"+evt] = fire
+		(el as any).debounceFunc = debounce(function (e: Event) {
+			// Emit an event from the directive. This requires handling in the parent component.
+			let customEvent = createNewEvent(evt + ":debounced");
+			el.dispatchEvent(customEvent);
+		}, parseInt(binding.value) || 800);
+
+		if (binding.value !== binding.oldValue) {
+			el.addEventListener(evt, (el as any).debounceFunc);
 		}
+	},
+	beforeUnmount(el, binding) {
+		const evt = binding.arg || "input";
+		el.removeEventListener(evt, binding.oldValue);
 	}
-}
+};
+
 
 // IE Support
 function createNewEvent(eventName: string) {
@@ -33,3 +35,5 @@ function createNewEvent(eventName: string) {
 	}
 	return e
 }
+
+export default debounceDirective;

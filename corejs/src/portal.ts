@@ -1,21 +1,29 @@
-import Vue, {VueConstructor} from 'vue';
+import { defineComponent, ref, onMounted, onUpdated, onBeforeUnmount } from 'vue';
+import type { DefineComponent } from 'vue';
 import {componentByTemplate} from "@/utils";
-import {EventResponse} from "@/types";
+import type {EventResponse} from "@/types";
 
 declare var window: any;
 window.__goplaid = {};
 window.__goplaid.portals = {};
 
 export interface DynaCompData {
-	current: VueConstructor | null;
+	current: DefineComponent | null;
 	autoReloadIntervalID?: number;
 }
 
 export function GoPlaidPortal() {
-	return Vue.extend({
+	return defineComponent({
 		inject: ['vars'],
 		name: 'GoPlaidPortal',
-		props: ['loader', 'portalForm', 'visible', 'afterLoaded', 'portalName', "autoReloadInterval"],
+		props: {
+			loader: Object,
+			portalForm: Object,
+			visible: Boolean,
+			afterLoaded: Function,
+			portalName: String,
+			autoReloadInterval: [String, Number]
+		},
 		template: `
 			<div class="go-plaid-portal" v-if="visible">
 			<component :is="current" v-if="current">
@@ -24,75 +32,76 @@ export function GoPlaidPortal() {
 			</div>
 		`,
 
-		mounted() {
-			const pn = this.$props.portalName;
-			if (pn) {
-				window.__goplaid.portals[pn] = this;
-			}
+		setup(props, {slots}) {
+			const current = ref<DefineComponent | null>(null);
+			const autoReloadIntervalID = ref<number>(0);
 
-			this.reload();
-		},
-
-		updated() {
-			if (this.$props.autoReloadInterval && this.autoReloadIntervalID == 0) {
-				const interval = parseInt(this.$props.autoReloadInterval)
-				if (interval == 0) {
-					return
-				}
-
-				this.autoReloadIntervalID = setInterval(() => {
-					this.reload()
-				}, interval);
-
-			}
-
-
-			if (this.autoReloadIntervalID && this.autoReloadIntervalID > 0 &&
-				this.$props.autoReloadInterval == 0) {
-				clearInterval(this.autoReloadIntervalID)
-				this.autoReloadIntervalID = 0
-			}
-		},
-
-		data(): DynaCompData {
-			return {
-				current: null,
-				autoReloadIntervalID: 0,
-			};
-		},
-
-		beforeDestroy() {
-			if (this.autoReloadIntervalID && this.autoReloadIntervalID > 0) {
-				clearInterval(this.autoReloadIntervalID)
-			}
-		},
-
-		methods: {
-			reload() {
+			// other reactive properties and methods
+			const reload = () => {
 				// const rootChangeCurrent = (this.$root as any).changeCurrent;
 				// const core = new Core(form, rootChangeCurrent, this.changeCurrent);
 
-				if (this.$slots.default) {
-					this.current = componentByTemplate('<slot></slot>', this.portalForm);
+				if (slots.default) {
+					current.value = componentByTemplate('<slot></slot>', props.portalForm);
 					return;
 				}
 
-				const ef = this.loader;
+				const ef = props.loader;
 				if (!ef) {
 					return;
 				}
 				const self = this;
 				ef.vars((this as any).vars).go().then((r: EventResponse) => {
-					self.current = componentByTemplate(r.body, this.portalForm);
+					current.value = componentByTemplate(r.body, props.portalForm);
 				});
-			},
-			changeCurrentTemplate(template: string) {
-				this.changeCurrent(componentByTemplate(template, this.portalForm));
-			},
-			changeCurrent(newView: any) {
-				this.current = newView;
 			}
+
+			const changeCurrent = (newView: any) => {
+				current.value = newView;
+			}
+
+			const changeCurrentTemplate = (template: string) => {
+				changeCurrent(componentByTemplate(template, props.portalForm));
+			}
+
+			onMounted(() => {
+				const pn = props.portalName;
+				if (pn) {
+					window.__goplaid.portals[pn] = this;
+				}
+
+				reload();
+			})
+
+			onUpdated(() => {
+				if (props.autoReloadInterval && autoReloadIntervalID.value == 0) {
+					const interval = parseInt(props.autoReloadInterval+"")
+					if (interval == 0) {
+						return
+					}
+
+					autoReloadIntervalID.value = setInterval(() => {
+						reload()
+					}, interval) as unknown as number;;
+
+				}
+
+
+				if (autoReloadIntervalID.value && autoReloadIntervalID.value > 0 &&
+					props.autoReloadInterval == 0) {
+					clearInterval(autoReloadIntervalID.value)
+					autoReloadIntervalID.value = 0
+				}
+			})
+			onBeforeUnmount(() => {
+				if (autoReloadIntervalID.value && autoReloadIntervalID.value > 0) {
+					clearInterval(autoReloadIntervalID.value)
+				}
+			})
+
+			return {};
 		},
+
 	})
 }
 

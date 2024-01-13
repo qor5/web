@@ -1,7 +1,5 @@
-import {EventFuncID, EventResponse, Location, Queries, QueryValue,} from './types';
+import type {EventFuncID, EventResponse, Location, Queries, QueryValue,} from './types';
 import {buildPushState, componentByTemplate, setFormValue} from "@/utils";
-
-import Vue from "vue";
 
 declare var window: any;
 
@@ -14,7 +12,7 @@ export class Builder {
 	_popstate?: boolean;
 	_pushState?: boolean;
 	_location?: Location;
-	_vueContext?: Vue;
+	_vueContext?: any;
 	_buildPushStateResult?: any
 
 	readonly ignoreErrors = [
@@ -126,7 +124,7 @@ export class Builder {
 		return this;
 	}
 
-	public vueContext(v: Vue): Builder {
+	public vueContext(v: any): Builder {
 		this._vueContext = v;
 		return this;
 	}

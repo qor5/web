@@ -2,9 +2,9 @@ import 'formdata-polyfill';
 import querystring from 'query-string';
 import union from 'lodash/union';
 import without from 'lodash/without';
-import {EventFuncID, ValueOp} from './types';
-import Vue, {VueConstructor} from "vue";
-
+import type {EventFuncID, ValueOp} from './types';
+import {defineComponent}  from "vue";
+import type {DefineComponent} from "vue";
 
 export function buildPushState(
 	eventFuncId: EventFuncID,
@@ -196,8 +196,8 @@ function formSet(form: FormData, fieldName: string, val: string): boolean {
 	return true
 }
 
-export function componentByTemplate(template: string, plaidForm: any): VueConstructor {
-	return Vue.extend({
+export function componentByTemplate(template: string, plaidForm: any): DefineComponent {
+	return defineComponent({
 		inject: ['vars'],
 		template: '<div>' + template + '</div>', // to make only one root.
 		data: function () {

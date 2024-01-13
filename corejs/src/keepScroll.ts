@@ -1,13 +1,13 @@
-import {VNode, VNodeDirective} from "vue";
+import type {VNode, DirectiveBinding} from "vue";
 import qs from 'query-string';
 import debounce from "lodash/debounce";
 
 export function keepScroll() {
 	return {
-		inserted: (el: HTMLElement, binding: VNodeDirective, vnode: VNode) => {
+		mounted: (el: HTMLElement, binding: DirectiveBinding, vnode: VNode) => {
 			let myel = el
-			if (vnode.componentInstance) {
-				myel = vnode.componentInstance.$el as HTMLElement
+			if (vnode.component) {
+				myel = vnode.component?.proxy?.$el as HTMLElement
 			}
 			const param = binding.arg || "scroll"
 			const initParsed = qs.parse(location.hash)
@@ -25,7 +25,7 @@ export function keepScroll() {
 				myel.scrollLeft = parseInt(xy[1])
 			}
 
-			myel.addEventListener("scroll", debounce(function(e) {
+			myel.addEventListener("scroll", debounce(function() {
 				const parsed = qs.parse(location.hash)
 				parsed[param] = myel.scrollTop+"_"+myel.scrollLeft
 				location.hash = qs.stringify(parsed)
