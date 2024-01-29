@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest'
 import {mount} from "@vue/test-utils";
 import {fieldNameDirective} from "@/fieldname";
 
@@ -71,7 +72,7 @@ describe('field name', () => {
 			template: `
 				<div class="Text1">
 					<textarea v-field-name='"Textarea1"'>textarea1 value</textarea>
-					<input type="text" v-field-name='"Text1"'/>
+					<input type="text" v-field-name='"Text1"' value='text value'/>
 					<input type="radio" v-field-name='"Radio1"' value="Radio1 checked value" checked/>
 					<input type="radio" v-field-name='"Radio1"' value="Radio1 not checked value"/>
 					<input type="hidden" v-field-name='"Hidden1"' value="hidden1value"/>

@@ -1,6 +1,7 @@
 import {mount,} from "@vue/test-utils";
-import "@/setup"
 import {componentByTemplate} from "@/utils";
+import { describe, it, expect } from 'vitest'
+import GoPlaidScope from '@/scope'
 
 describe('scope', () => {
 	it('vars and form', async () => {

@@ -1,51 +1,50 @@
 import { createApp, reactive } from 'vue'
-import type {DynaCompData} from "@/portal";
-import {componentByTemplate} from "@/utils";
-import "@/setup"
+import type { DynaCompData } from '@/portal'
+import { componentByTemplate } from '@/utils'
+import { setup } from '@/setup'
 
-const app = document.getElementById('app');
+const app = document.getElementById('app')
 if (!app) {
-	throw new Error('#app required');
+  throw new Error('#app required')
 }
 
-declare var window: any;
+declare var window: any
 
-const vueOptions = {};
+const vueOptions = {}
 
 const vm = createApp({
-	...{
+  ...{
+    provide: {
+      vars: reactive({})
+    },
 
-		provide: {
-			vars: reactive({}),
-		},
-
-		template: `
+    template: `
 			<div id="app" v-cloak>
 			<component :is="current"></component>
 			</div>
 		`,
 
-		mounted() {
-			this.current = componentByTemplate(app.innerHTML, (this as any).plaidForm)
-			window.onpopstate = (evt: any) => {
-				if (evt && evt.state != null) {
-					(this as any).$plaid().onpopstate(evt);
-				}
-			};
-		},
+    mounted() {
+      this.current = componentByTemplate(app.innerHTML, (this as any).plaidForm)
+      window.onpopstate = (evt: any) => {
+        if (evt && evt.state != null) {
+          ;(this as any).$plaid().onpopstate(evt)
+        }
+      }
+    },
 
-		data(): DynaCompData {
-			return {
-				current: null,
-			};
-		},
+    data(): DynaCompData {
+      return {
+        current: null
+      }
+    }
+  },
+  ...vueOptions
+})
 
-	},
-	...vueOptions,
-});
-
-for (const registerComp of (window.__goplaidVueComponentRegisters || [])) {
-	registerComp(vm, vueOptions);
+for (const registerComp of window.__goplaidVueComponentRegisters || []) {
+  registerComp(vm, vueOptions)
 }
-
-vm.mount('#app');
+const form = new FormData()
+setup(vm, form)
+vm.mount('#app')

@@ -1,30 +1,30 @@
-import { defineComponent, ref, onMounted, onUpdated, onBeforeUnmount } from 'vue';
-import type { DefineComponent } from 'vue';
-import {componentByTemplate} from "@/utils";
-import type {EventResponse} from "@/types";
+import { defineComponent, ref, onMounted, onUpdated, onBeforeUnmount } from 'vue'
+import type { DefineComponent } from 'vue'
+import { componentByTemplate } from '@/utils'
+import type { EventResponse } from '@/types'
 
-declare var window: any;
-window.__goplaid = {};
-window.__goplaid.portals = {};
+declare var window: any
+window.__goplaid = {}
+window.__goplaid.portals = {}
 
 export interface DynaCompData {
-	current: DefineComponent | null;
-	autoReloadIntervalID?: number;
+  current: DefineComponent | null
+  autoReloadIntervalID?: number
 }
 
 export function GoPlaidPortal() {
-	return defineComponent({
-		inject: ['vars'],
-		name: 'GoPlaidPortal',
-		props: {
-			loader: Object,
-			portalForm: Object,
-			visible: Boolean,
-			afterLoaded: Function,
-			portalName: String,
-			autoReloadInterval: [String, Number]
-		},
-		template: `
+  return defineComponent({
+    inject: ['vars'],
+    name: 'GoPlaidPortal',
+    props: {
+      loader: Object,
+      portalForm: Object,
+      visible: Boolean,
+      afterLoaded: Function,
+      portalName: String,
+      autoReloadInterval: [String, Number]
+    },
+    template: `
 			<div class="go-plaid-portal" v-if="visible">
 			<component :is="current" v-if="current">
 				<slot></slot>
@@ -32,76 +32,77 @@ export function GoPlaidPortal() {
 			</div>
 		`,
 
-		setup(props, {slots}) {
-			const current = ref<DefineComponent | null>(null);
-			const autoReloadIntervalID = ref<number>(0);
+    setup(props, { slots }) {
+      const current = ref<DefineComponent | null>(null)
+      const autoReloadIntervalID = ref<number>(0)
 
-			// other reactive properties and methods
-			const reload = () => {
-				// const rootChangeCurrent = (this.$root as any).changeCurrent;
-				// const core = new Core(form, rootChangeCurrent, this.changeCurrent);
+      // other reactive properties and methods
+      const reload = () => {
+        // const rootChangeCurrent = (this.$root as any).changeCurrent;
+        // const core = new Core(form, rootChangeCurrent, this.changeCurrent);
 
-				if (slots.default) {
-					current.value = componentByTemplate('<slot></slot>', props.portalForm);
-					return;
-				}
+        if (slots.default) {
+          current.value = componentByTemplate('<slot></slot>', props.portalForm)
+          return
+        }
 
-				const ef = props.loader;
-				if (!ef) {
-					return;
-				}
-				const self = this;
-				ef.vars((this as any).vars).go().then((r: EventResponse) => {
-					current.value = componentByTemplate(r.body, props.portalForm);
-				});
-			}
+        const ef = props.loader
+        if (!ef) {
+          return
+        }
+        const self = this
+        ef.vars((this as any).vars)
+          .go()
+          .then((r: EventResponse) => {
+            current.value = componentByTemplate(r.body, props.portalForm)
+          })
+      }
 
-			const changeCurrent = (newView: any) => {
-				current.value = newView;
-			}
+      const changeCurrent = (newView: any) => {
+        current.value = newView
+      }
 
-			const changeCurrentTemplate = (template: string) => {
-				changeCurrent(componentByTemplate(template, props.portalForm));
-			}
+      const changeCurrentTemplate = (template: string) => {
+        changeCurrent(componentByTemplate(template, props.portalForm))
+      }
 
-			onMounted(() => {
-				const pn = props.portalName;
-				if (pn) {
-					window.__goplaid.portals[pn] = this;
-				}
+      onMounted(() => {
+        const pn = props.portalName
+        if (pn) {
+          window.__goplaid.portals[pn] = this
+        }
 
-				reload();
-			})
+        reload()
+      })
 
-			onUpdated(() => {
-				if (props.autoReloadInterval && autoReloadIntervalID.value == 0) {
-					const interval = parseInt(props.autoReloadInterval+"")
-					if (interval == 0) {
-						return
-					}
+      onUpdated(() => {
+        if (props.autoReloadInterval && autoReloadIntervalID.value == 0) {
+          const interval = parseInt(props.autoReloadInterval + '')
+          if (interval == 0) {
+            return
+          }
 
-					autoReloadIntervalID.value = setInterval(() => {
-						reload()
-					}, interval) as unknown as number;;
+          autoReloadIntervalID.value = setInterval(() => {
+            reload()
+          }, interval) as unknown as number
+        }
 
-				}
+        if (
+          autoReloadIntervalID.value &&
+          autoReloadIntervalID.value > 0 &&
+          props.autoReloadInterval == 0
+        ) {
+          clearInterval(autoReloadIntervalID.value)
+          autoReloadIntervalID.value = 0
+        }
+      })
+      onBeforeUnmount(() => {
+        if (autoReloadIntervalID.value && autoReloadIntervalID.value > 0) {
+          clearInterval(autoReloadIntervalID.value)
+        }
+      })
 
-
-				if (autoReloadIntervalID.value && autoReloadIntervalID.value > 0 &&
-					props.autoReloadInterval == 0) {
-					clearInterval(autoReloadIntervalID.value)
-					autoReloadIntervalID.value = 0
-				}
-			})
-			onBeforeUnmount(() => {
-				if (autoReloadIntervalID.value && autoReloadIntervalID.value > 0) {
-					clearInterval(autoReloadIntervalID.value)
-				}
-			})
-
-			return {};
-		},
-
-	})
+      return {}
+    }
+  })
 }
-
