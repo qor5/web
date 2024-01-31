@@ -12,7 +12,7 @@ export default defineComponent({
     const plaidForm = new FormData()
     const $plaid = (): Builder => {
       const instance = getCurrentInstance()
-      return plaid().vueContext(instance).vars(vars)
+      return plaid().vueContext(instance).vars(vars).form(plaidForm)
     }
     var i = props.init ?? {}
     Object.keys(i).forEach((k) => {

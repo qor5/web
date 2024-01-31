@@ -1,15 +1,21 @@
 import { describe, it, expect } from 'vitest'
-import { createWebApp } from '../app'
+import { goplaidPlugin, Root } from '../app'
 import { nextTick } from 'vue'
+import { mount } from '@vue/test-utils'
 
 describe('app', () => {
-  it('createWebApp', async () => {
-    const app = createWebApp(`<h1 @click='$plaid().fieldValue("a", 1)'></h1>`)
-    const div = document.createElement('div')
-    app.mount(div)
+  it('$plaid', async () => {
+    const r = mount(Root, {
+      props: { initialTemplate: `<h1 @click='$plaid().fieldValue("a", 1)'>123</h1>` },
+      global: {
+        plugins: [goplaidPlugin]
+      }
+    })
     await nextTick()
-    div.querySelector('h1')?.click()
-
-    console.log(div.innerHTML)
+    await r.find('h1').trigger('click')
+    console.log(r.html())
+    r.vm.changeTemplate(`<h2></h2>`)
+    await nextTick()
+    console.log(r.html())
   })
 })

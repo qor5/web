@@ -6,16 +6,13 @@ import {
   defineComponent,
   onMounted,
   provide,
-  markRaw,
-  inject,
-  getCurrentInstance
+  markRaw
 } from 'vue'
 import Scope from '@/scope'
+import { GoPlaidPortal } from '@/portal'
+import { initContext } from '@/initContext'
 
-const Root = defineComponent({
-  components: {
-    Scope
-  },
+export const Root = defineComponent({
   props: {
     initialTemplate: {
       type: String,
@@ -26,20 +23,16 @@ const Root = defineComponent({
   setup(props, { emit }) {
     const current = ref<DefineComponent>(null)
 
-    const changeRoot = (template: string) => {
+    const changeTemplate = (template: string) => {
       current.value = markRaw(
         defineComponent({
-          components: {
-            Scope
-          },
-          template: `<Scope v-slot:default="{$plaid, vars}">${template}</Scope>`
+          template: `<go-plaid-scope v-slot:default="{$plaid, vars}">${template}</go-plaid-scope>`
         })
       )
     }
-    const t = props.initialTemplate
 
     onMounted(() => {
-      changeRoot(props.initialTemplate)
+      changeTemplate(props.initialTemplate)
 
       window.onpopstate = (evt: any) => {
         if (evt && evt.state != null) {
@@ -47,10 +40,10 @@ const Root = defineComponent({
         }
       }
     })
-    provide('changeRoot', changeRoot)
 
     return {
-      current
+      current,
+      changeTemplate
     }
   },
   template: `
@@ -60,7 +53,16 @@ const Root = defineComponent({
     `
 })
 
+export const goplaidPlugin = {
+  install(app: App) {
+    app.component('GoPlaidScope', Scope)
+    app.component('GoPlaidPortal', GoPlaidPortal)
+    app.directive('init-context', initContext)
+  }
+}
+
 export function createWebApp(template: string): App<Element> {
   const app = createApp(Root, { initialTemplate: template })
+  app.use(goplaidPlugin)
   return app
 }
