@@ -9,18 +9,13 @@ interface ValueProps {
 function setListeners(el: any, vnode: VNode, myform: FormData, fieldName: string) {
   const comp = (vnode as any).ctx
   // console.log("vnode",el, vnode)
-  console.log("vnode", vnode, "el", el)
+  console.log('vnode', vnode, 'el', el)
   if (comp) {
     const props = comp.props as ValueProps
     const attrs = comp.attrs as ValueProps
 
     const value = props.modelValue ?? attrs.modelValue ?? props.value ?? attrs.value
-    console.log("vnode.component",
-        props.modelValue,
-        attrs.modelValue,
-        props.value,
-        attrs.value
-    	)
+    console.log('vnode.component', props.modelValue, attrs.modelValue, props.value, attrs.value)
 
     setFormValue(myform, fieldName, value)
     if (el.__fieldNameOninput) {
@@ -46,9 +41,7 @@ function setListeners(el: any, vnode: VNode, myform: FormData, fieldName: string
 }
 
 export function fieldNameDirective(form: FormData): Directive {
-
   function mounted(el: HTMLElement, binding: DirectiveBinding, vnode: VNode) {
-
     if (Array.isArray(binding.value)) {
       setListeners(el, vnode, binding.value[0] ?? form, binding.value[1])
       return
