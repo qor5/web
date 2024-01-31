@@ -10,9 +10,12 @@ import {
   inject,
   getCurrentInstance
 } from 'vue'
-import { Builder, plaid } from '@/builder'
+import Scope from '@/scope'
 
 const Root = defineComponent({
+  components: {
+    Scope
+  },
   props: {
     initialTemplate: {
       type: String,
@@ -22,23 +25,14 @@ const Root = defineComponent({
 
   setup(props, { emit }) {
     const current = ref<DefineComponent>(null)
-    const instance = getCurrentInstance()
-    const vars = ref({ a: 1 })
-    const $plaid = (): Builder => {
-      return plaid().vueContext(instance).vars(vars)
-    }
 
     const changeRoot = (template: string) => {
       current.value = markRaw(
         defineComponent({
-          setup() {
-            // const $plaid = inject<() => Builder>("$plaid")
-            //   console.log("inside changeRoot setup")
-            return {
-              $plaid
-            }
+          components: {
+            Scope
           },
-          template
+          template: `<Scope v-slot:default="{$plaid, vars}">${template}</Scope>`
         })
       )
     }
@@ -49,17 +43,14 @@ const Root = defineComponent({
 
       window.onpopstate = (evt: any) => {
         if (evt && evt.state != null) {
-          $plaid().onpopstate(evt)
+          // $plaid().onpopstate(evt)
         }
       }
     })
     provide('changeRoot', changeRoot)
-    provide('vars', vars)
-    provide('$plaid', $plaid)
 
     return {
-      current,
-      $plaid
+      current
     }
   },
   template: `

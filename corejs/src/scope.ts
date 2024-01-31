@@ -1,23 +1,24 @@
-import { defineComponent, reactive } from 'vue'
+import { defineComponent, getCurrentInstance, reactive } from 'vue'
+import { Builder, plaid } from '@/builder'
 
 export default defineComponent({
-  template: `
-		<div>
-			<slot :locals="locals" :plaidForm="plaidForm"></slot>
-		</div>
-	`,
+  template: `<slot :locals="locals" :plaidForm="plaidForm" :$plaid="plaid"></slot>`,
   props: {
     init: Object
   },
   setup(props) {
-    const locals: any = reactive({})
+    const vars = reactive({})
+    const locals = reactive<Record<string, any>>({})
     const plaidForm = new FormData()
-
+    const $plaid = (): Builder => {
+      const instance = getCurrentInstance()
+      return plaid().vueContext(instance).vars(vars)
+    }
     var i = props.init ?? {}
     Object.keys(i).forEach((k) => {
       locals[k] = i[k]
     })
 
-    return { locals, plaidForm }
+    return { locals, plaidForm, plaid: $plaid }
   }
 })
