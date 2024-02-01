@@ -3,7 +3,7 @@ import querystring from 'query-string'
 import union from 'lodash/union'
 import without from 'lodash/without'
 import type { EventFuncID, ValueOp } from './types'
-import { defineComponent } from 'vue'
+import { defineComponent, inject, markRaw, reactive } from 'vue'
 import type { DefineComponent } from 'vue'
 
 export function buildPushState(eventFuncId: EventFuncID, url: string): any {
@@ -194,13 +194,13 @@ function formSet(form: FormData, fieldName: string, val: string): boolean {
 
 export function componentByTemplate(template: string, plaidForm: any): DefineComponent {
   return defineComponent({
-    inject: ['vars'],
-    template: '<div>' + template + '</div>', // to make only one root.
-    data: function () {
+    setup() {
       return {
-        plaidForm: plaidForm,
-        locals: {}
+        plaid: inject('plaid'),
+        vars: inject('vars'),
+        plaidForm: plaidForm
       }
-    }
+    },
+    template
   })
 }

@@ -2,15 +2,16 @@ import {
   type App,
   type DefineComponent,
   createApp,
-  ref,
   defineComponent,
   onMounted,
-  provide,
-  markRaw
+  inject,
+  shallowRef
 } from 'vue'
-import Scope from '@/scope'
+import Scope, { createGlobals } from '@/scope'
 import { GoPlaidPortal } from '@/portal'
 import { initContext } from '@/initContext'
+import { componentByTemplate } from '@/utils'
+import { plaid } from '@/builder'
 
 export const Root = defineComponent({
   props: {
@@ -21,14 +22,11 @@ export const Root = defineComponent({
   },
 
   setup(props, { emit }) {
-    const current = ref<DefineComponent>(null)
+    const current = shallowRef<DefineComponent | null>(null)
+    const plaidForm = inject('plaidForm')
 
     const changeTemplate = (template: string) => {
-      current.value = markRaw(
-        defineComponent({
-          template: `<go-plaid-scope v-slot:default="{$plaid, vars}">${template}</go-plaid-scope>`
-        })
-      )
+      current.value = componentByTemplate(template, plaidForm)
     }
 
     onMounted(() => {
@@ -53,16 +51,20 @@ export const Root = defineComponent({
     `
 })
 
-export const goplaidPlugin = {
+export const plaidPlugin = {
   install(app: App) {
     app.component('GoPlaidScope', Scope)
     app.component('GoPlaidPortal', GoPlaidPortal)
     app.directive('init-context', initContext)
+    const { plaidForm, plaid, vars } = createGlobals()
+    app.provide('plaid', plaid)
+    app.provide('plaidForm', plaidForm)
+    app.provide('vars', vars)
   }
 }
 
 export function createWebApp(template: string): App<Element> {
   const app = createApp(Root, { initialTemplate: template })
-  app.use(goplaidPlugin)
+  app.use(plaidPlugin)
   return app
 }
