@@ -1,4 +1,4 @@
-import Vue, { defineComponent, nextTick } from 'vue'
+import { defineComponent, nextTick } from 'vue'
 import { mount } from '@vue/test-utils'
 import { GoPlaidPortal } from '../portal'
 import GoPlaidScope from '../scope'

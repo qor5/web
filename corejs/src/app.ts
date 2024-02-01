@@ -12,6 +12,7 @@ import { GoPlaidPortal } from '@/portal'
 import { initContext } from '@/initContext'
 import { componentByTemplate } from '@/utils'
 import { plaid } from '@/builder'
+import { fieldNameDirective } from '@/fieldname'
 
 export const Root = defineComponent({
   props: {
@@ -55,11 +56,12 @@ export const plaidPlugin = {
   install(app: App) {
     app.component('GoPlaidScope', Scope)
     app.component('GoPlaidPortal', GoPlaidPortal)
-    app.directive('init-context', initContext)
+    app.directive('init-context', initContext())
     const { plaidForm, plaid, vars } = createGlobals()
     app.provide('plaid', plaid)
     app.provide('plaidForm', plaidForm)
     app.provide('vars', vars)
+    app.directive('field-name', fieldNameDirective(plaidForm))
   }
 }
 

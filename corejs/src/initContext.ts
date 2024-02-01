@@ -1,10 +1,12 @@
 import type { VNode, DirectiveBinding, Directive } from 'vue'
+import { reactive, ref } from 'vue'
 
 export function initContext(): Directive {
   return {
-    created: (el: HTMLElement, binding: DirectiveBinding, vnode: VNode) => {
+    mounted: (el: HTMLElement, binding: DirectiveBinding, vnode: VNode) => {
       var arg = binding.arg || 'vars'
-      const ctx: any = vnode.component?.proxy
+      const ctx: any = binding.instance
+      console.log('context', binding.instance)
       if (!ctx) {
         throw new Error('v-init-context:vars set on node that have no context')
       }
@@ -18,7 +20,7 @@ export function initContext(): Directive {
           return
           // throw new Error(`v-init-context-vars '${k}' already exists in ${JSON.stringify(ctx.vars)}, use a different key.`);
         }
-        ctx.$set(ctx[arg], k, binding.value[k])
+        ctx[arg][k] = binding.value[k]
       })
     }
   }

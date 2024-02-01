@@ -9,33 +9,33 @@ interface ValueProps {
 function setListeners(el: any, vnode: VNode, myform: FormData, fieldName: string) {
   const comp = (vnode as any).ctx
   // console.log("vnode",el, vnode)
-  console.log('vnode', vnode, 'el', el)
-  if (comp) {
-    const props = comp.props as ValueProps
-    const attrs = comp.attrs as ValueProps
+  //console.log('vnode', vnode, 'el', el)
+  // if (comp) {
+  const props = vnode.props as ValueProps
+  // const attrs = comp.attrs as ValueProps
 
-    const value = props.modelValue ?? attrs.modelValue ?? props.value ?? attrs.value
-    console.log('vnode.component', props.modelValue, attrs.modelValue, props.value, attrs.value)
+  // const value = props.modelValue ?? attrs.modelValue ?? props.value ?? attrs.value
+  // console.log('vnode.component', props.modelValue, attrs.modelValue, props.value, attrs.value)
 
-    setFormValue(myform, fieldName, value)
-    if (el.__fieldNameOninput) {
-      el.removeEventListener('change', el.__fieldNameOninput)
-      el.removeEventListener('input', el.__fieldNameOninput)
-    }
-    el.__fieldNameOninput = (values: any) => {
-      ;(myform as any).dirty = setFormValue(myform, fieldName, values)
-    }
-    el.addEventListener('change', el.__fieldNameOninput)
-    el.addEventListener('input', el.__fieldNameOninput)
-  } else {
-    setFormValue(myform, fieldName, el)
-    el.oninput = (evt: Event) => {
-      if (!evt.target) {
-        return
-      }
-      ;(myform as any).dirty = setFormValue(myform, fieldName, evt)
-    }
+  setFormValue(myform, fieldName, props.value)
+  if (el.__fieldNameOninput) {
+    el.removeEventListener('change', el.__fieldNameOninput)
+    el.removeEventListener('input', el.__fieldNameOninput)
   }
+  el.__fieldNameOninput = (values: any) => {
+    ;(myform as any).dirty = setFormValue(myform, fieldName, values)
+  }
+  el.addEventListener('change', el.__fieldNameOninput)
+  el.addEventListener('input', el.__fieldNameOninput)
+  // } else {
+  //   setFormValue(myform, fieldName, el)
+  //   el.oninput = (evt: Event) => {
+  //     if (!evt.target) {
+  //       return
+  //     }
+  //     ;(myform as any).dirty = setFormValue(myform, fieldName, evt)
+  //   }
+  // }
 
   // console.log("After", inspectFormData(myform))
 }

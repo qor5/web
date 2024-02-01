@@ -1,12 +1,10 @@
-import {mount,} from "@vue/test-utils";
-import {componentByTemplate} from "@/utils";
 import { describe, it, expect } from 'vitest'
-import GoPlaidScope from '@/scope'
+import { mountTemplate } from './testutils'
+import { nextTick } from 'vue'
 
 describe('scope', () => {
-	it('vars and form', async () => {
-		const form = new FormData()
-		const MyComp = componentByTemplate(`
+  it('vars and form', async () => {
+    const wrapper = mountTemplate(`
 				<div>
 				<go-plaid-scope :init='{hello: "123"}' v-slot="{locals: vars}">
 					<div id="l1">{{ vars.hello }}</div>
@@ -36,42 +34,28 @@ describe('scope', () => {
 				</go-plaid-scope>
 				<div class="globalForm">{{plaidForm.get("Name")}}</div>
 				</div>
-			`, form)
+			`)
 
-		const Root = {
-			components: {
-				"mycomp": MyComp,
-			},
-			template: `
-				<mycomp></mycomp>`,
-			provide() {
-				return {
-					vars: {},
-				}
-			},
-		}
-		const wrapper = await mount(Root)
-		console.log(wrapper.html())
+    await nextTick()
+    console.log(wrapper.html())
 
-		const btn: any = wrapper.find("#l1Btn")
-		await btn.trigger("click")
-		const l1: any = wrapper.find("#l1")
-		expect(l1.text()).toEqual(`456`);
+    const btn: any = wrapper.find('#l1Btn')
+    await btn.trigger('click')
+    const l1: any = wrapper.find('#l1')
+    expect(l1.text()).toEqual(`456`)
 
-		const btn2: any = wrapper.find("#l2Btn")
-		await btn2.trigger("click")
-		const l2: any = wrapper.find("#l2")
-		expect(l2.text()).toEqual(`999`);
+    const btn2: any = wrapper.find('#l2Btn')
+    await btn2.trigger('click')
+    const l2: any = wrapper.find('#l2')
+    expect(l2.text()).toEqual(`999`)
 
-		const btn3: any = wrapper.find("#l3Btn")
-		const input4: any = wrapper.find("#input4")
-		await input4.setValue("CCC")
-		await btn3.trigger("click")
-		console.log(wrapper.html())
-		const l3: any = wrapper.find("#l3")
-		expect(l2.text()).toEqual(`AAA`);
-		expect(l3.text()).toEqual(`AAA`);
-
-	})
-
+    const btn3: any = wrapper.find('#l3Btn')
+    const input4: any = wrapper.find('#input4')
+    await input4.setValue('CCC')
+    await btn3.trigger('click')
+    console.log(wrapper.html())
+    const l3: any = wrapper.find('#l3')
+    expect(l2.text()).toEqual(`AAA`)
+    expect(l3.text()).toEqual(`AAA`)
+  })
 })

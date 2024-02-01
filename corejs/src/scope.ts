@@ -21,7 +21,6 @@ export default defineComponent({
 export function createGlobals() {
   const vars = reactive({})
   const plaidForm = new FormData()
-  plaidForm.append('a', '1123123')
   return {
     vars,
     plaidForm,
