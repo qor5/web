@@ -3,13 +3,10 @@ import { mount, VueWrapper } from '@vue/test-utils'
 import { plaidPlugin, Root } from '../app'
 import { type Ref } from 'vue'
 
-export function mockFetchWithReturnTemplate(
-  requestedForm: Ref<FormData>,
-  returnedTemplate: string
-) {
+export function mockFetchWithReturnTemplate(requestedForm: Ref<FormData>, responseJSON: object) {
   global.fetch = vi.fn().mockImplementation((url, opts) => {
     requestedForm.value = opts.body
-    return Promise.resolve(new Response(JSON.stringify({ body: returnedTemplate })))
+    return Promise.resolve(new Response(JSON.stringify(responseJSON)))
   })
 }
 

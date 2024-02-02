@@ -4,14 +4,15 @@ import {
   createApp,
   defineComponent,
   onMounted,
-  inject,
-  shallowRef
+  shallowRef,
+  provide,
+  reactive
 } from 'vue'
-import Scope, { createGlobals } from '@/scope'
+import Scope from '@/scope'
 import { GoPlaidPortal } from '@/portal'
 import { initContext } from '@/initContext'
 import { componentByTemplate } from '@/utils'
-import { plaid } from '@/builder'
+import { Builder, plaid } from '@/builder'
 import { fieldNameDirective } from '@/fieldname'
 
 export const Root = defineComponent({
@@ -24,14 +25,21 @@ export const Root = defineComponent({
 
   setup(props, { emit }) {
     const current = shallowRef<DefineComponent | null>(null)
-    const plaidForm = inject('plaidForm')
-
-    const changeTemplate = (template: string) => {
+    const updateRootTemplate = (template: string) => {
       current.value = componentByTemplate(template, plaidForm)
     }
 
+    provide('updateRootTemplate', updateRootTemplate)
+    const plaidForm = new FormData()
+    const vars = reactive({})
+    provide('plaid', (): Builder => {
+      return plaid().updateRootTemplate(updateRootTemplate).vars(vars).form(plaidForm)
+    })
+    provide('plaidForm', plaidForm)
+    provide('vars', vars)
+
     onMounted(() => {
-      changeTemplate(props.initialTemplate)
+      updateRootTemplate(props.initialTemplate)
 
       window.onpopstate = (evt: any) => {
         if (evt && evt.state != null) {
@@ -41,8 +49,7 @@ export const Root = defineComponent({
     })
 
     return {
-      current,
-      changeTemplate
+      current
     }
   },
   template: `
@@ -57,11 +64,7 @@ export const plaidPlugin = {
     app.component('GoPlaidScope', Scope)
     app.component('GoPlaidPortal', GoPlaidPortal)
     app.directive('init-context', initContext())
-    const { plaidForm, plaid, vars } = createGlobals()
-    app.provide('plaid', plaid)
-    app.provide('plaidForm', plaidForm)
-    app.provide('vars', vars)
-    app.directive('field-name', fieldNameDirective(plaidForm))
+    app.directive('field-name', fieldNameDirective())
   }
 }
 

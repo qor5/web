@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { mockFetchWithReturnTemplate, mountTemplate } from './testutils'
 import { inject, nextTick, ref } from 'vue'
+import { flushPromises } from '@vue/test-utils'
 
 describe('field name', () => {
   const BaseInput = {
@@ -24,7 +25,7 @@ describe('field name', () => {
     const Text1 = {
       template: `
 				<div>
-					<input type="text" v-field-name='"Text1"'
+					<input type="text" v-field-name='[plaidForm, "Text1"]'
 						v-on:input="change2($event.target.value+'later')"
 						v-on:input.trim="change2($event.target.value+'later2')"
 					/>
@@ -38,12 +39,13 @@ describe('field name', () => {
         }
         return {
           change2,
-          plaid: inject('plaid')
+          plaid: inject('plaid'),
+          plaidForm: inject('plaidForm')
         }
       }
     }
     const form = ref(new FormData())
-    mockFetchWithReturnTemplate(form, '<h3></h3>')
+    mockFetchWithReturnTemplate(form, { body: '<h3></h3>' })
     const wrapper = mountTemplate(`<Text1></Text1>`, { components: { Text1 } })
     await nextTick()
     const input = wrapper.find('input[type=text]')
@@ -57,7 +59,7 @@ describe('field name', () => {
     const Text1 = {
       template: `
 				<div class="Text1">
-					<base-input v-field-name='"BaseInput1"' label="Label1"
+					<base-input v-field-name='[plaidForm, "BaseInput1"]' label="Label1"
                                 modelValue="base input value"
 					></base-input>
 					<button @click='plaid().eventFunc("hello").go()'></button>
@@ -65,21 +67,22 @@ describe('field name', () => {
 			`,
       setup() {
         return {
-          plaid: inject('plaid')
+          plaid: inject('plaid'),
+          plaidForm: inject('plaidForm')
         }
       }
     }
 
     it('initial value without any change can update to form', async () => {
-      const value = '12345'
       const wrapper = mountTemplate(`<Text1></Text1>`, { components: { Text1, BaseInput } })
       await nextTick()
       const input = wrapper.find('input')
 
       expect(input.element.value).toEqual('base input value')
       const form = ref(new FormData())
-      mockFetchWithReturnTemplate(form, '<h3></h3>')
+      mockFetchWithReturnTemplate(form, { body: '<h3></h3>' })
       await wrapper.find('button').trigger('click')
+      await flushPromises()
       expect(Object.fromEntries(form.value)).toEqual({ BaseInput1: 'base input value' })
     })
 
@@ -91,7 +94,7 @@ describe('field name', () => {
 
       await input.setValue(value)
       const form = ref(new FormData())
-      mockFetchWithReturnTemplate(form, '<h3></h3>')
+      mockFetchWithReturnTemplate(form, { body: '<h3></h3>' })
       await wrapper.find('button').trigger('click')
       expect(Object.fromEntries(form.value)).toEqual({ BaseInput1: value })
     })
@@ -107,24 +110,25 @@ describe('field name', () => {
     const Text1 = {
       setup() {
         return {
-          plaid: inject('plaid')
+          plaid: inject('plaid'),
+          plaidForm: inject('plaidForm')
         }
       },
       template: `
 				<div class="Text1">
-					<textarea v-field-name='"Textarea1"'>textarea1 value</textarea>
-					<input id="text1" type="text" v-field-name='"Text1"' value='text value'/>
-          <input type="radio" v-field-name='"Radio1"' value="Radio1 checked value" checked/>
-          <input type="radio" v-field-name='"Radio1"' value="Radio1 not checked value"/>
-          <input type="hidden" v-field-name='"Hidden1"' value="hidden1value"/>
-          <input type="checkbox" v-field-name='"Checkbox1"' value="checkbox checked value" checked/>
-          <input type="checkbox" v-field-name='"Checkbox2"' value="checkbox not checked value"/>
-          <input type="number" v-field-name='"Number1"' value="123"/>
-          <select v-field-name='"Select1"'>
+					<textarea v-field-name='[plaidForm, "Textarea1"]'>textarea1 value</textarea>
+					<input id="text1" type="text" v-field-name='[plaidForm, "Text1"]' value='text value'/>
+          <input type="radio" v-field-name='[plaidForm, "Radio1"]' value="Radio1 checked value" checked/>
+          <input type="radio" v-field-name='[plaidForm, "Radio1"]' value="Radio1 not checked value"/>
+          <input type="hidden" v-field-name='[plaidForm, "Hidden1"]' value="hidden1value"/>
+          <input type="checkbox" v-field-name='[plaidForm, "Checkbox1"]' value="checkbox checked value" checked/>
+          <input type="checkbox" v-field-name='[plaidForm, "Checkbox2"]' value="checkbox not checked value"/>
+          <input type="number" v-field-name='[plaidForm, "Number1"]' value="123"/>
+          <select v-field-name='[plaidForm, "Select1"]'>
             <option value="dog">Dog</option>
             <option value="cat" selected>Cat</option>
           </select>
-          <base-input v-field-name='"BaseInput1"' label="Label1"
+          <base-input v-field-name='[plaidForm, "BaseInput1"]' label="Label1"
                       value="base input value"
           ></base-input>
           <button id='button1' @click='plaid().eventFunc("hello").go()'></button>
@@ -134,7 +138,7 @@ describe('field name', () => {
     const wrapper = mountTemplate(`<Text1></Text1>`, { components: { Text1, BaseInput } })
     await nextTick()
     const form = ref(new FormData())
-    mockFetchWithReturnTemplate(form, '<h3></h3>')
+    mockFetchWithReturnTemplate(form, { body: '<h3></h3>' })
     await wrapper.find('#button1').trigger('click')
     expect(Object.fromEntries(form.value)).toEqual({
       BaseInput1: 'base input value',
@@ -152,49 +156,46 @@ describe('field name', () => {
     const value = '12345'
     await input.setValue(value)
     await wrapper.find('#button1').trigger('click')
+    await flushPromises()
     expect(form.value.get('Text1')).toEqual(value)
-
-    //
-    // const baseInput = wrapper.find('.base-input')
-    // baseInput.vm.$emit('change', value)
-    // expect(form.get('BaseInput1')).toEqual(value)
-  })
-})
-describe('field name simple', () => {
-  it('test value not checked checkbox', async () => {
-    const wrapper = mountTemplate(
-      `
-        <div class="Text1">
-					<input type="checkbox" v-field-name='"Checkbox2"' value="checkbox not checked value"/>
-          <button @click='plaid().eventFunc("hello").go()'></button>
-        </div>`,
-      {}
-    )
-    await nextTick()
-    const form = ref(new FormData())
-    mockFetchWithReturnTemplate(form, '<h3></h3>')
-    await wrapper.find('button').trigger('click')
-    expect(Object.fromEntries(form.value)).toEqual({})
   })
 
-  it('test text input value', async () => {
-    const wrapper = mountTemplate(
-      `
+  describe('field name simple', () => {
+    it('test value not checked checkbox', async () => {
+      const wrapper = mountTemplate(
+        `
         <div class="Text1">
-					<input type="text" v-field-name='"Text1"' value="text value 1"/>
+					<input type="checkbox" v-field-name='[plaidForm, "Checkbox2"]' value="checkbox not checked value"/>
           <button @click='plaid().eventFunc("hello").go()'></button>
         </div>`,
-      {}
-    )
-    await nextTick()
-    const form = ref(new FormData())
-    mockFetchWithReturnTemplate(form, '<h3></h3>')
-    await wrapper.find('button').trigger('click')
-    expect(Object.fromEntries(form.value)).toEqual({ Text1: 'text value 1' })
+        {}
+      )
+      await nextTick()
+      const form = ref(new FormData())
+      mockFetchWithReturnTemplate(form, { body: '<h3></h3>' })
+      await wrapper.find('button').trigger('click')
+      await flushPromises()
+      expect(Object.fromEntries(form.value)).toEqual({})
+    })
 
-    const input = wrapper.find('input[type=text]')
-    const value = '12345'
-    await input.setValue(value)
-    expect(form.value.get('Text1')).toEqual(value)
+    it('test text input value', async () => {
+      const template = `
+        <div class="Text1">
+					<input type="text" v-field-name='[plaidForm, "Text1"]' value="text value 1"/>
+          <button @click='plaid().vueContext(this).eventFunc("hello").go()'></button>
+        </div>`
+      const wrapper = mountTemplate(template, {})
+      await nextTick()
+      const form = ref(new FormData())
+      mockFetchWithReturnTemplate(form, { body: template })
+      await wrapper.find('button').trigger('click')
+      expect(Object.fromEntries(form.value)).toEqual({ Text1: 'text value 1' })
+      await flushPromises()
+      console.log(wrapper.html())
+      const input = wrapper.find('input[type=text]')
+      const value = '12345'
+      await input.setValue(value)
+      expect(form.value.get('Text1')).toEqual(value)
+    })
   })
 })

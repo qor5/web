@@ -202,6 +202,7 @@ export function componentByTemplate(template: string, plaidForm: any): DefineCom
       return {
         plaid: inject('plaid'),
         vars: inject('vars'),
+        updateRootTemplate: inject('updateRootTemplate'),
         plaidForm: plaidForm
       }
     },

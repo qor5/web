@@ -13,6 +13,7 @@ export class Builder {
   _pushState?: boolean
   _location?: Location
   _vueContext?: any
+  _updateRootTemplate?: any
   _buildPushStateResult?: any
 
   readonly ignoreErrors = [
@@ -31,6 +32,11 @@ export class Builder {
 
   public eventFunc(id: string): Builder {
     this._eventFuncID.id = id
+    return this
+  }
+
+  public updateRootTemplate(v: any): Builder {
+    this._updateRootTemplate = v
     return this
   }
 
@@ -263,28 +269,15 @@ export class Builder {
           }
         }
 
-        if (!this._vueContext) {
-          throw new Error('vue context is undefined')
-        }
-
         if (r.pushState) {
-          return (this._vueContext as any)
-            .$plaid()
-            .reload()
-            .pushState(true)
-            .location(r.pushState)
-            .go()
-        }
-
-        if (r.body && r.reload) {
-          ;(this._vueContext.$root as any).current = componentByTemplate(r.body, this._form)
-          return r
+          return this.reload().pushState(true).location(r.pushState).go()
         }
 
         if (r.body) {
-          ;(this._vueContext as any).current = componentByTemplate(r.body, this._form)
+          this._updateRootTemplate(r.body)
           return r
         }
+
         return r
       })
       .catch((error) => {

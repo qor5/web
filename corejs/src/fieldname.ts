@@ -1,52 +1,46 @@
 import type { Directive, DirectiveBinding, VNode } from 'vue'
 import { registerEvent, setFormValue } from '@/utils'
 
-export function fieldNameDirective(form: FormData): Directive {
-  let cancelChange: any
-  let cancelInput: any
-
+export function fieldNameDirective(): Directive {
   function mounted(el: HTMLElement, binding: DirectiveBinding, vnode: VNode) {
-    let myform = form
-    let fieldName = binding.value
-    if (Array.isArray(binding.value)) {
-      myform = binding.value[0] ?? form
-      fieldName = binding.value[1]
-    }
+    const [form, fieldName] = binding.value
 
     if (
       el instanceof HTMLInputElement ||
       el instanceof HTMLTextAreaElement ||
       el instanceof HTMLSelectElement
     ) {
-      setFormValue(myform, fieldName, el)
+      setFormValue(form, fieldName, el)
     } else {
-      setFormValue(myform, fieldName, vnode.props?.value)
+      const vnodeCtx = (vnode as any).ctx
+      setFormValue(form, fieldName, vnode.props?.value ?? vnodeCtx.props?.modelValue)
     }
-
-    cancelChange && cancelChange()
-    cancelInput && cancelInput()
-    cancelChange = registerEvent(
+    const anyEl: any = el
+    anyEl._cancelChange && anyEl._cancelChange()
+    anyEl._cancelInput && anyEl._cancelInput()
+    anyEl._cancelChange = registerEvent(
       el,
       'change',
       (values: any) => {
-        ;(myform as any).dirty = setFormValue(myform, fieldName, values)
+        ;(form as any).dirty = setFormValue(form, fieldName, values)
       },
       {}
     )
 
-    cancelInput = registerEvent(
+    anyEl._cancelInput = registerEvent(
       el,
       'input',
       (values: any) => {
-        ;(myform as any).dirty = setFormValue(myform, fieldName, values)
+        ;(form as any).dirty = setFormValue(form, fieldName, values)
       },
       {}
     )
   }
 
   function unmounted(el: HTMLElement, binding: DirectiveBinding, vnode: VNode) {
-    cancelChange && cancelChange()
-    cancelInput && cancelInput()
+    const anyEl: any = el
+    anyEl._cancelChange && anyEl._cancelChange()
+    anyEl._cancelInput && anyEl._cancelInput()
   }
 
   // Update will trigger too much, and will update to null
