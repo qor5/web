@@ -204,3 +204,8 @@ export function componentByTemplate(template: string, plaidForm: any): DefineCom
     template
   })
 }
+
+export function registerEvent(el: any, event: string, listener: any, options: any) {
+  el.addEventListener(event, listener, options)
+  return () => el.removeEventListener(event, listener, options)
+}
