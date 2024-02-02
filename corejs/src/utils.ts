@@ -152,6 +152,10 @@ export function setFormValue(form: FormData, fieldName: string, val: any): boole
     return formSet(form, fieldName, val.value)
   }
 
+  if (val instanceof HTMLSelectElement) {
+    return formSet(form, fieldName, val.value)
+  }
+
   if (val === null || val === undefined) {
     return formSet(form, fieldName, '')
   }

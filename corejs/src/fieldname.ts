@@ -1,11 +1,6 @@
 import type { Directive, DirectiveBinding, VNode } from 'vue'
 import { registerEvent, setFormValue } from '@/utils'
 
-interface ValueProps {
-  modelValue?: string
-  value?: string
-}
-
 export function fieldNameDirective(form: FormData): Directive {
   let cancelChange: any
   let cancelInput: any
@@ -18,13 +13,18 @@ export function fieldNameDirective(form: FormData): Directive {
       fieldName = binding.value[1]
     }
 
-    const ctxProps = (vnode as any).ctx.props as ValueProps
-    if (ctxProps && ctxProps.hasOwnProperty('modelValue')) {
-      setFormValue(myform, fieldName, ctxProps.modelValue)
-    } else {
+    if (
+      el instanceof HTMLInputElement ||
+      el instanceof HTMLTextAreaElement ||
+      el instanceof HTMLSelectElement
+    ) {
       setFormValue(myform, fieldName, el)
+    } else {
+      setFormValue(myform, fieldName, vnode.props?.value)
     }
 
+    cancelChange && cancelChange()
+    cancelInput && cancelInput()
     cancelChange = registerEvent(
       el,
       'change',

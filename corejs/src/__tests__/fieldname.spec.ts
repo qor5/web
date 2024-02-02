@@ -70,12 +70,12 @@ describe('field name', () => {
       }
     }
 
-    const value = '12345'
-    const wrapper = mountTemplate(`<Text1></Text1>`, { components: { Text1, BaseInput } })
-    await nextTick()
-    const input = wrapper.find('input')
-
     it('initial value without any change can update to form', async () => {
+      const value = '12345'
+      const wrapper = mountTemplate(`<Text1></Text1>`, { components: { Text1, BaseInput } })
+      await nextTick()
+      const input = wrapper.find('input')
+
       expect(input.element.value).toEqual('base input value')
       const form = ref(new FormData())
       mockFetchWithReturnTemplate(form, '<h3></h3>')
@@ -84,6 +84,11 @@ describe('field name', () => {
     })
 
     it('test change value can update to form', async () => {
+      const value = '12345'
+      const wrapper = mountTemplate(`<Text1></Text1>`, { components: { Text1, BaseInput } })
+      await nextTick()
+      const input = wrapper.find('input')
+
       await input.setValue(value)
       const form = ref(new FormData())
       mockFetchWithReturnTemplate(form, '<h3></h3>')
@@ -108,17 +113,21 @@ describe('field name', () => {
       template: `
 				<div class="Text1">
 					<textarea v-field-name='"Textarea1"'>textarea1 value</textarea>
-					<input type="text" v-field-name='"Text1"' value='text value'/>
-					<input type="radio" v-field-name='"Radio1"' value="Radio1 checked value" checked/>
-					<input type="radio" v-field-name='"Radio1"' value="Radio1 not checked value"/>
-					<input type="hidden" v-field-name='"Hidden1"' value="hidden1value"/>
-					<input type="checkbox" v-field-name='"Checkbox1"' value="checkbox checked value" checked/>
-					<input type="checkbox" v-field-name='"Checkbox2"' value="checkbox not checked value"/>
-					<input type="number" v-field-name='"Number1"' value="123"/>
-					<base-input v-field-name='"BaseInput1"' label="Label1"
-						value="base input value"
-					></base-input>
-          <button @click='plaid().eventFunc("hello").go()'></button>
+					<input id="text1" type="text" v-field-name='"Text1"' value='text value'/>
+          <input type="radio" v-field-name='"Radio1"' value="Radio1 checked value" checked/>
+          <input type="radio" v-field-name='"Radio1"' value="Radio1 not checked value"/>
+          <input type="hidden" v-field-name='"Hidden1"' value="hidden1value"/>
+          <input type="checkbox" v-field-name='"Checkbox1"' value="checkbox checked value" checked/>
+          <input type="checkbox" v-field-name='"Checkbox2"' value="checkbox not checked value"/>
+          <input type="number" v-field-name='"Number1"' value="123"/>
+          <select v-field-name='"Select1"'>
+            <option value="dog">Dog</option>
+            <option value="cat" selected>Cat</option>
+          </select>
+          <base-input v-field-name='"BaseInput1"' label="Label1"
+                      value="base input value"
+          ></base-input>
+          <button id='button1' @click='plaid().eventFunc("hello").go()'></button>
         </div>
 			`
     }
@@ -126,7 +135,7 @@ describe('field name', () => {
     await nextTick()
     const form = ref(new FormData())
     mockFetchWithReturnTemplate(form, '<h3></h3>')
-    await wrapper.find('button').trigger('click')
+    await wrapper.find('#button1').trigger('click')
     expect(Object.fromEntries(form.value)).toEqual({
       BaseInput1: 'base input value',
       Checkbox1: 'checkbox checked value',
@@ -134,24 +143,58 @@ describe('field name', () => {
       Number1: '123',
       Radio1: 'Radio1 checked value',
       Text1: 'text value',
-      Textarea1: 'textarea1 value'
+      Textarea1: 'textarea1 value',
+      Select1: 'cat'
     })
-    //
-    // expect(form.get('Hidden1')).toEqual('hidden1value')
-    // expect(form.get('Radio1')).toEqual('Radio1 checked value')
-    // expect(form.get('Checkbox1')).toEqual('checkbox checked value')
-    // expect(form.get('Checkbox2')).toBeNull()
-    // expect(form.get('Textarea1')).toEqual('textarea1 value')
-    // expect(form.get('Number1')).toEqual('123')
-    // expect(form.get('BaseInput1')).toEqual('base input value')
-    //
-    // const input = wrapper.find('input[type=text]')
-    // const value = '12345'
-    // await input.setValue(value)
-    // expect(form.get('Text1')).toEqual(value)
+    console.log(wrapper.html())
+
+    const input = wrapper.find('#text1')
+    const value = '12345'
+    await input.setValue(value)
+    await wrapper.find('#button1').trigger('click')
+    expect(form.value.get('Text1')).toEqual(value)
+
     //
     // const baseInput = wrapper.find('.base-input')
     // baseInput.vm.$emit('change', value)
     // expect(form.get('BaseInput1')).toEqual(value)
+  })
+})
+describe('field name simple', () => {
+  it('test value not checked checkbox', async () => {
+    const wrapper = mountTemplate(
+      `
+        <div class="Text1">
+					<input type="checkbox" v-field-name='"Checkbox2"' value="checkbox not checked value"/>
+          <button @click='plaid().eventFunc("hello").go()'></button>
+        </div>`,
+      {}
+    )
+    await nextTick()
+    const form = ref(new FormData())
+    mockFetchWithReturnTemplate(form, '<h3></h3>')
+    await wrapper.find('button').trigger('click')
+    expect(Object.fromEntries(form.value)).toEqual({})
+  })
+
+  it('test text input value', async () => {
+    const wrapper = mountTemplate(
+      `
+        <div class="Text1">
+					<input type="text" v-field-name='"Text1"' value="text value 1"/>
+          <button @click='plaid().eventFunc("hello").go()'></button>
+        </div>`,
+      {}
+    )
+    await nextTick()
+    const form = ref(new FormData())
+    mockFetchWithReturnTemplate(form, '<h3></h3>')
+    await wrapper.find('button').trigger('click')
+    expect(Object.fromEntries(form.value)).toEqual({ Text1: 'text value 1' })
+
+    const input = wrapper.find('input[type=text]')
+    const value = '12345'
+    await input.setValue(value)
+    expect(form.value.get('Text1')).toEqual(value)
   })
 })
