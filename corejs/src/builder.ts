@@ -12,7 +12,6 @@ export class Builder {
   _popstate?: boolean
   _pushState?: boolean
   _location?: Location
-  _vueContext?: any
   _updateRootTemplate?: any
   _buildPushStateResult?: any
 
@@ -130,11 +129,6 @@ export class Builder {
     return this
   }
 
-  public vueContext(v: any): Builder {
-    this._vueContext = v
-    return this
-  }
-
   public formClear(): Builder {
     if (!this._form) {
       return this
@@ -160,7 +154,7 @@ export class Builder {
 
   public run(script: string): Builder {
     const f = new Function(script)
-    f.apply(this._vueContext)
+    f.apply(this)
     return this
   }
 
@@ -235,10 +229,12 @@ export class Builder {
       })
       .then((r: EventResponse) => {
         if (this._vars && r.varsScript) {
-          new Function('vars', '$plaid', '$event', 'plaidForm', r.varsScript).apply(
-            this._vueContext,
-            [this._vars, (this._vueContext as any).$plaid, null, this._form]
-          )
+          new Function('vars', 'plaid', '$event', 'plaidForm', r.varsScript).apply(this, [
+            this._vars,
+            this,
+            null,
+            this._form
+          ])
         }
         return r
       })
