@@ -8,6 +8,7 @@ export class Builder {
   _url?: string
   _method?: string
   _vars?: any
+  _locals?: any
   _form?: FormData
   _popstate?: boolean
   _pushState?: boolean
@@ -57,6 +58,11 @@ export class Builder {
 
   public vars(v: any): Builder {
     this._vars = v
+    return this
+  }
+
+  public locals(v: any): Builder {
+    this._locals = v
     return this
   }
 
@@ -173,7 +179,7 @@ export class Builder {
     return this._buildPushStateResult.pushStateArgs
   }
 
-  public onpopstate(event: any): Promise<EventResponse> {
+  public onpopstate(event: any): Promise<void | EventResponse> {
     if (!event.state) {
       // hashtag changes will trigger popstate, when this happen, event.state is null.
       return Promise.reject('event state is undefined')
@@ -193,7 +199,7 @@ export class Builder {
     }
   }
 
-  public go(): Promise<EventResponse> {
+  public go(): Promise<void | EventResponse> {
     if (this._eventFuncID.id == '__reload__') {
       this.formClear()
     }
@@ -229,8 +235,9 @@ export class Builder {
       })
       .then((r: EventResponse) => {
         if (this._vars && r.varsScript) {
-          new Function('vars', 'plaid', '$event', 'plaidForm', r.varsScript).apply(this, [
+          new Function('vars', 'locals', 'plaid', '$event', 'plaidForm', r.varsScript).apply(this, [
             this._vars,
+            this._locals,
             this,
             null,
             this._form
