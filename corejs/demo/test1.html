@@ -16,7 +16,7 @@
 	<div id="app">
 		<main v-init-context:vars='{school: "DLMU"}'>
 			Family Name
-			<input v-on:input:debounced='$plaid().eventFunc("hello", $event.target.value).go()' v-debounce:input="500"/>
+			<input v-on:input:debounced='plaid().eventFunc("hello", $event.target.value).go()' v-debounce:input="500"/>
 			<a href="#" v-on:click='triggerEventFunc({"id": "hello"}, $event)' >Click</a>
 
 

@@ -182,7 +182,7 @@ describe('field name', () => {
       const template = `
         <div class="Text1">
 					<input type="text" v-field-name='[plaidForm, "Text1"]' value="text value 1"/>
-          <button @click='plaid().vueContext(this).eventFunc("hello").go()'></button>
+          <button @click='plaid().eventFunc("hello").go()'></button>
         </div>`
       const wrapper = mountTemplate(template, {})
       await nextTick()

@@ -194,6 +194,7 @@ export function componentByTemplate(template: string, plaidForm: any): DefineCom
       return {
         plaid: inject('plaid'),
         vars: inject('vars'),
+        isFetching: inject('isFetching'),
         updateRootTemplate: inject('updateRootTemplate'),
         plaidForm: plaidForm
       }

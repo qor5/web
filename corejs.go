@@ -9,7 +9,7 @@ import (
 var box embed.FS
 
 func JSComponentsPack() ComponentsPack {
-	v, err := box.ReadFile("corejs/dist/core.umd.min.js")
+	v, err := box.ReadFile("corejs/dist/index.js")
 	if err != nil {
 		panic(err)
 	}
@@ -18,7 +18,7 @@ func JSComponentsPack() ComponentsPack {
 }
 
 func JSVueComponentsPack() ComponentsPack {
-	v, err := box.ReadFile("corejs/dist/vue.min.js")
+	v, err := box.ReadFile("corejs/dist/vue.global.prod.js")
 	if err != nil {
 		panic(err)
 	}

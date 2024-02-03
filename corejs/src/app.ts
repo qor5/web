@@ -6,7 +6,8 @@ import {
   onMounted,
   shallowRef,
   provide,
-  reactive
+  reactive,
+  ref
 } from 'vue'
 import Scope from '@/scope'
 import { GoPlaidPortal } from '@/portal'
@@ -14,6 +15,8 @@ import { initContext } from '@/initContext'
 import { componentByTemplate } from '@/utils'
 import { Builder, plaid } from '@/builder'
 import { fieldNameDirective } from '@/fieldname'
+import { debounceDirective } from '@/debounce'
+import { keepScroll } from '@/keepScroll'
 
 export const Root = defineComponent({
   props: {
@@ -32,18 +35,28 @@ export const Root = defineComponent({
     provide('updateRootTemplate', updateRootTemplate)
     const plaidForm = new FormData()
     const vars = reactive({})
-    provide('plaid', (): Builder => {
+    const _plaid = (): Builder => {
       return plaid().updateRootTemplate(updateRootTemplate).vars(vars).form(plaidForm)
-    })
+    }
+    provide('plaid', _plaid)
     provide('plaidForm', plaidForm)
     provide('vars', vars)
+    const isFetching = ref(false)
+    provide('isFetching', isFetching)
 
     onMounted(() => {
       updateRootTemplate(props.initialTemplate)
 
+      window.addEventListener('fetchStart', (e: Event) => {
+        isFetching.value = true
+      })
+      window.addEventListener('fetchEnd', (e: Event) => {
+        isFetching.value = false
+      })
+
       window.onpopstate = (evt: any) => {
         if (evt && evt.state != null) {
-          // $plaid().onpopstate(evt)
+          _plaid().onpopstate(evt)
         }
       }
     })
@@ -65,6 +78,10 @@ export const plaidPlugin = {
     app.component('GoPlaidPortal', GoPlaidPortal)
     app.directive('init-context', initContext())
     app.directive('field-name', fieldNameDirective())
+    app.directive('field-name', fieldNameDirective())
+    app.directive('debounce', debounceDirective)
+    app.directive('keep-scroll', keepScroll)
+    // app.component('GlobalEvents', GlobalEvents);
   }
 }
 

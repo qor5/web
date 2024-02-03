@@ -27,7 +27,7 @@ func Plaid() (r *VueEventTagBuilder) {
 	r = &VueEventTagBuilder{
 		calls: []jsCall{
 			{
-				method: "$plaid",
+				method: "plaid",
 			},
 		},
 	}
@@ -79,6 +79,14 @@ func (b *VueEventTagBuilder) Reload() (r *VueEventTagBuilder) {
 func (b *VueEventTagBuilder) Vars(v interface{}) (r *VueEventTagBuilder) {
 	b.calls = append(b.calls, jsCall{
 		method: "vars",
+		args:   []interface{}{v},
+	})
+	return b
+}
+
+func (b *VueEventTagBuilder) Locals(v interface{}) (r *VueEventTagBuilder) {
+	b.calls = append(b.calls, jsCall{
+		method: "locals",
 		args:   []interface{}{v},
 	})
 	return b

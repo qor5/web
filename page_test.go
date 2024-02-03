@@ -273,8 +273,8 @@ var mountCases = []struct {
 		bodyFunc: nil,
 		expected: `
 <div>
-	<a href="#" v-on:click='$plaid().vars(vars).form(plaidForm).eventFunc("bookmark").go()'>xgb123</a>
-	<a href="#" v-on:blur='alert(1); $plaid().vars(vars).form(plaidForm).fieldValue("Text1", $event).eventFunc("doIt").go()'>hello</a>
+	<a href="#" v-on:click='plaid().vars(vars).form(plaidForm).eventFunc("bookmark").go()'>xgb123</a>
+	<a href="#" v-on:blur='alert(1); plaid().vars(vars).form(plaidForm).fieldValue("Text1", $event).eventFunc("doIt").go()'>hello</a>
 </div>
 `,
 	},
