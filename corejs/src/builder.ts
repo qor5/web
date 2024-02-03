@@ -262,9 +262,9 @@ export class Builder {
 
         if (r.updatePortals && r.updatePortals.length > 0) {
           for (const pu of r.updatePortals) {
-            const portal = window.__goplaid.portals[pu.name]
-            if (portal) {
-              portal.changeCurrentTemplate(pu.body)
+            const { updatePortalTemplate } = window.__goplaid.portals[pu.name]
+            if (updatePortalTemplate) {
+              updatePortalTemplate(pu.body)
             }
           }
         }

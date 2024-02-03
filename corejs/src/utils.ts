@@ -103,14 +103,6 @@ function queryUpdateByValueOp(query: any, key: string, valueOp: ValueOp): void {
   return
 }
 
-export function inspectFormData(form: FormData) {
-  let r: any = {}
-  for (const pair of form.entries()) {
-    r[pair[0].toString()] = pair[1]
-  }
-  return r
-}
-
 export function setFormValue(form: FormData, fieldName: string, val: any): boolean {
   // console.log("setFormValue", inspectFormData(form), fieldName, val)
   if (!fieldName || fieldName.length === 0) {

@@ -1,103 +1,101 @@
-import { defineComponent, nextTick } from 'vue'
-import { mount } from '@vue/test-utils'
-import { GoPlaidPortal } from '../portal'
-import GoPlaidScope from '../scope'
+import { defineComponent, inject, nextTick, ref } from 'vue'
+import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect } from 'vitest'
-import plaidFormTest from './plaidFormTest.vue'
-import '../setup'
-import { inspectFormData } from '../utils'
-import { createWebApp } from '../app'
+import { mockFetchWithReturnTemplate, mountTemplate } from './testutils'
+// import plaidFormTest from './plaidFormTest.vue'
 
 describe('portal', () => {
   it('vars', async () => {
-    const portal = GoPlaidPortal()
-
-    const Father = defineComponent({
+    const Comp1 = defineComponent({
       template: `
-				<div class="father" :value="vars.value"></div>
+				<div class="comp1" :value="vars.value1">
+          <button id="Comp1Change" @click="change">Change</button>
+        </div>
+        
 			`,
-      methods: {
-        change() {
+      setup() {
+        const vars = inject<any>('vars')
+        const change = () => {
           console.log('changed')
-          // @ts-ignore
-          this.vars.value = '123456'
+          vars.value1 = 'comp1 changed'
+        }
+        return {
+          vars,
+          change
         }
       }
     })
 
-    const Son = defineComponent({
-      inject: ['vars'],
-      created() {
-        // @ts-ignore
-        console.log('vars.value', this.vars.value)
-      },
-
+    const Comp2 = defineComponent({
       template: `
-				<div class="son" v-bind:value="vars.value"></div>
+				<div class="son" v-bind:value="vars.value">
+          <button id="Comp2Change" @click="change">Change</button>
+        </div>
 			`,
-      methods: {
-        change() {
+      setup() {
+        const vars = inject<any>('vars')
+        const change = () => {
           console.log('changed')
-          // @ts-ignore
-          this.vars.value = 'son changed'
+          vars.value1 = 'comp2 changed'
+        }
+        return {
+          vars,
+          change
         }
       }
     })
 
     const Root = {
-      components: {
-        son: Son
-      },
-
       template: `
 				<div>
-				<son></son>
-				<go-plaid-portal :visible="true">
-					<input type="text" v-init-context:vars='{value: "222"}'/>
-				</go-plaid-portal>
+          <comp2></comp2>
+          <go-plaid-portal :visible="true" :portal-name='"portal1"'>
+					  <input type="text" v-init-context:vars='{value1: "222"}'/>
+			  	</go-plaid-portal>
+          <button id='postForm1' @click='plaid().fieldValue("value1", vars.value1).eventFunc("hello").go()'>Post Form 1</button>
 				</div>
 			`,
-      methods: {
-        change2: function (val: any) {
+      setup() {
+        const change2 = (val: any) => {
           console.log('change2', val)
         }
-      },
-
-      data() {
         return {
-          vars: {}
-        }
-      },
-
-      provide(): any {
-        return {
-          // @ts-ignore
-          vars: this.vars
+          change2,
+          plaid: inject('plaid'),
+          vars: inject('vars')
         }
       }
     }
-    const app = createWebApp(`<root></root>`)
-    app.component('root', Root)
-    app.component('son', Son)
-    app.component('father', Father)
-    const div = document.createElement('div')
-    app.mount(div)
-    await nextTick()
 
-    console.log(div.innerHTML)
-    // const wrapper = await mount(Root)
-    //
-    // const portalComp: any = wrapper.find(".go-plaid-portal")
-    // await portalComp.vm.changeCurrent(Father)
-    //
-    // const father: any = wrapper.find(".father")
-    // expect(father.attributes("value")).toEqual(`222`);
-    //
-    // await father.vm.change()
-    // console.log(wrapper.html())
-    //
-    // const son: any = wrapper.find(".son")
-    // expect(son.attributes("value")).toEqual(`123456`);
+    const wrapper = mountTemplate(`<Root></Root>`, { components: { Root, Comp1, Comp2 } })
+    await nextTick()
+    console.log(wrapper.html())
+
+    // v-init-context should be able to set vars value1, and can be posted to server with fieldValue
+    const form = ref(new FormData())
+    mockFetchWithReturnTemplate(form, { body: '<Root></Root>' })
+    await wrapper.find('#postForm1').trigger('click')
+    await flushPromises()
+    expect(Object.fromEntries(form.value)).toEqual({ value1: '222' })
+    console.log(wrapper.html())
+
+    // change value1 in Comp2, and post form again, value1 should be updated to 'comp2 changed'
+    await wrapper.find('#Comp2Change').trigger('click')
+    await wrapper.find('#postForm1').trigger('click')
+    await flushPromises()
+    expect(Object.fromEntries(form.value)).toEqual({ value1: 'comp2 changed' })
+
+    // replace the portal with Comp1, change value1 in Comp1, and post form again, value1 should be updated to 'comp2 changed'
+    mockFetchWithReturnTemplate(form, {
+      updatePortals: [{ name: 'portal1', body: `<Comp1></Comp1>` }]
+    })
+    await wrapper.find('#postForm1').trigger('click')
+    await flushPromises()
+    await wrapper.find('#Comp1Change').trigger('click')
+    await wrapper.find('#postForm1').trigger('click')
+    expect(Object.fromEntries(form.value)).toEqual({ value1: 'comp1 changed' })
+
+    console.log(wrapper.html())
   })
 
   it('vars error', async () => {

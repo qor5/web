@@ -6,7 +6,6 @@ export function initContext(): Directive {
     mounted: (el: HTMLElement, binding: DirectiveBinding, vnode: VNode) => {
       var arg = binding.arg || 'vars'
       const ctx: any = binding.instance
-      console.log('context', binding.instance)
       if (!ctx) {
         throw new Error('v-init-context:vars set on node that have no context')
       }
