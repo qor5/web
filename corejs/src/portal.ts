@@ -21,7 +21,7 @@ export const GoPlaidPortal = defineComponent({
   template: `
 			<div class="go-plaid-portal" v-if="visible">
         <component :is="current" v-if="current">
-          <slot></slot>
+          <slot :plaidForm="plaidForm"></slot>
         </component>
 			</div>
 		`,
@@ -36,7 +36,10 @@ export const GoPlaidPortal = defineComponent({
       // const core = new Core(form, rootChangeCurrent, this.changeCurrent);
 
       if (slots.default) {
-        current.value = componentByTemplate('<slot></slot>', props.portalForm)
+        current.value = componentByTemplate(
+          '<slot :plaidForm="plaidForm"></slot>',
+          props.portalForm
+        )
         return
       }
 
@@ -94,7 +97,8 @@ export const GoPlaidPortal = defineComponent({
     })
 
     return {
-      current
+      current,
+      plaidForm: props.portalForm
     }
   }
 })
