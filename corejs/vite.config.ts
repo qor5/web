@@ -9,6 +9,7 @@ export default defineConfig({
     rollupOptions: {
       external: ['vue'],
       output: {
+        format: 'umd',
         globals: {
           vue: 'Vue'
         },
