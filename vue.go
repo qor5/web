@@ -287,25 +287,12 @@ func (b *VueEventTagBuilder) MarshalJSON() ([]byte, error) {
 const InitContextVars = "v-init-context:vars"
 const InitContextLocals = "v-init-context:locals"
 
-type VFieldNameOption interface {
-	private()
-}
-
-type UseForm string
-
-func (UseForm) private() {}
-
-func VFieldName(v string, opts ...VFieldNameOption) []interface{} {
+func VField(name string, value string) []interface{} {
 	formVar := "plaidForm"
-	for _, op := range opts {
-		if vf, ok := op.(UseForm); ok {
-			formVar = string(vf)
-		}
-	}
 
 	return []interface{}{
-		"v-field-name",
-		fmt.Sprintf("[%s, %s]", formVar, h.JSONString(v)),
+		"v-model",
+		fmt.Sprintf("formField(%s, %s)", formVar, h.JSONString(name), h.JSONString(value)),
 	}
 }
 

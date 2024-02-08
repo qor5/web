@@ -1,5 +1,5 @@
 import { defineComponent, inject, reactive } from 'vue'
-import { Builder, plaid } from '@/builder'
+import { plaid } from '@/builder'
 
 export default defineComponent({
   template: `<slot :locals="locals" :plaidForm="plaidForm" :plaid="plaid" :vars="vars"></slot>`,

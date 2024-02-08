@@ -188,7 +188,7 @@ function formSet(form: FormData, fieldName: string, val: string): boolean {
   return true
 }
 
-export function componentByTemplate(template: string, plaidForm: any): DefineComponent {
+export function componentByTemplate(template: string, plaidForm: FormData): DefineComponent {
   return defineComponent({
     setup() {
       return {

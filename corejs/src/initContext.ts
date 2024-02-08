@@ -1,5 +1,4 @@
 import type { VNode, DirectiveBinding, Directive } from 'vue'
-import { reactive, ref } from 'vue'
 
 export function initContext(): Directive {
   return {

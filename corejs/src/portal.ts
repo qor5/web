@@ -12,7 +12,7 @@ export const GoPlaidPortal = defineComponent({
   name: 'GoPlaidPortal',
   props: {
     loader: Object,
-    portalForm: Object,
+    portalForm: FormData,
     visible: Boolean,
     afterLoaded: Function,
     portalName: String,
@@ -38,7 +38,7 @@ export const GoPlaidPortal = defineComponent({
       if (slots.default) {
         current.value = componentByTemplate(
           '<slot :plaidForm="plaidForm"></slot>',
-          props.portalForm
+          props.portalForm!
         )
         return
       }
@@ -51,12 +51,12 @@ export const GoPlaidPortal = defineComponent({
       ef.vars((this as any).vars)
         .go()
         .then((r: EventResponse) => {
-          current.value = componentByTemplate(r.body, props.portalForm)
+          current.value = componentByTemplate(r.body, props.portalForm!)
         })
     }
 
     const updatePortalTemplate = (template: string) => {
-      current.value = componentByTemplate(template, props.portalForm)
+      current.value = componentByTemplate(template, props.portalForm!)
     }
 
     onMounted(() => {

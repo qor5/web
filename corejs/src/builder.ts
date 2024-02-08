@@ -1,5 +1,5 @@
 import type { EventFuncID, EventResponse, Location, Queries, QueryValue } from './types'
-import { buildPushState, componentByTemplate, setFormValue } from '@/utils'
+import { buildPushState, setFormValue } from '@/utils'
 
 declare var window: any
 

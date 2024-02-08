@@ -17,6 +17,7 @@ import { Builder, plaid } from '@/builder'
 import { fieldNameDirective } from '@/fieldname'
 import { debounceDirective } from '@/debounce'
 import { keepScroll } from '@/keepScroll'
+import { formField } from '@/formField'
 
 export const Root = defineComponent({
   props: {
@@ -78,10 +79,10 @@ export const plaidPlugin = {
     app.component('GoPlaidPortal', GoPlaidPortal)
     app.directive('init-context', initContext())
     app.directive('field-name', fieldNameDirective())
-    app.directive('field-name', fieldNameDirective())
     app.directive('debounce', debounceDirective)
     app.directive('keep-scroll', keepScroll)
     // app.component('GlobalEvents', GlobalEvents);
+    app.config.globalProperties.formField = formField
   }
 }
 
