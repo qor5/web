@@ -35,12 +35,12 @@ describe('form field', () => {
   })
 
   it('v-chip-group', async () => {
-      const template = `
+    const template = `
         <div>
-          <v-chip-group v-model='formField(plaidForm, "ChipGroup1", [1, 2]).model'>
-            <v-chip id="id_hz" filter>Hangzhou</v-chip>
-            <v-chip id="id_tk" filter>Tokyo</v-chip>
-            <v-chip id="id_ny" filter>New York</v-chip>
+          <v-chip-group v-model='formField(plaidForm, "ChipGroup1", ["NY", "HZ"]).model' multiple>
+            <v-chip id="id_hz" value="TK" filter>Hangzhou</v-chip>
+            <v-chip id="id_tk" value="NY" filter>Tokyo</v-chip>
+            <v-chip id="id_ny" value="HZ" filter>New York</v-chip>
           </v-chip-group>
           <button @click='plaid().eventFunc("hello").go()'>Submit</button>
         </div>
@@ -48,16 +48,16 @@ describe('form field', () => {
 
     const form = ref(new FormData())
     mockFetchWithReturnTemplate(form, { body: '<h3></h3>' })
-    const wrapper = mountTemplate(template, )
+    const wrapper = mountTemplate(template)
     await nextTick()
     await wrapper.find('button').trigger('click')
-    expect(form.value.getAll("ChipGroup1")).toEqual(["1", "2"])
+    expect(form.value.getAll('ChipGroup1')).toEqual(['NY', 'HZ'])
 
     await wrapper.find('#id_hz').trigger('click')
     await nextTick()
     console.log(wrapper.html())
     await wrapper.find('button').trigger('click')
     await flushPromises()
-    expect(form.value.getAll("ChipGroup1")).toEqual(["TK", "NY", "HZ"])
+    expect(form.value.getAll('ChipGroup1').sort()).toEqual(['TK', 'NY', 'HZ'].sort())
   })
 })
