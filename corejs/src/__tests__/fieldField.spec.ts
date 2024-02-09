@@ -33,4 +33,31 @@ describe('form field', () => {
     await flushPromises()
     expect(Object.fromEntries(form.value)).toEqual({ Text1: '12345' })
   })
+
+  it('v-chip-group', async () => {
+      const template = `
+        <div>
+          <v-chip-group v-model='formField(plaidForm, "ChipGroup1", [1, 2]).model'>
+            <v-chip id="id_hz" filter>Hangzhou</v-chip>
+            <v-chip id="id_tk" filter>Tokyo</v-chip>
+            <v-chip id="id_ny" filter>New York</v-chip>
+          </v-chip-group>
+          <button @click='plaid().eventFunc("hello").go()'>Submit</button>
+        </div>
+      `
+
+    const form = ref(new FormData())
+    mockFetchWithReturnTemplate(form, { body: '<h3></h3>' })
+    const wrapper = mountTemplate(template, )
+    await nextTick()
+    await wrapper.find('button').trigger('click')
+    expect(form.value.getAll("ChipGroup1")).toEqual(["1", "2"])
+
+    await wrapper.find('#id_hz').trigger('click')
+    await nextTick()
+    console.log(wrapper.html())
+    await wrapper.find('button').trigger('click')
+    await flushPromises()
+    expect(form.value.getAll("ChipGroup1")).toEqual(["TK", "NY", "HZ"])
+  })
 })
