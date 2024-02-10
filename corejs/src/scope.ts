@@ -4,10 +4,12 @@ import { plaid } from '@/builder'
 export default defineComponent({
   template: `<slot :locals="locals" :plaidForm="plaidForm" :plaid="plaid" :vars="vars"></slot>`,
   props: {
-    init: Object
+    init: Object,
+    initString: String
   },
   setup(props) {
-    const locals = reactive({ ...props.init })
+    const inits = props.initString ? JSON.parse(props.initString) : {}
+    const locals = reactive({ ...props.init, ...inits })
     const vars = inject('vars')
     const plaid = inject('plaid')
     const plaidForm = new FormData()

@@ -1,5 +1,5 @@
 import type { EventFuncID, EventResponse, Location, Queries, QueryValue } from './types'
-import { buildPushState, setFormValue } from '@/utils'
+import { buildPushState, objectToFormData, setFormValue } from '@/utils'
 
 declare var window: any
 
@@ -9,6 +9,7 @@ export class Builder {
   _method?: string
   _vars?: any
   _locals?: any
+  _localsToForm: boolean = false
   _form?: FormData
   _popstate?: boolean
   _pushState?: boolean
@@ -61,8 +62,9 @@ export class Builder {
     return this
   }
 
-  public locals(v: any): Builder {
+  public locals(v: any, toForm: boolean = true): Builder {
     this._locals = v
+    this._localsToForm = toForm
     return this
   }
 
@@ -220,6 +222,10 @@ export class Builder {
         this._form = new FormData()
       }
       fetchOpts.body = this._form
+    }
+
+    if (this._localsToForm) {
+      objectToFormData(this._locals, this._form!)
     }
 
     window.dispatchEvent(new Event('fetchStart'))

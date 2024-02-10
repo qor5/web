@@ -8,14 +8,15 @@ describe('form field', () => {
     const Text1 = {
       template: `
         <div>
-          <input type="text" v-model='formField(plaidForm, "Text1", "123").model'/>
-          <button @click='plaid().eventFunc("hello").go()'>Submit</button>
+          <go-plaid-scope v-slot='{ locals }' :init='{Text1: 123}'>
+            <input type="text" v-model='locals.Text1'/>
+            <button @click='plaid().locals(locals).eventFunc("hello").go()'>Submit</button>
+          </go-plaid-scope>
         </div>
       `,
       setup() {
         return {
-          plaid: inject('plaid'),
-          plaidForm: inject<FormData>('plaidForm')
+          plaid: inject('plaid')
         }
       }
     }
@@ -35,14 +36,17 @@ describe('form field', () => {
   })
 
   it('v-chip-group', async () => {
+    const initObject = { ChipGroup1: ['NY', 'HZ'] }
     const template = `
         <div>
-          <v-chip-group v-model='formField(plaidForm, "ChipGroup1", ["NY", "HZ"]).model' multiple>
-            <v-chip id="id_hz" value="TK" filter>Hangzhou</v-chip>
-            <v-chip id="id_tk" value="NY" filter>Tokyo</v-chip>
-            <v-chip id="id_ny" value="HZ" filter>New York</v-chip>
-          </v-chip-group>
-          <button @click='plaid().eventFunc("hello").go()'>Submit</button>
+          <go-plaid-scope v-slot='{ locals }' init-string='${JSON.stringify(initObject)}'>
+            <v-chip-group v-model="locals.ChipGroup1" multiple>
+              <v-chip id="id_hz" value="TK" filter>Hangzhou</v-chip>
+              <v-chip id="id_tk" value="NY" filter>Tokyo</v-chip>
+              <v-chip id="id_ny" value="HZ" filter>New York</v-chip>
+            </v-chip-group>
+            <button @click='plaid().locals(locals).eventFunc("hello").go()'>Submit</button>
+          </go-plaid-scope>
         </div>
       `
 
@@ -51,13 +55,17 @@ describe('form field', () => {
     const wrapper = mountTemplate(template)
     await nextTick()
     await wrapper.find('button').trigger('click')
-    expect(form.value.getAll('ChipGroup1')).toEqual(['NY', 'HZ'])
+    expect(form.value.get('ChipGroup1[0]')).toEqual('NY')
+    expect(form.value.get('ChipGroup1[1]')).toEqual('HZ')
 
     await wrapper.find('#id_hz').trigger('click')
     await nextTick()
-    console.log(wrapper.html())
+    expect(wrapper.find('#id_hz .v-chip__filter').attributes('style')).toEqual('')
+
     await wrapper.find('button').trigger('click')
     await flushPromises()
-    expect(form.value.getAll('ChipGroup1').sort()).toEqual(['TK', 'NY', 'HZ'].sort())
+    expect(form.value.get('ChipGroup1[0]')).toEqual('NY')
+    expect(form.value.get('ChipGroup1[1]')).toEqual('HZ')
+    expect(form.value.get('ChipGroup1[2]')).toEqual('TK')
   })
 })

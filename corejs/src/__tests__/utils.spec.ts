@@ -1,4 +1,4 @@
-import { setFormValue } from '../utils'
+import { objectToFormData, setFormValue } from '../utils'
 import { describe, it, expect } from 'vitest'
 
 describe('utils', () => {
@@ -15,5 +15,39 @@ describe('utils', () => {
     expect(fd.get('field_empty')).toEqual('')
     setFormValue(fd, 'field_empty', undefined)
     expect(fd.get('field_empty')).toEqual('')
+  })
+
+  describe('objectToFormData with Go struct naming conventions', () => {
+    it('converts objects with nested structures to FormData', () => {
+      const userProfile = {
+        Name: 'John Doe',
+        Age: 30,
+        Hobbies: ['coding', 'reading'],
+        Address: {
+          City: 'New York',
+          Country: 'USA'
+        },
+        Employees: [
+          { Name: 'John Doe', Age: 30 },
+          { Name: 'Jane Doe', Age: 25 }
+        ],
+        Photos: [new File(['content'], 'photo1.jpg'), new File(['content'], 'photo2.jpg')]
+      }
+      const formData = new FormData()
+      objectToFormData(userProfile, formData)
+
+      expect(formData.get('Name')).toBe('John Doe')
+      expect(formData.get('Age')).toBe('30')
+      expect(formData.get('Hobbies[0]')).toBe('coding')
+      expect(formData.get('Hobbies[1]')).toBe('reading')
+      expect(formData.get('Address.City')).toBe('New York')
+      expect(formData.get('Address.Country')).toBe('USA')
+      expect(formData.get('Employees[0].Name')).toBe('John Doe')
+      expect(formData.get('Employees[0].Age')).toBe('30')
+      expect(formData.get('Employees[1].Name')).toBe('Jane Doe')
+      expect(formData.get('Employees[1].Age')).toBe('25')
+      expect(formData.get('Photos[0]')).toBeInstanceOf(File)
+      expect(formData.get('Photos[1]')).toBeInstanceOf(File)
+    })
   })
 })
