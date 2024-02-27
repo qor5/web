@@ -210,6 +210,12 @@ export function registerEvent(el: any, event: string, listener: any, options: an
 
 export function objectToFormData(obj: any, form: FormData, parentKey = '') {
   const isArr = Array.isArray(obj)
+  if (isArr && obj.length > 0) {
+    if (obj[0] instanceof File || obj[0] instanceof Blob) {
+      setFormValue(form, parentKey, obj)
+      return
+    }
+  }
   Object.keys(obj).forEach((key) => {
     const value = obj[key]
     // Construct the form key
@@ -218,7 +224,7 @@ export function objectToFormData(obj: any, form: FormData, parentKey = '') {
     if (typeof value === 'object' && !(value instanceof File) && !(value instanceof Date)) {
       objectToFormData(value, form, formKey)
     } else {
-      form.append(formKey, value)
+      setFormValue(form, formKey, value)
     }
   })
 
