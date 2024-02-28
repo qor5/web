@@ -56,8 +56,7 @@ describe('form field', () => {
     const wrapper = mountTemplate(template)
     await nextTick()
     await wrapper.find('button').trigger('click')
-    expect(form.value.get('ChipGroup1[0]')).toEqual('NY')
-    expect(form.value.get('ChipGroup1[1]')).toEqual('HZ')
+    expect(form.value.getAll('ChipGroup1')).toEqual(['NY', 'HZ'])
 
     await wrapper.find('#id_hz').trigger('click')
     await nextTick()
@@ -65,9 +64,7 @@ describe('form field', () => {
 
     await wrapper.find('button').trigger('click')
     await flushPromises()
-    expect(form.value.get('ChipGroup1[0]')).toEqual('NY')
-    expect(form.value.get('ChipGroup1[1]')).toEqual('HZ')
-    expect(form.value.get('ChipGroup1[2]')).toEqual('TK')
+    expect(form.value.getAll('ChipGroup1')).toEqual(['NY', 'HZ', 'TK'])
   })
 
   it('v-file-input', async () => {

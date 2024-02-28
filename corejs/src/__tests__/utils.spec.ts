@@ -27,6 +27,8 @@ describe('utils', () => {
           City: 'New York',
           Country: 'USA'
         },
+        Twitter: null,
+        Facebook: undefined,
         Employees: [
           { Name: 'John Doe', Age: 30 },
           { Name: 'Jane Doe', Age: 25 }
@@ -38,16 +40,15 @@ describe('utils', () => {
 
       expect(formData.get('Name')).toBe('John Doe')
       expect(formData.get('Age')).toBe('30')
-      expect(formData.get('Hobbies[0]')).toBe('coding')
-      expect(formData.get('Hobbies[1]')).toBe('reading')
+      expect(formData.getAll('Hobbies')).toEqual(['coding', 'reading'])
       expect(formData.get('Address.City')).toBe('New York')
       expect(formData.get('Address.Country')).toBe('USA')
       expect(formData.get('Employees[0].Name')).toBe('John Doe')
       expect(formData.get('Employees[0].Age')).toBe('30')
       expect(formData.get('Employees[1].Name')).toBe('Jane Doe')
       expect(formData.get('Employees[1].Age')).toBe('25')
-      expect(formData.get('Photos[0]')).toBeInstanceOf(File)
-      expect(formData.get('Photos[1]')).toBeInstanceOf(File)
+      expect(formData.getAll('Photos')[0]).toBeInstanceOf(File)
+      expect(formData.getAll('Photos')[1]).toBeInstanceOf(File)
     })
   })
 })

@@ -209,9 +209,12 @@ export function registerEvent(el: any, event: string, listener: any, options: an
 }
 
 export function objectToFormData(obj: any, form: FormData, parentKey = '') {
+  if (obj === undefined || obj === null) {
+    return
+  }
   const isArr = Array.isArray(obj)
   if (isArr && obj.length > 0) {
-    if (obj[0] instanceof File || obj[0] instanceof Blob) {
+    if (obj[0] instanceof File || obj[0] instanceof Blob || typeof obj[0] === 'string') {
       setFormValue(form, parentKey, obj)
       return
     }
