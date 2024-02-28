@@ -188,7 +188,11 @@ function formSet(form: FormData, fieldName: string, val: string): boolean {
   return true
 }
 
-export function componentByTemplate(template: string, plaidForm: FormData): DefineComponent {
+export function componentByTemplate(
+  template: string,
+  plaidForm: FormData,
+  locals: any = {}
+): DefineComponent {
   return defineComponent({
     setup() {
       return {
@@ -196,7 +200,8 @@ export function componentByTemplate(template: string, plaidForm: FormData): Defi
         vars: inject('vars'),
         isFetching: inject('isFetching'),
         updateRootTemplate: inject('updateRootTemplate'),
-        plaidForm: plaidForm
+        plaidForm: plaidForm,
+        locals: locals
       }
     },
     template

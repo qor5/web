@@ -6,11 +6,11 @@ describe('init-context', () => {
   it('with vars', async () => {
     const Text1 = {
       template: `
-				<div v-init-context:vars="{a: 1, b:2}">
-					<span :a="vars.a"></span>
+        <div v-init-context:vars="{a: 1, b:2}">
+          <span :a="vars.a"></span>
                     <button @click="vars.a = 4">change it</button>
-				</div>
-			`,
+        </div>
+      `,
       setup() {
         const vars = ref({ c: '2' })
         const change2 = function () {

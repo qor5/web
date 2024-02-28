@@ -241,8 +241,8 @@ export class Builder {
         return r.json()
       })
       .then((r: EventResponse) => {
-        if (this._vars && r.varsScript) {
-          new Function('vars', 'locals', 'plaid', '$event', 'plaidForm', r.varsScript).apply(this, [
+        if (r.runScript) {
+          new Function('vars', 'locals', 'plaid', '$event', 'plaidForm', r.runScript).apply(this, [
             this._vars,
             this._locals,
             this,

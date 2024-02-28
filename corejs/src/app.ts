@@ -14,7 +14,6 @@ import { GoPlaidPortal } from '@/portal'
 import { initContext } from '@/initContext'
 import { componentByTemplate } from '@/utils'
 import { Builder, plaid } from '@/builder'
-import { fieldNameDirective } from '@/fieldname'
 import { debounceDirective } from '@/debounce'
 import { keepScroll } from '@/keepScroll'
 
@@ -77,7 +76,6 @@ export const plaidPlugin = {
     app.component('GoPlaidScope', Scope)
     app.component('GoPlaidPortal', GoPlaidPortal)
     app.directive('init-context', initContext())
-    app.directive('field-name', fieldNameDirective())
     app.directive('debounce', debounceDirective)
     app.directive('keep-scroll', keepScroll)
     // app.component('GlobalEvents', GlobalEvents);

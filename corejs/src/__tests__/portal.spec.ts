@@ -7,11 +7,10 @@ describe('portal', () => {
   it('vars and form value change', async () => {
     const Comp1 = defineComponent({
       template: `
-				<div class="comp1" :value="vars.value1">
+        <div class="comp1" :value="vars.value1">
           <button id="Comp1Change" @click="change">Change</button>
         </div>
-        
-			`,
+      `,
       setup() {
         const vars = inject<any>('vars')
         const change = () => {
@@ -27,10 +26,10 @@ describe('portal', () => {
 
     const Comp2 = defineComponent({
       template: `
-				<div class="son" v-bind:value="vars.value">
+        <div class="son" v-bind:value="vars.value">
           <button id="Comp2Change" @click="change">Change</button>
         </div>
-			`,
+      `,
       setup() {
         const vars = inject<any>('vars')
         const change = () => {
@@ -46,14 +45,14 @@ describe('portal', () => {
 
     const Root = {
       template: `
-				<div>
+        <div>
           <comp2></comp2>
           <go-plaid-portal :visible="true" :portal-name='"portal1"'>
-					  <input type="text" v-init-context:vars='{value1: "222"}'/>
-			  	</go-plaid-portal>
+            <input type="text" v-init-context:vars='{value1: "222"}'/>
+          </go-plaid-portal>
           <button id='postForm1' @click='plaid().fieldValue("value1", vars.value1).eventFunc("hello").go()'>Post Form 1</button>
-				</div>
-			`,
+        </div>
+      `,
       setup() {
         const change2 = (val: any) => {
           console.log('change2', val)
@@ -84,7 +83,7 @@ describe('portal', () => {
     await flushPromises()
     expect(Object.fromEntries(form.value)).toEqual({ value1: 'comp2 changed' })
 
-    // replace the portal with Comp1, change value1 in Comp1, and post form again, value1 should be updated to 'comp2 changed'
+    // replace the portal with Comp1, change value1 in Comp1, and post form again, value1 should be updated to 'comp1 changed'
     mockFetchWithReturnTemplate(form, {
       updatePortals: [{ name: 'portal1', body: `<Comp1></Comp1>` }]
     })
@@ -100,11 +99,11 @@ describe('portal', () => {
   it('vars reflect last value', async () => {
     const Root = {
       template: `
-				<div v-init-context:vars='{value1: "222"}'>
-				    <input type="text" v-init-context:vars='{value1: "333"}'/>
+        <div v-init-context:vars='{value1: "222"}'>
+            <input type="text" v-init-context:vars='{value1: "333"}'/>
             <button @click='plaid().eventFunc("hello").fieldValue("value1", vars.value1).go()'></button>
-				</div>
-			`,
+        </div>
+      `,
       setup() {
         return {
           vars: inject('vars'),
@@ -125,14 +124,14 @@ describe('portal', () => {
   it('scoped new plaidForm replace value with portal', async () => {
     const Root = defineComponent({
       template: `
-        <go-plaid-scope v-slot="{ plaidForm, locals }" :init="{ value: '222' }">
-          <div>{{ locals.value }}</div>
-          <input v-field-name="[plaidForm, 'Age']" :value="locals.value" type="text" />
-          <input v-field-name="[plaidForm, 'Company']" :value="'The Plant'" type="text" />
-          <go-plaid-portal :portal-form="plaidForm" :portal-name="'portalA'" :visible="true">
-            <input v-field-name="[plaidForm, 'Name']" :value="locals.value" type="text" />
+        <go-plaid-scope v-slot="{ plaidForm, locals }" :init="{ Age: '222', Company: 'The Plant', Name: '222' }">
+          <div>{{ locals.Age }}</div>
+          <input v-model='locals.Age' type="text" />
+          <input v-model='locals.Company' type="text" />
+          <go-plaid-portal :plaid-form="plaidForm" :locals="locals" :portal-name="'portalA'" :visible="true">
+            <input v-model='locals.Name' type="text" />
           </go-plaid-portal>
-          <button @click='plaid().form(plaidForm).eventFunc("hello").go()'></button>
+          <button @click='plaid().locals(locals).form(plaidForm).eventFunc("hello").go()'></button>
         </go-plaid-scope>
       `,
       setup() {
@@ -146,18 +145,31 @@ describe('portal', () => {
     await nextTick()
 
     const form = ref(new FormData())
+    // Use any tag with any attributes that set locals value to update the form value
     mockFetchWithReturnTemplate(form, {
       updatePortals: [
         {
           name: 'portalA',
-          body: `<input from="server" type="text" :value='555' v-field-name='[plaidForm, "Name"]'/>`
+          body: `<input from="server" type="text" :value='locals.Name="555"'/>`
         }
       ]
     })
     await wrapper.find('button').trigger('click')
     await flushPromises()
+    await wrapper.find('button').trigger('click')
     console.log(wrapper.html())
 
     expect(form.value.get('Name')).toEqual('555')
+
+    // Use varsScript that set locals value to update the form value
+    mockFetchWithReturnTemplate(form, {
+      runScript: 'locals.Name = "666"'
+    })
+    await wrapper.find('button').trigger('click')
+    await flushPromises()
+    await wrapper.find('button').trigger('click')
+    console.log(wrapper.html())
+
+    expect(form.value.get('Name')).toEqual('666')
   })
 })

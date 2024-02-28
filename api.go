@@ -31,8 +31,8 @@ type EventResponse struct {
 	RedirectURL   string           `json:"redirectURL,omitempty"` // change window url without push state
 	ReloadPortals []string         `json:"reloadPortals,omitempty"`
 	UpdatePortals []*PortalUpdate  `json:"updatePortals,omitempty"`
-	Data          interface{}      `json:"data,omitempty"`       // used for return collection data like TagsInput data source
-	VarsScript    string           `json:"varsScript,omitempty"` // used with InitContextVars to set values for example vars.show to used by v-model
+	Data          interface{}      `json:"data,omitempty"`      // used for return collection data like TagsInput data source
+	RunScript     string           `json:"runScript,omitempty"` // used with InitContextVars to set values for example vars.show to used by v-model
 }
 
 // @snippet_end
@@ -52,11 +52,11 @@ type EventFuncHub interface {
 
 // @snippet_end
 
-func AppendVarsScripts(er *EventResponse, scripts ...string) {
-	if er.VarsScript != "" {
-		scripts = append([]string{er.VarsScript}, scripts...)
+func AppendRunScripts(er *EventResponse, scripts ...string) {
+	if er.RunScript != "" {
+		scripts = append([]string{er.RunScript}, scripts...)
 	}
-	er.VarsScript = strings.Join(scripts, "; ")
+	er.RunScript = strings.Join(scripts, "; ")
 }
 
 type EventFuncID struct {

@@ -40,5 +40,5 @@ export interface EventResponse {
   reload?: boolean
   reloadPortals?: string[]
   updatePortals?: PortalUpdate[]
-  varsScript?: string
+  runScript?: string
 }

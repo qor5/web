@@ -18,9 +18,9 @@ describe('app', () => {
     expect(wrapper.find('h3').html()).toEqual(`<h3></h3>`)
   })
 
-  it('plaid varsScript', async () => {
+  it('plaid runScript', async () => {
     const form = ref(new FormData())
-    mockFetchWithReturnTemplate(form, { varsScript: 'vars.number = 42' })
+    mockFetchWithReturnTemplate(form, { runScript: 'vars.number = 42' })
     const wrapper = mountTemplate(
       `<h1 @click='plaid().eventFunc("hello").go()' :number="vars.number"></h1>`
     )
@@ -30,9 +30,9 @@ describe('app', () => {
     expect(wrapper.find('h1').html()).toEqual(`<h1 number="42"></h1>`)
   })
 
-  it('plaid varsScript with locals', async () => {
+  it('plaid runScript with locals', async () => {
     const form = ref(new FormData())
-    mockFetchWithReturnTemplate(form, { varsScript: 'locals.number = 42' })
+    mockFetchWithReturnTemplate(form, { runScript: 'locals.number = 42' })
     const wrapper = mountTemplate(
       `
       <go-plaid-scope v-slot="{locals}">
@@ -47,7 +47,7 @@ describe('app', () => {
     await wrapper.find('h1').trigger('click')
     await flushPromises()
     expect(wrapper.find('h1').html()).toEqual(`<h1 number="42"></h1>`)
-    mockFetchWithReturnTemplate(form, { varsScript: 'locals.number = 43' })
+    mockFetchWithReturnTemplate(form, { runScript: 'locals.number = 43' })
     await wrapper.find('h2').trigger('click')
     await flushPromises()
     expect(wrapper.find('h1').html()).toEqual(`<h1 number="42"></h1>`)

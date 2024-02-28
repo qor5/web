@@ -5,36 +5,35 @@ import { nextTick } from 'vue'
 describe('scope', () => {
   it('vars and form', async () => {
     const wrapper = mountTemplate(`
-				<div>
-				<go-plaid-scope :init='{hello: "123"}' v-slot="{locals: vars}">
-					<div id="l1">{{ vars.hello }}</div>
-					<button id="l1Btn" @click='vars.hello = "456"'></button>
-					<go-plaid-scope :init='{hello: "789"}' v-slot="{locals}">
-						<div id="l2">{{ locals.hello }}</div>
-						<button id="l2Btn" @click='locals.hello = "999"'></button>
+      <div>
+      <go-plaid-scope :init='{hello: "123"}' v-slot="{locals: vars}">
+        <div id="l1">{{ vars.hello }}</div>
+        <button id="l1Btn" @click='vars.hello = "456"'></button>
+        <go-plaid-scope :init='{hello: "789"}' v-slot="{locals}">
+          <div id="l2">{{ locals.hello }}</div>
+          <button id="l2Btn" @click='locals.hello = "999"'></button>
 
-						<go-plaid-scope v-slot="{plaidForm}">
-							<div id="l3">{{ plaidForm.get("Name") }}</div>
-							<input type="text" v-field-name='[plaidForm, "Name"]'
-								   value="AAA">
-							<button id="l3Btn"
-									@click='locals.hello = plaidForm.get("Name")'></button>
+          <go-plaid-scope v-slot="{plaidForm}">
+            <div id="l3">{{ plaidForm.get("Name") }}</div>
+            <input type="text"
+                 :value='plaidForm.append("Name", "AAA")'>
+            <button id="l3Btn"
+                @click='locals.hello = plaidForm.get("Name")'></button>
 
-							<go-plaid-scope v-slot="{plaidForm}">
-								<div id="l4">{{ plaidForm.get("Name") }}</div>
-								<input id="input4" type="text"
-									   v-field-name='[plaidForm, "Name"]'
-									   value="BBB">
+            <go-plaid-scope v-slot="{plaidForm}">
+              <div id="l4">{{ plaidForm.get("Name") }}</div>
+              <input id="input4" type="text"
+                   :value='plaidForm.append("Name", "BBB")'>
 
-							</go-plaid-scope>
+            </go-plaid-scope>
 
-						</go-plaid-scope>
+          </go-plaid-scope>
 
-					</go-plaid-scope>
-				</go-plaid-scope>
-				<div class="globalForm">{{plaidForm.get("Name")}}</div>
-				</div>
-			`)
+        </go-plaid-scope>
+      </go-plaid-scope>
+      <div class="globalForm">{{plaidForm.get("Name")}}</div>
+      </div>
+      `)
 
     await nextTick()
     console.log(wrapper.html())
@@ -57,5 +56,7 @@ describe('scope', () => {
     const l3: any = wrapper.find('#l3')
     expect(l2.text()).toEqual(`AAA`)
     expect(l3.text()).toEqual(`AAA`)
+    const l4: any = wrapper.find('#l4')
+    expect(l4.text()).toEqual(`BBB`)
   })
 })

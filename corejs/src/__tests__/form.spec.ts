@@ -4,7 +4,23 @@ import { inject, nextTick, ref } from 'vue'
 import { flushPromises } from '@vue/test-utils'
 import { VFileInput } from 'vuetify/components/VFileInput'
 
-describe('form field', () => {
+const BaseInput = {
+  template: `
+    <label class="base-input">
+      {{ label }}
+      <input
+      v-bind="$attrs"
+      :value="modelValue"
+      @input="$emit('update:modelValue', $event.target.value)"
+      >
+    </label>`,
+  props: {
+    label: String,
+    modelValue: String
+  }
+}
+
+describe('form', () => {
   it('form data on initial, on change', async () => {
     const Text1 = {
       template: `
@@ -121,5 +137,198 @@ describe('form field', () => {
       'test1.txt',
       'test2.txt'
     ])
+  })
+
+  it('update and v-on order', async () => {
+    const Text1 = {
+      template: `
+        <div>
+          <go-plaid-scope v-slot="{ locals }" :init="{Text1: '111'}">
+            <input type="text" v-model='locals.Text1'
+              v-on:input="change2($event.target.value+'later')"
+              v-on:input.trim="change2($event.target.value+'later2')"
+            />
+            <button @click='plaid().locals(locals).eventFunc("hello").go()'>Submit</button>
+          </go-plaid-scope>
+        </div>
+      `,
+      setup() {
+        const change2 = (val: any) => {
+          console.log('change2', val)
+          // form.set("Text1", val)
+        }
+        return {
+          change2,
+          plaid: inject('plaid'),
+          plaidForm: inject('plaidForm')
+        }
+      }
+    }
+    const form = ref(new FormData())
+    mockFetchWithReturnTemplate(form, { body: '<h3></h3>' })
+    const wrapper = mountTemplate(`<Text1></Text1>`, { components: { Text1 } })
+    await nextTick()
+    const input = wrapper.find('input[type=text]')
+    const value = '12345'
+    await input.setValue(value)
+    await wrapper.find('button').trigger('click')
+    expect(Object.fromEntries(form.value)).toEqual({ Text1: '12345' })
+  })
+
+  describe('component basic', async () => {
+    const Text1 = {
+      template: `
+        <div class="Text1">
+          <go-plaid-scope v-slot="{ locals }" :init="{BaseInput1: 'base input value'}">
+            <base-input v-model='locals.BaseInput1' label="Label1"></base-input>
+            <button @click='plaid().locals(locals).eventFunc("hello").go()'></button>
+          </go-plaid-scope>
+        </div>
+      `,
+      setup() {
+        return {
+          plaid: inject('plaid'),
+          plaidForm: inject('plaidForm')
+        }
+      }
+    }
+
+    it('initial value without any change can update to form', async () => {
+      const wrapper = mountTemplate(`<Text1></Text1>`, { components: { Text1, BaseInput } })
+      await nextTick()
+      const input = wrapper.find('input')
+
+      expect(input.element.value).toEqual('base input value')
+      const form = ref(new FormData())
+      mockFetchWithReturnTemplate(form, { body: '<h3></h3>' })
+      await wrapper.find('button').trigger('click')
+      await flushPromises()
+      expect(Object.fromEntries(form.value)).toEqual({ BaseInput1: 'base input value' })
+    })
+
+    it('test change value can update to form', async () => {
+      const value = '12345'
+      const wrapper = mountTemplate(`<Text1></Text1>`, { components: { Text1, BaseInput } })
+      await nextTick()
+      const input = wrapper.find('input')
+
+      await input.setValue(value)
+      const form = ref(new FormData())
+      mockFetchWithReturnTemplate(form, { body: '<h3></h3>' })
+      await wrapper.find('button').trigger('click')
+      await flushPromises()
+      expect(Object.fromEntries(form.value)).toEqual({ BaseInput1: value })
+    })
+  })
+
+  it('test value for all types of input', async () => {
+    const Text1 = {
+      setup() {
+        return {
+          plaid: inject('plaid'),
+          plaidForm: inject('plaidForm')
+        }
+      },
+      template: `
+				<div class="Text1">
+          <go-plaid-scope v-slot="{ locals }" :init="{
+            Textarea1: 'textarea1 value',
+            Text1: 'text value',
+            Radio1: 'Radio1A',
+            Checkbox1: 'CheckBoxB',
+            Hidden1: 'hidden1value',
+            Number1: '123',
+            Select1: 'cat',
+            BaseInput1: 'base input value',
+          }">
+
+            <textarea v-model='locals.Textarea1'></textarea>
+            <input id="text1" type="text" v-model='locals.Text1' />
+            <input type="radio" v-model='locals.Radio1' value="Radio1A"/>
+            <input type="radio" v-model='locals.Radio1' value="Radio1B"/>
+            <input type="hidden" v-model='locals.Hidden1' value="hidden1value"/>
+            <input type="checkbox" v-model='locals.Checkbox1' value="CheckBoxA"/>
+            <input type="checkbox" v-model='locals.Checkbox1' value="CheckBoxB"/>
+            <input type="number" v-model='locals.Number1'  value="123"/>
+            <select v-model='locals.Select1' >
+              <option value="dog">Dog</option>
+              <option value="cat">Cat</option>
+            </select>
+            <base-input v-model='locals.BaseInput1'  label="Label1"
+            ></base-input>
+            <button id='button1' @click='plaid().locals(locals).eventFunc("hello").go()'></button>
+          </go-plaid-scope>
+        </div>
+      `
+    }
+    const wrapper = mountTemplate(`<Text1></Text1>`, { components: { Text1, BaseInput } })
+    await nextTick()
+    const form = ref(new FormData())
+    mockFetchWithReturnTemplate(form, { body: '<h3></h3>' })
+    await wrapper.find('#button1').trigger('click')
+    expect(Object.fromEntries(form.value)).toEqual({
+      BaseInput1: 'base input value',
+      Checkbox1: 'CheckBoxB',
+      Hidden1: 'hidden1value',
+      Number1: '123',
+      Radio1: 'Radio1A',
+      Text1: 'text value',
+      Textarea1: 'textarea1 value',
+      Select1: 'cat'
+    })
+    console.log(wrapper.html())
+
+    const input = wrapper.find('#text1')
+    const value = '12345'
+    await input.setValue(value)
+    await wrapper.find('#button1').trigger('click')
+    await flushPromises()
+    expect(form.value.get('Text1')).toEqual(value)
+  })
+
+  describe('field name simple', () => {
+    it('test value not checked checkbox', async () => {
+      const wrapper = mountTemplate(
+        `
+        <div class="Text1">
+          <go-plaid-scope v-slot="{ locals }" :init='{Checkbox2: ["CheckBoxA"]}'>
+            <input id="check1" type="checkbox" name="checkbox2" v-model='locals.Checkbox2' value="CheckBoxA"/>
+            <input id="check2" type="checkbox" name="checkbox2" v-model='locals.Checkbox2' value="CheckBoxB"/>
+            <button @click='plaid().locals(locals).eventFunc("hello").go()'></button>
+          </go-plaid-scope>
+        </div>`,
+        {}
+      )
+      await nextTick()
+      const form = ref(new FormData())
+      mockFetchWithReturnTemplate(form, { body: '<h3></h3>' })
+      await wrapper.find('#check1').setValue(false)
+      await wrapper.find('button').trigger('click')
+      await flushPromises()
+      expect(Object.fromEntries(form.value)).toEqual({})
+    })
+
+    it('test text input value', async () => {
+      const template = `
+        <div class="Text1">
+          <go-plaid-scope v-slot="{ locals }" :init='{Text1: "text value 1"}'>
+            <input type="text" v-model="locals.Text1"/>
+            <button @click='plaid().locals(locals).eventFunc("hello").go()'></button>
+          </go-plaid-scope>
+        </div>`
+      const wrapper = mountTemplate(template, {})
+      await nextTick()
+      const form = ref(new FormData())
+      mockFetchWithReturnTemplate(form, { body: template })
+      await wrapper.find('button').trigger('click')
+      expect(Object.fromEntries(form.value)).toEqual({ Text1: 'text value 1' })
+      await flushPromises()
+      console.log(wrapper.html())
+      const input = wrapper.find('input[type=text]')
+      const value = '12345'
+      await input.setValue(value)
+      await wrapper.find('button').trigger('click')
+      expect(form.value.get('Text1')).toEqual(value)
+    })
   })
 })

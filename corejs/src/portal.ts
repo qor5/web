@@ -12,19 +12,19 @@ export const GoPlaidPortal = defineComponent({
   name: 'GoPlaidPortal',
   props: {
     loader: Object,
-    portalForm: FormData,
+    plaidForm: FormData,
+    locals: Object,
     visible: Boolean,
     afterLoaded: Function,
     portalName: String,
     autoReloadInterval: [String, Number]
   },
   template: `
-			<div class="go-plaid-portal" v-if="visible">
-        <component :is="current" v-if="current">
-          <slot :plaidForm="plaidForm"></slot>
-        </component>
-			</div>
-		`,
+    <div class="go-plaid-portal" v-if="visible">
+      <component :is="current" v-if="current">
+        <slot :plaidForm="plaidForm" :locals="locals"></slot>
+      </component>
+    </div>`,
 
   setup(props, { slots }) {
     const current = shallowRef<DefineComponent | null>(null)
@@ -37,8 +37,9 @@ export const GoPlaidPortal = defineComponent({
 
       if (slots.default) {
         current.value = componentByTemplate(
-          '<slot :plaidForm="plaidForm"></slot>',
-          props.portalForm!
+          '<slot :plaidForm="plaidForm" :locals="locals"></slot>',
+          props.plaidForm!,
+          props.locals
         )
         return
       }
@@ -51,12 +52,12 @@ export const GoPlaidPortal = defineComponent({
       ef.vars((this as any).vars)
         .go()
         .then((r: EventResponse) => {
-          current.value = componentByTemplate(r.body, props.portalForm!)
+          current.value = componentByTemplate(r.body, props.plaidForm!, props.locals)
         })
     }
 
     const updatePortalTemplate = (template: string) => {
-      current.value = componentByTemplate(template, props.portalForm!)
+      current.value = componentByTemplate(template, props.plaidForm!, props.locals)
     }
 
     onMounted(() => {
@@ -98,7 +99,7 @@ export const GoPlaidPortal = defineComponent({
 
     return {
       current,
-      plaidForm: props.portalForm
+      plaidForm: props.plaidForm
     }
   }
 })
