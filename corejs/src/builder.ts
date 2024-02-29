@@ -211,6 +211,7 @@ export class Builder {
   public go(): Promise<void | EventResponse> {
     if (this._eventFuncID.id == '__reload__') {
       this.formClear()
+      this._buildPushStateResult = null
     }
 
     this.runPushState()
@@ -236,6 +237,8 @@ export class Builder {
     }
 
     window.dispatchEvent(new Event('fetchStart'))
+    const fetchURL = this.buildFetchURL()
+    // console.log('fetchURL', fetchURL)
     return fetch(this.buildFetchURL(), fetchOpts)
       .then((r) => {
         if (r.redirected) {

@@ -54,4 +54,23 @@ describe('app', () => {
     expect(wrapper.find('h2').html()).toEqual(`<h2 number="43"></h2>`)
     console.log(wrapper.html())
   })
+
+  it('plaid pushState dead loop', async () => {
+    const form = ref(new FormData())
+    mockFetchWithReturnTemplate(form, (url: any, opts: any) => {
+      if (url.includes('__reload__')) {
+        return { body: '<h6></h6>' }
+      } else {
+        return { body: '', pushState: { mergeQuery: true, query: { panel: ['1'] } } }
+      }
+    })
+    const wrapper = mountTemplate(
+      `
+      <button @click='plaid().locals(locals).eventFunc("hello").go()'></button>
+    `
+    )
+    await nextTick()
+    await wrapper.find('button').trigger('click')
+    console.log(wrapper.html())
+  })
 })

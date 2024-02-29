@@ -12,10 +12,14 @@ const vuetify = createVuetify({
 
 global.ResizeObserver = require('resize-observer-polyfill')
 
-export function mockFetchWithReturnTemplate(requestedForm: Ref<FormData>, responseJSON: object) {
+export function mockFetchWithReturnTemplate(requestedForm: Ref<FormData>, responseFuncOrJSON: any) {
   global.fetch = vi.fn().mockImplementation((url, opts) => {
     requestedForm.value = opts.body
-    return Promise.resolve(new Response(JSON.stringify(responseJSON)))
+    let r = responseFuncOrJSON
+    if (typeof responseFuncOrJSON === 'function') {
+      r = responseFuncOrJSON(url, opts)
+    }
+    return Promise.resolve(new Response(JSON.stringify(r)))
   })
 }
 
