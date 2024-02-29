@@ -172,4 +172,31 @@ describe('portal', () => {
 
     expect(form.value.get('Name')).toEqual('666')
   })
+
+  it('portal auto reload', async () => {
+    const form = ref(new FormData())
+    mockFetchWithReturnTemplate(form, { body: '<h3></h3>' })
+
+    const wrapper = mountTemplate(`
+      <div class="mycomp">
+        <go-plaid-scope :init='{interval: 200}' v-slot='{ locals }'>
+          <go-plaid-portal
+            portal-name="portal1"
+            :visible='true' 
+            :plaid-form='plaidForm' 
+            :locals='locals' 
+            :loader='plaid().vars(vars).locals(locals).form(plaidForm).method("POST").eventFunc("autoReload")' 
+            :auto-reload-interval='locals.interval'>
+          </go-plaid-portal>
+          <button @click='locals.interval = 0'>stop</button>
+        </go-plaid-scope>
+      </div>
+    `)
+
+    await nextTick()
+    console.log(wrapper.html())
+    await flushPromises()
+    console.log(wrapper.html())
+    await wrapper.find('.mycomp h3').trigger('click')
+  })
 })

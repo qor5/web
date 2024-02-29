@@ -10,6 +10,7 @@ export class Builder {
   _vars?: any
   _locals?: any
   _localsToForm: boolean = false
+  _loadPortalBody: boolean = false
   _form?: FormData
   _popstate?: boolean
   _pushState?: boolean
@@ -59,6 +60,11 @@ export class Builder {
 
   public vars(v: any): Builder {
     this._vars = v
+    return this
+  }
+
+  public loadPortalBody(v: boolean): Builder {
+    this._loadPortalBody = v
     return this
   }
 
@@ -281,6 +287,10 @@ export class Builder {
 
         if (r.pushState) {
           return this.reload().pushState(true).location(r.pushState).go()
+        }
+
+        if (this._loadPortalBody && r.body) {
+          return r
         }
 
         if (r.body) {

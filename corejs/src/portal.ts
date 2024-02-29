@@ -1,4 +1,12 @@
-import { defineComponent, ref, onMounted, onUpdated, onBeforeUnmount, shallowRef } from 'vue'
+import {
+  defineComponent,
+  ref,
+  onMounted,
+  onUpdated,
+  onBeforeUnmount,
+  shallowRef,
+  inject
+} from 'vue'
 import type { DefineComponent } from 'vue'
 import { componentByTemplate } from '@/utils'
 import type { EventResponse } from '@/types'
@@ -8,7 +16,6 @@ window.__goplaid = {}
 window.__goplaid.portals = {}
 
 export const GoPlaidPortal = defineComponent({
-  inject: ['vars'],
   name: 'GoPlaidPortal',
   props: {
     loader: Object,
@@ -30,11 +37,12 @@ export const GoPlaidPortal = defineComponent({
     const current = shallowRef<DefineComponent | null>(null)
     const autoReloadIntervalID = ref<number>(0)
 
+    const updatePortalTemplate = (template: string) => {
+      current.value = componentByTemplate(template, props.plaidForm!, props.locals)
+    }
+
     // other reactive properties and methods
     const reload = () => {
-      // const rootChangeCurrent = (this.$root as any).changeCurrent;
-      // const core = new Core(form, rootChangeCurrent, this.changeCurrent);
-
       if (slots.default) {
         current.value = componentByTemplate(
           '<slot :plaidForm="plaidForm" :locals="locals"></slot>',
@@ -48,16 +56,11 @@ export const GoPlaidPortal = defineComponent({
       if (!ef) {
         return
       }
-      const self = this
-      ef.vars((this as any).vars)
+      ef.loadPortalBody(true)
         .go()
         .then((r: EventResponse) => {
-          current.value = componentByTemplate(r.body, props.plaidForm!, props.locals)
+          updatePortalTemplate(r.body)
         })
-    }
-
-    const updatePortalTemplate = (template: string) => {
-      current.value = componentByTemplate(template, props.plaidForm!, props.locals)
     }
 
     onMounted(() => {
@@ -99,6 +102,7 @@ export const GoPlaidPortal = defineComponent({
 
     return {
       current,
+      vars: inject('vars'),
       plaidForm: props.plaidForm
     }
   }
