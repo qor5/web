@@ -59,4 +59,25 @@ describe('scope', () => {
     const l4: any = wrapper.find('#l4')
     expect(l4.text()).toEqual(`BBB`)
   })
+
+  it('scope init can be array or object', async () => {
+    const wrapper = mountTemplate(`
+      <div>
+        <go-plaid-scope :init='[{hello: "123"}, {checked: true}, {file: "two"}]' v-slot="{ locals }">
+         <div id="testArray">{{ locals.hello }}, {{ locals.checked }}, {{ locals.file }}</div>
+        </go-plaid-scope>      
+        <go-plaid-scope :init='{a: "123", b: "456", file: "three"}' v-slot="{ locals }">
+         <div id="testObject">{{ locals.a }}, {{ locals.b }}, {{ locals.file }}</div>
+        </go-plaid-scope>
+      </div>
+      `)
+
+    await nextTick()
+    console.log(wrapper.html())
+
+    const testArray: any = wrapper.find('#testArray')
+    expect(testArray.text()).toEqual(`123, true, two`)
+    const testObject: any = wrapper.find('#testObject')
+    expect(testObject.text()).toEqual(`123, 456, three`)
+  })
 })

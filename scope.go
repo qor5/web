@@ -2,6 +2,7 @@ package web
 
 import (
 	"context"
+	"strings"
 
 	h "github.com/theplant/htmlgo"
 )
@@ -22,8 +23,24 @@ func (b *ScopeBuilder) VSlot(v string) (r *ScopeBuilder) {
 	return b
 }
 
-func (b *ScopeBuilder) Init(v string) (r *ScopeBuilder) {
-	b.tag.Attr(":init", v)
+func (b *ScopeBuilder) Init(vs ...interface{}) (r *ScopeBuilder) {
+	if len(vs) == 0 {
+		return
+	}
+	var js = make([]string, 0)
+	for _, v := range vs {
+		switch vt := v.(type) {
+		case string:
+			js = append(js, vt)
+		default:
+			js = append(js, h.JSONString(v))
+		}
+	}
+	var initVal = js[0]
+	if len(js) > 1 {
+		initVal = "[" + strings.Join(js, ", ") + "]"
+	}
+	b.tag.Attr(":init", initVal)
 	return b
 }
 
