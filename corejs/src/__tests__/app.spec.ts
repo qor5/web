@@ -73,4 +73,20 @@ describe('app', () => {
     await wrapper.find('button').trigger('click')
     console.log(wrapper.html())
   })
+
+  it('GlobalEvents', async () => {
+    const wrapper = mountTemplate(
+      `
+      <go-plaid-scope v-slot="{locals}" :init='{count: 10}'>
+        <h1>{{ locals.count }}</h1>
+        <global-events @keydown.enter='locals.count = 42'></global-events>
+      </go-plaid-scope>
+    `
+    )
+    await nextTick()
+    const event = new KeyboardEvent('keydown', { key: 'Enter' })
+    document.dispatchEvent(event)
+    await flushPromises()
+    console.log(wrapper.html())
+  })
 })

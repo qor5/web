@@ -9,6 +9,7 @@ import {
   reactive,
   ref
 } from 'vue'
+import { GlobalEvents } from 'vue-global-events'
 import Scope from '@/scope'
 import { GoPlaidPortal } from '@/portal'
 import { initContext } from '@/initContext'
@@ -78,7 +79,7 @@ export const plaidPlugin = {
     app.directive('init-context', initContext())
     app.directive('debounce', debounceDirective)
     app.directive('keep-scroll', keepScroll)
-    // app.component('GlobalEvents', GlobalEvents);
+    app.component('GlobalEvents', GlobalEvents)
   }
 }
 
