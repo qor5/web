@@ -1,6 +1,6 @@
 module github.com/qor5/web
 
-go 1.19
+go 1.22
 
 require (
 	github.com/NYTimes/gziphandler v1.1.1
