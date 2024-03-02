@@ -23,7 +23,7 @@ func (b *ScopeBuilder) VSlot(v string) (r *ScopeBuilder) {
 	return b
 }
 
-func (b *ScopeBuilder) Init(vs ...interface{}) (r *ScopeBuilder) {
+func (b *ScopeBuilder) init(attr string, vs ...interface{}) (r *ScopeBuilder) {
 	if len(vs) == 0 {
 		return
 	}
@@ -40,7 +40,17 @@ func (b *ScopeBuilder) Init(vs ...interface{}) (r *ScopeBuilder) {
 	if len(js) > 1 {
 		initVal = "[" + strings.Join(js, ", ") + "]"
 	}
-	b.tag.Attr(":init", initVal)
+	b.tag.Attr(attr, initVal)
+	return b
+}
+
+func (b *ScopeBuilder) Init(vs ...interface{}) (r *ScopeBuilder) {
+	b.init(":init", vs...)
+	return b
+}
+
+func (b *ScopeBuilder) FormInit(vs ...interface{}) (r *ScopeBuilder) {
+	b.init(":form-init", vs...)
 	return b
 }
 

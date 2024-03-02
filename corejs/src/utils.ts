@@ -190,7 +190,7 @@ function formSet(form: FormData, fieldName: string, val: string): boolean {
 
 export function componentByTemplate(
   template: string,
-  plaidForm: FormData,
+  form: any,
   locals: any = {}
 ): DefineComponent {
   return defineComponent({
@@ -200,7 +200,7 @@ export function componentByTemplate(
         vars: inject('vars'),
         isFetching: inject('isFetching'),
         updateRootTemplate: inject('updateRootTemplate'),
-        plaidForm: plaidForm,
+        form: form,
         locals: locals
       }
     },

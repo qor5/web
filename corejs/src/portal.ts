@@ -19,8 +19,8 @@ export const GoPlaidPortal = defineComponent({
   name: 'GoPlaidPortal',
   props: {
     loader: Object,
-    plaidForm: FormData,
     locals: Object,
+    form: Object,
     visible: Boolean,
     afterLoaded: Function,
     portalName: String,
@@ -29,7 +29,7 @@ export const GoPlaidPortal = defineComponent({
   template: `
     <div class="go-plaid-portal" v-if="visible">
       <component :is="current" v-if="current">
-        <slot :plaidForm="plaidForm" :locals="locals"></slot>
+        <slot :form="form" :locals="locals"></slot>
       </component>
     </div>`,
 
@@ -38,15 +38,14 @@ export const GoPlaidPortal = defineComponent({
     const autoReloadIntervalID = ref<number>(0)
 
     const updatePortalTemplate = (template: string) => {
-      current.value = componentByTemplate(template, props.plaidForm!, props.locals)
+      current.value = componentByTemplate(template, props.form, props.locals)
     }
 
     // other reactive properties and methods
     const reload = () => {
       if (slots.default) {
         current.value = componentByTemplate(
-          '<slot :plaidForm="plaidForm" :locals="locals"></slot>',
-          props.plaidForm!,
+          '<slot :form="form" :locals="locals"></slot>',
           props.locals
         )
         return
@@ -103,7 +102,7 @@ export const GoPlaidPortal = defineComponent({
     return {
       current,
       vars: inject('vars'),
-      plaidForm: props.plaidForm
+      form: props.form
     }
   }
 })

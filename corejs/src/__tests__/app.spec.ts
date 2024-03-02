@@ -30,6 +30,48 @@ describe('app', () => {
     expect(wrapper.find('h1').html()).toEqual(`<h1 number="42"></h1>`)
   })
 
+  it('plaid runScript with vars', async () => {
+    const form = ref(new FormData())
+    const wrapper = mountTemplate(
+      `
+        <div>
+            <button @click='plaid().eventFunc("load_vars_in_portal").go()'></button>
+            <h1 @click='plaid().eventFunc("hello").go()' :number="vars.number"></h1>
+            <go-plaid-portal :visible='true' :locals='locals' portal-name='drawer2UpdateContent'></go-plaid-portal>
+        </div>
+        `
+    )
+    await nextTick()
+    mockFetchWithReturnTemplate(form, {
+      updatePortals: [{ name: 'drawer2UpdateContent', body: '<h5>{{vars.number}}</h5>' }]
+    })
+
+    await wrapper.find('button').trigger('click')
+    await flushPromises()
+    console.log(wrapper.html())
+
+    mockFetchWithReturnTemplate(form, { runScript: 'vars.number = 43' })
+    await wrapper.find('h1').trigger('click')
+    await flushPromises()
+    console.log(wrapper.html())
+
+    // expect(wrapper.find('h1').html()).toEqual(`<h1 number="42"></h1>`)
+  })
+
+  it('init vars with object', async () => {
+    const form = ref(new FormData())
+    const wrapper = mountTemplate(
+      `
+        <div>
+            <span v-if='!Object.assign(vars, {a: 1, number: "3"})'></span>
+            <h1 :number="vars.number">{{vars.a}}</h1>
+        </div>
+        `
+    )
+    await nextTick()
+    expect(wrapper.find('h1').html()).toEqual(`<h1 number="3">1</h1>`)
+  })
+
   it('plaid runScript with locals', async () => {
     const form = ref(new FormData())
     mockFetchWithReturnTemplate(form, { runScript: 'locals.number = 42' })

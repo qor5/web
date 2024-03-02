@@ -48,7 +48,7 @@ describe('portal', () => {
         <div>
           <comp2></comp2>
           <go-plaid-portal :visible="true" :portal-name='"portal1"'>
-            <input type="text" v-init-context:vars='{value1: "222"}'/>
+            <input type="text" :eval='vars.value1 = "222"'/>
           </go-plaid-portal>
           <button id='postForm1' @click='plaid().fieldValue("value1", vars.value1).eventFunc("hello").go()'>Post Form 1</button>
         </div>
@@ -99,8 +99,8 @@ describe('portal', () => {
   it('vars reflect last value', async () => {
     const Root = {
       template: `
-        <div v-init-context:vars='{value1: "222"}'>
-            <input type="text" v-init-context:vars='{value1: "333"}'/>
+        <div :any='vars.value1 = "222"'>
+            <input type="text" :any1='vars.value1 = "333"'/>
             <button @click='plaid().eventFunc("hello").fieldValue("value1", vars.value1).go()'></button>
         </div>
       `,
@@ -124,14 +124,14 @@ describe('portal', () => {
   it('scoped new plaidForm replace value with portal', async () => {
     const Root = defineComponent({
       template: `
-        <go-plaid-scope v-slot="{ plaidForm, locals }" :init="{ Age: '222', Company: 'The Plant', Name: '222' }">
-          <div>{{ locals.Age }}</div>
-          <input v-model='locals.Age' type="text" />
-          <input v-model='locals.Company' type="text" />
-          <go-plaid-portal :plaid-form="plaidForm" :locals="locals" :portal-name="'portalA'" :visible="true">
-            <input v-model='locals.Name' type="text" />
+        <go-plaid-scope v-slot="{ form }" :form-init="{ Age: '222', Company: 'The Plant', Name: '222' }">
+          <div>{{ form.Age }}</div>
+          <input v-model='form.Age' type="text" />
+          <input v-model='form.Company' type="text" />
+          <go-plaid-portal :form="form" :portal-name="'portalA'" :visible="true">
+            <input v-model='form.Name' type="text" />
           </go-plaid-portal>
-          <button @click='plaid().locals(locals).form(plaidForm).eventFunc("hello").go()'></button>
+          <button @click='plaid().form(form).eventFunc("hello").go()'></button>
         </go-plaid-scope>
       `,
       setup() {
@@ -150,7 +150,7 @@ describe('portal', () => {
       updatePortals: [
         {
           name: 'portalA',
-          body: `<input from="server" type="text" :value='locals.Name="555"'/>`
+          body: `<input from="server" type="text" :value='form.Name="555"'/>`
         }
       ]
     })
@@ -163,7 +163,7 @@ describe('portal', () => {
 
     // Use varsScript that set locals value to update the form value
     mockFetchWithReturnTemplate(form, {
-      runScript: 'locals.Name = "666"'
+      runScript: 'form.Name = "666"'
     })
     await wrapper.find('button').trigger('click')
     await flushPromises()

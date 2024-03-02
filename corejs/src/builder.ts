@@ -9,9 +9,8 @@ export class Builder {
   _method?: string
   _vars?: any
   _locals?: any
-  _localsToForm: boolean = false
   _loadPortalBody: boolean = false
-  _form?: FormData
+  _form?: any = {}
   _popstate?: boolean
   _pushState?: boolean
   _location?: Location
@@ -68,10 +67,9 @@ export class Builder {
     return this
   }
 
-  public locals(v: any, toForm: boolean = true): Builder {
+  public locals(v: any): Builder {
     // console.log("locals", v)
     this._locals = v
-    this._localsToForm = toForm
     return this
   }
 
@@ -139,18 +137,8 @@ export class Builder {
     return this
   }
 
-  public form(v: FormData): Builder {
+  public form(v: any): Builder {
     this._form = v
-    return this
-  }
-
-  public formClear(): Builder {
-    if (!this._form) {
-      return this
-    }
-    for (const key of this._form.keys()) {
-      this._form.delete(key)
-    }
     return this
   }
 
@@ -158,7 +146,7 @@ export class Builder {
     if (!this._form) {
       throw new Error('form not exist')
     }
-    setFormValue(this._form, name, v)
+    this._form[name] = v
     return this
   }
 
@@ -210,7 +198,6 @@ export class Builder {
 
   public go(): Promise<void | EventResponse> {
     if (this._eventFuncID.id == '__reload__') {
-      this.formClear()
       this._buildPushStateResult = null
     }
 
@@ -226,14 +213,9 @@ export class Builder {
     }
 
     if (fetchOpts.method === 'POST') {
-      if (!this._form) {
-        this._form = new FormData()
-      }
-      fetchOpts.body = this._form
-    }
-
-    if (this._localsToForm) {
-      objectToFormData(this._locals, this._form!)
+      const formData = new FormData()
+      objectToFormData(this._form, formData)
+      fetchOpts.body = formData
     }
 
     window.dispatchEvent(new Event('fetchStart'))
@@ -245,17 +227,15 @@ export class Builder {
           return {}
         }
 
-        ;(this._form as any).dirty = false
         return r.json()
       })
       .then((r: EventResponse) => {
         if (r.runScript) {
-          new Function('vars', 'locals', 'plaid', '$event', 'plaidForm', r.runScript).apply(this, [
+          new Function('vars', 'locals', 'form', 'plaid', r.runScript).apply(this, [
             this._vars,
             this._locals,
-            this,
-            null,
-            this._form
+            this._form,
+            this
           ])
         }
         return r

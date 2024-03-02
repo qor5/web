@@ -6,24 +6,24 @@ describe('scope', () => {
   it('vars and form', async () => {
     const wrapper = mountTemplate(`
       <div>
-      <go-plaid-scope :init='{hello: "123"}' v-slot="{locals: vars}">
-        <div id="l1">{{ vars.hello }}</div>
-        <button id="l1Btn" @click='vars.hello = "456"'></button>
+      <go-plaid-scope :init='{hello: "123"}' v-slot="{locals}">
+        <div id="l1">{{ locals.hello }}</div>
+        <button id="l1Btn" @click='locals.hello = "456"'></button>
         <go-plaid-scope :init='{hello: "789"}' v-slot="{locals}">
           <div id="l2">{{ locals.hello }}</div>
           <button id="l2Btn" @click='locals.hello = "999"'></button>
 
-          <go-plaid-scope v-slot="{plaidForm}">
-            <div id="l3">{{ plaidForm.get("Name") }}</div>
+          <go-plaid-scope v-slot="{form}">
+            <div id="l3">{{ form.Name }}</div>
             <input type="text"
-                 :value='plaidForm.append("Name", "AAA")'>
+                 :value='form.Name = "AAA"'>
             <button id="l3Btn"
-                @click='locals.hello = plaidForm.get("Name")'></button>
+                @click='locals.hello = form.Name'></button>
 
-            <go-plaid-scope v-slot="{plaidForm}">
-              <div id="l4">{{ plaidForm.get("Name") }}</div>
+            <go-plaid-scope v-slot="{ form }">
+              <div id="l4">{{ form.Name }}</div>
               <input id="input4" type="text"
-                   :value='plaidForm.append("Name", "BBB")'>
+                   :value='form.Name = "BBB"'>
 
             </go-plaid-scope>
 
@@ -31,7 +31,7 @@ describe('scope', () => {
 
         </go-plaid-scope>
       </go-plaid-scope>
-      <div class="globalForm">{{plaidForm.get("Name")}}</div>
+      <div class="globalForm">{{form.Name}}</div>
       </div>
       `)
 

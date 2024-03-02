@@ -12,7 +12,6 @@ import {
 import { GlobalEvents } from 'vue-global-events'
 import Scope from '@/scope'
 import { GoPlaidPortal } from '@/portal'
-import { initContext } from '@/initContext'
 import { componentByTemplate } from '@/utils'
 import { Builder, plaid } from '@/builder'
 import { debounceDirective } from '@/debounce'
@@ -28,18 +27,18 @@ export const Root = defineComponent({
 
   setup(props, { emit }) {
     const current = shallowRef<DefineComponent | null>(null)
+    const form = reactive({})
+    provide('form', form)
     const updateRootTemplate = (template: string) => {
-      current.value = componentByTemplate(template, plaidForm)
+      current.value = componentByTemplate(template, form)
     }
 
     provide('updateRootTemplate', updateRootTemplate)
-    const plaidForm = new FormData()
     const vars = reactive({})
     const _plaid = (): Builder => {
-      return plaid().updateRootTemplate(updateRootTemplate).vars(vars).form(plaidForm)
+      return plaid().updateRootTemplate(updateRootTemplate).vars(vars)
     }
     provide('plaid', _plaid)
-    provide('plaidForm', plaidForm)
     provide('vars', vars)
     const isFetching = ref(false)
     provide('isFetching', isFetching)
@@ -75,7 +74,6 @@ export const plaidPlugin = {
   install(app: App) {
     app.component('GoPlaidScope', Scope)
     app.component('GoPlaidPortal', GoPlaidPortal)
-    app.directive('init-context', initContext())
     app.directive('debounce', debounceDirective)
     app.directive('keep-scroll', keepScroll)
     app.component('GlobalEvents', GlobalEvents)

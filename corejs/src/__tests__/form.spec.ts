@@ -25,9 +25,9 @@ describe('form', () => {
     const Text1 = {
       template: `
         <div>
-          <go-plaid-scope v-slot='{ locals }' :init='{Text1: 123}'>
-            <input type="text" v-model='locals.Text1'/>
-            <button @click='plaid().locals(locals).eventFunc("hello").go()'>Submit</button>
+          <go-plaid-scope v-slot='{ form }' :form-init='{Text1: 123}'>
+            <input type="text" v-model='form.Text1'/>
+            <button @click='plaid().form(form).eventFunc("hello").go()'>Submit</button>
           </go-plaid-scope>
         </div>
       `,
@@ -53,16 +53,16 @@ describe('form', () => {
   })
 
   it('v-chip-group', async () => {
-    const initObject = { ChipGroup1: ['NY', 'HZ'] }
+    const initObject = `{ ChipGroup1: ["NY", "HZ"] }`
     const template = `
         <div>
-          <go-plaid-scope v-slot='{ locals }' init-string='${JSON.stringify(initObject)}'>
-            <v-chip-group v-model="locals.ChipGroup1" multiple>
+          <go-plaid-scope v-slot='{ form }' :form-init='${initObject}'>
+            <v-chip-group v-model="form.ChipGroup1" multiple>
               <v-chip id="id_hz" value="TK" filter>Hangzhou</v-chip>
               <v-chip id="id_tk" value="NY" filter>Tokyo</v-chip>
               <v-chip id="id_ny" value="HZ" filter>New York</v-chip>
             </v-chip-group>
-            <button @click='plaid().locals(locals).eventFunc("hello").go()'>Submit</button>
+            <button @click='plaid().form(form).eventFunc("hello").go()'>Submit</button>
           </go-plaid-scope>
         </div>
       `
@@ -84,12 +84,11 @@ describe('form', () => {
   })
 
   it('v-file-input', async () => {
-    const initObject = {}
     const template = `
         <div>
-          <go-plaid-scope v-slot='{ locals }' init-string='${JSON.stringify(initObject)}'>
-            <v-file-input label="File input" v-model="locals.Files1"></v-file-input>
-            <button @click='plaid().locals(locals).eventFunc("hello").go()'>Submit</button>
+          <go-plaid-scope v-slot='{ form }' :form-init='{}'>
+            <v-file-input label="File input" v-model="form.Files1"></v-file-input>
+            <button @click='plaid().form(form).eventFunc("hello").go()'>Submit</button>
           </go-plaid-scope>
         </div>
       `
@@ -106,12 +105,11 @@ describe('form', () => {
   })
 
   it('input type file', async () => {
-    const initObject = {}
     const template = `
         <div>
-          <go-plaid-scope v-slot='{ locals }' init-string='${JSON.stringify(initObject)}'>
-            <input id="file1" type="file" @change="locals.Files1 = $event.target.files">
-            <button @click='plaid().locals(locals).eventFunc("hello").go()'>Submit</button>
+          <go-plaid-scope v-slot='{ form }' :form-init='{}'>
+            <input id="file1" type="file" @change="form.Files1 = $event.target.files">
+            <button @click='plaid().form(form).eventFunc("hello").go()'>Submit</button>
           </go-plaid-scope>
         </div>
       `
@@ -143,12 +141,12 @@ describe('form', () => {
     const Text1 = {
       template: `
         <div>
-          <go-plaid-scope v-slot="{ locals }" :init="{Text1: '111'}">
-            <input type="text" v-model='locals.Text1'
+          <go-plaid-scope v-slot="{ form }" :form-init="{Text1: '111'}">
+            <input type="text" v-model='form.Text1'
               v-on:input="change2($event.target.value+'later')"
               v-on:input.trim="change2($event.target.value+'later2')"
             />
-            <button @click='plaid().locals(locals).eventFunc("hello").go()'>Submit</button>
+            <button @click='plaid().form(form).eventFunc("hello").go()'>Submit</button>
           </go-plaid-scope>
         </div>
       `,
@@ -159,8 +157,7 @@ describe('form', () => {
         }
         return {
           change2,
-          plaid: inject('plaid'),
-          plaidForm: inject('plaidForm')
+          plaid: inject('plaid')
         }
       }
     }
@@ -179,16 +176,15 @@ describe('form', () => {
     const Text1 = {
       template: `
         <div class="Text1">
-          <go-plaid-scope v-slot="{ locals }" :init="{BaseInput1: 'base input value'}">
-            <base-input v-model='locals.BaseInput1' label="Label1"></base-input>
-            <button @click='plaid().locals(locals).eventFunc("hello").go()'></button>
+          <go-plaid-scope v-slot="{ form }" :form-init="{BaseInput1: 'base input value'}">
+            <base-input v-model='form.BaseInput1' label="Label1"></base-input>
+            <button @click='plaid().form(form).eventFunc("hello").go()'></button>
           </go-plaid-scope>
         </div>
       `,
       setup() {
         return {
-          plaid: inject('plaid'),
-          plaidForm: inject('plaidForm')
+          plaid: inject('plaid')
         }
       }
     }
@@ -225,13 +221,12 @@ describe('form', () => {
     const Text1 = {
       setup() {
         return {
-          plaid: inject('plaid'),
-          plaidForm: inject('plaidForm')
+          plaid: inject('plaid')
         }
       },
       template: `
 				<div class="Text1">
-          <go-plaid-scope v-slot="{ locals }" :init="{
+          <go-plaid-scope v-slot="{ form }" :form-init="{
             Textarea1: 'textarea1 value',
             Text1: 'text value',
             Radio1: 'Radio1A',
@@ -242,21 +237,21 @@ describe('form', () => {
             BaseInput1: 'base input value',
           }">
 
-            <textarea v-model='locals.Textarea1'></textarea>
-            <input id="text1" type="text" v-model='locals.Text1' />
-            <input type="radio" v-model='locals.Radio1' value="Radio1A"/>
-            <input type="radio" v-model='locals.Radio1' value="Radio1B"/>
-            <input type="hidden" v-model='locals.Hidden1' value="hidden1value"/>
-            <input type="checkbox" v-model='locals.Checkbox1' value="CheckBoxA"/>
-            <input type="checkbox" v-model='locals.Checkbox1' value="CheckBoxB"/>
-            <input type="number" v-model='locals.Number1'  value="123"/>
-            <select v-model='locals.Select1' >
+            <textarea v-model='form.Textarea1'></textarea>
+            <input id="text1" type="text" v-model='form.Text1' />
+            <input type="radio" v-model='form.Radio1' value="Radio1A"/>
+            <input type="radio" v-model='form.Radio1' value="Radio1B"/>
+            <input type="hidden" v-model='form.Hidden1' value="hidden1value"/>
+            <input type="checkbox" v-model='form.Checkbox1' value="CheckBoxA"/>
+            <input type="checkbox" v-model='form.Checkbox1' value="CheckBoxB"/>
+            <input type="number" v-model='form.Number1'  value="123"/>
+            <select v-model='form.Select1' >
               <option value="dog">Dog</option>
               <option value="cat">Cat</option>
             </select>
-            <base-input v-model='locals.BaseInput1'  label="Label1"
+            <base-input v-model='form.BaseInput1'  label="Label1"
             ></base-input>
-            <button id='button1' @click='plaid().locals(locals).eventFunc("hello").go()'></button>
+            <button id='button1' @click='plaid().form(form).eventFunc("hello").go()'></button>
           </go-plaid-scope>
         </div>
       `
@@ -291,10 +286,10 @@ describe('form', () => {
       const wrapper = mountTemplate(
         `
         <div class="Text1">
-          <go-plaid-scope v-slot="{ locals }" :init='{Checkbox2: ["CheckBoxA"]}'>
-            <input id="check1" type="checkbox" name="checkbox2" v-model='locals.Checkbox2' value="CheckBoxA"/>
-            <input id="check2" type="checkbox" name="checkbox2" v-model='locals.Checkbox2' value="CheckBoxB"/>
-            <button @click='plaid().locals(locals).eventFunc("hello").go()'></button>
+          <go-plaid-scope v-slot="{ form }" :form-init='{Checkbox2: ["CheckBoxA"]}'>
+            <input id="check1" type="checkbox" name="checkbox2" v-model='form.Checkbox2' value="CheckBoxA"/>
+            <input id="check2" type="checkbox" name="checkbox2" v-model='form.Checkbox2' value="CheckBoxB"/>
+            <button @click='plaid().form(form).eventFunc("hello").go()'></button>
           </go-plaid-scope>
         </div>`,
         {}
@@ -311,9 +306,9 @@ describe('form', () => {
     it('test text input value', async () => {
       const template = `
         <div class="Text1">
-          <go-plaid-scope v-slot="{ locals }" :init='{Text1: "text value 1"}'>
-            <input type="text" v-model="locals.Text1"/>
-            <button @click='plaid().locals(locals).eventFunc("hello").go()'></button>
+          <go-plaid-scope v-slot="{ form }" :form-init='{Text1: "text value 1"}'>
+            <input type="text" v-model="form.Text1"/>
+            <button @click='plaid().form(form).eventFunc("hello").go()'></button>
           </go-plaid-scope>
         </div>`
       const wrapper = mountTemplate(template, {})

@@ -32,8 +32,7 @@ func Plaid() (r *VueEventTagBuilder) {
 		},
 	}
 	r.Vars(Var("vars")).
-		Locals(Var("locals")).
-		Form(Var("plaidForm"))
+		Form(Var("form"))
 	return
 }
 
@@ -178,13 +177,6 @@ func (b *VueEventTagBuilder) Form(v interface{}) (r *VueEventTagBuilder) {
 	return b
 }
 
-func (b *VueEventTagBuilder) FormClear() (r *VueEventTagBuilder) {
-	b.calls = append(b.calls, jsCall{
-		method: "formClear",
-	})
-	return b
-}
-
 func (b *VueEventTagBuilder) FieldValue(name interface{}, v interface{}) (r *VueEventTagBuilder) {
 	b.calls = append(b.calls, jsCall{
 		method: "fieldValue",
@@ -285,8 +277,13 @@ func (b *VueEventTagBuilder) MarshalJSON() ([]byte, error) {
 	panic(fmt.Sprintf("call .Go() at the end, value: %s", b.String()))
 }
 
-const InitContextVars = "v-init-context:vars"
-const InitContextLocals = "v-init-context:locals"
+func ObjectAssignTag(varName string, v interface{}) h.HTMLComponent {
+	varVal, ok := v.(string)
+	if !ok {
+		varVal = h.JSONString(v)
+	}
+	return h.Span("").Attr("v-if", fmt.Sprintf("!Object.assign(%s, %s)", varName, varVal))
+}
 
 func GlobalEvents() *h.HTMLTagBuilder {
 	return h.Tag("global-events")
