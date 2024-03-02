@@ -53,12 +53,11 @@ export const Root = defineComponent({
       window.addEventListener('fetchEnd', (e: Event) => {
         isFetching.value = false
       })
-
-      window.onpopstate = (evt: any) => {
+      window.addEventListener('popstate', (evt) => {
         if (evt && evt.state != null) {
           _plaid().onpopstate(evt)
         }
-      }
+      })
     })
 
     return {

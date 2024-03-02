@@ -3,29 +3,29 @@ import querystring from 'query-string'
 import union from 'lodash/union'
 import without from 'lodash/without'
 import type { EventFuncID, ValueOp } from './types'
-import { defineComponent, inject, markRaw, reactive } from 'vue'
+import { defineComponent, inject } from 'vue'
 import type { DefineComponent } from 'vue'
 
 export function buildPushState(eventFuncId: EventFuncID, url: string): any {
-  let loc = eventFuncId.location
+  const loc = eventFuncId.location
   const orig = querystring.parseUrl(loc?.url || url, {
     arrayFormat: 'comma',
     parseFragmentIdentifier: true
   })
 
-  let resultQuery: any = {}
+  const resultQuery: any = {}
   let locQuery
   // If pushState is string, then replace query string to it
   // If pushState it object, merge url query
   if (loc) {
     if (loc.stringQuery) {
-      let strQuery = querystring.parse(loc.stringQuery, { arrayFormat: 'comma' })
+      const strQuery = querystring.parse(loc.stringQuery, { arrayFormat: 'comma' })
       // @ts-ignore
       loc.query = { ...strQuery, ...loc.query }
     }
 
     if (loc.mergeQuery) {
-      let clearKeys = loc.clearMergeQueryKeys || []
+      const clearKeys = loc.clearMergeQueryKeys || []
       for (const [key, value] of Object.entries(orig.query)) {
         // If clearMergeQueryKeys is present then skip current location queries which contained by clearMergeQueryKeys
         // If clearMergeQueryKeys is empty, all queries from current location will be kept
@@ -53,7 +53,7 @@ export function buildPushState(eventFuncId: EventFuncID, url: string): any {
     }
   }
 
-  let requestQuery = { ...resultQuery, ...{ __execute_event__: eventFuncId.id } }
+  const requestQuery = { ...resultQuery, ...{ __execute_event__: eventFuncId.id } }
 
   addressBarQuery = querystring.stringify(resultQuery, { arrayFormat: 'comma' })
   if (addressBarQuery.length > 0) {

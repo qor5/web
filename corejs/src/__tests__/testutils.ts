@@ -34,3 +34,24 @@ export function mountTemplate(template: string, global = {}): VueWrapper {
     }
   })
 }
+
+export function waitUntil(
+  conditionFunction: () => boolean,
+  { timeout = 3000, interval = 50 } = {}
+) {
+  const startTime = Date.now()
+
+  return new Promise<void>((resolve, reject) => {
+    const checkCondition = async () => {
+      if (conditionFunction()) {
+        resolve()
+      } else if (Date.now() - startTime > timeout) {
+        reject(new Error('Condition not met within timeout'))
+      } else {
+        setTimeout(checkCondition, interval)
+      }
+    }
+
+    checkCondition()
+  })
+}

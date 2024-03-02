@@ -190,7 +190,7 @@ export class Builder {
 
   public onpopstate(event: any): Promise<void | EventResponse> {
     if (!event.state) {
-      // hashtag changes will trigger popstate, when this happen, event.state is null.
+      // hashtag changes will trigger popstate, when this happens, event.state is null.
       return Promise.reject('event state is undefined')
     }
     return this.popstate(true).location(event.state).reload().go()
@@ -216,7 +216,7 @@ export class Builder {
 
     this.runPushState()
 
-    let fetchOpts: RequestInit = {
+    const fetchOpts: RequestInit = {
       method: 'POST',
       redirect: 'follow'
     }
@@ -238,8 +238,7 @@ export class Builder {
 
     window.dispatchEvent(new Event('fetchStart'))
     const fetchURL = this.buildFetchURL()
-    // console.log('fetchURL', fetchURL)
-    return fetch(this.buildFetchURL(), fetchOpts)
+    return fetch(fetchURL, fetchOpts)
       .then((r) => {
         if (r.redirected) {
           document.location.replace(r.url)

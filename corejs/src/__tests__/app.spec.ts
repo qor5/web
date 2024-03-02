@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { nextTick, ref } from 'vue'
-import { mockFetchWithReturnTemplate, mountTemplate } from './testutils'
+import { mockFetchWithReturnTemplate, mountTemplate, waitUntil } from './testutils'
 import { flushPromises } from '@vue/test-utils'
 
 describe('app', () => {
@@ -86,6 +86,36 @@ describe('app', () => {
     await nextTick()
     const event = new KeyboardEvent('keydown', { key: 'Enter' })
     document.dispatchEvent(event)
+    await flushPromises()
+    console.log(wrapper.html())
+    expect(wrapper.find('h1').text()).toEqual(`42`)
+  })
+
+  it('pushState and browser back button', async () => {
+    const template = `<button @click='plaid().pushState(true).url("/test").go()'>go</button>`
+    const wrapper = mountTemplate(template)
+    await nextTick()
+    const form = ref(new FormData())
+    mockFetchWithReturnTemplate(form, (url: any, opts: any) => {
+      if (url.includes('/test')) {
+        return { body: '<h3>result</h3>' }
+      }
+
+      return { body: template }
+    })
+    await wrapper.find('button').trigger('click')
+    await flushPromises()
+    expect(window.location.pathname).toEqual('/test')
+    expect(wrapper.find('h3').html()).toEqual(`<h3>result</h3>`)
+
+    window.history.back()
+    // window.dispatchEvent(new PopStateEvent('popstate', { state: { someState: 'test' } }));
+
+    await nextTick()
+    console.log(wrapper.html())
+    await waitUntil((): boolean => {
+      return wrapper.find('button').exists()
+    })
     await flushPromises()
     console.log(wrapper.html())
   })
