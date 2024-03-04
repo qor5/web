@@ -1,7 +1,7 @@
 import { defineComponent, inject, nextTick, ref } from 'vue'
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect } from 'vitest'
-import { mockFetchWithReturnTemplate, mountTemplate } from './testutils'
+import { mockFetchWithReturnTemplate, mountTemplate, waitUntil } from './testutils'
 
 describe('portal', () => {
   it('vars and form value change', async () => {
@@ -201,28 +201,47 @@ describe('portal', () => {
 
   it('reload portal should keep form value', async () => {
     const template = `
-        <go-plaid-scope v-slot="{ form }" :form-init="{ Age: '222', Company: 'The Plant' }">
-          <div>{{ form.Age }}</div>
-          <input v-model='form.Age' type="text" />
-          <go-plaid-portal :form="form" :portal-name="'portalA'" :loader='plaid().form(form).eventFunc("loadPortalA")' :visible="true" >
-          </go-plaid-portal>
-        </go-plaid-scope>
+        <v-dialog>
+        <template v-slot:activator='{ props: activatorProps }'>
+        <button id="selectBtn" v-bind='activatorProps'>Select</button>
+        </template>
+        
+        <go-plaid-portal :visible='true' :form='form' :locals='locals' :loader='plaid().vars(vars).locals(locals).form(form).method("POST").eventFunc("menuItems")' portal-name='menuContent'></go-plaid-portal>
+        </v-dialog>
       `
 
     const form = ref(new FormData())
     // Use any tag with any attributes that set locals value to update the form value
     mockFetchWithReturnTemplate(form, (url: any, opts: any) => {
-      if (url.includes('reloadPortal')) {
-        return {
-          reloadPortals: ['portalA']
-        }
-      }
-      if (url.includes('loadPortalA')) {
+      if (url.includes('menuItems')) {
         return {
           body: `
-            <input id="server" type="text" :value='form.Company'/>
-            <button @click='plaid().form(form).eventFunc("reloadPortal").go()'></button>
-          `
+            <div>
+            <v-dialog :width='"500"'>
+            <template v-slot:activator='{ props: activatorProps }'>
+            <button id='createNewBtn' v-bind='activatorProps'>Create New</button>
+            </template>
+            
+            <go-plaid-scope v-slot='{ locals, form }' :form-init='{"Company":"42","Error":""}'>
+            <go-plaid-portal :visible='true' :form='form' :locals='locals' :loader='plaid().vars(vars).locals(locals).form(form).method("POST").eventFunc("addItemForm")' portal-name='addItemForm'></go-plaid-portal>
+            </go-plaid-scope>        
+            </v-dialog>
+            </div>          `
+        }
+      }
+
+      if (url.includes('addItemForm')) {
+        return {
+          body: `
+            <input id="companyInput" type="text" v-model='form.Company' :why="form.Company"></input>
+            <button id='addItem' @click='plaid().vars(vars).locals(locals).form(form).method("POST").eventFunc("addItem").go()'>Create</button>
+        `
+        }
+      }
+
+      if (url.includes('addItem')) {
+        return {
+          reloadPortals: ['addItemForm']
         }
       }
     })
@@ -231,11 +250,27 @@ describe('portal', () => {
 
     await nextTick()
     await flushPromises()
-    console.log(wrapper.html())
-    expect((wrapper.find('#server').element as HTMLInputElement).value).toEqual('The Plant')
-    await wrapper.find('button').trigger('click')
+    // console.log(wrapper.html())
+    await wrapper.find('#selectBtn').trigger('click')
+    await waitUntil((): boolean => {
+      return document.getElementById('createNewBtn') != null
+    })
+    document.getElementById('createNewBtn')!.click()
+    await flushPromises()
+    await waitUntil((): boolean => {
+      return document.getElementById('addItem') != null
+    })
+
+    const input = document.getElementById('companyInput') as HTMLInputElement
+    input.value = '123'
+    input.dispatchEvent(new InputEvent('input'))
+    await nextTick()
+    // console.log(document.body.innerHTML)
+
+    document.getElementById('addItem')!.click()
     await flushPromises()
 
-    expect((wrapper.find('#server').element as HTMLInputElement).value).toEqual('The Plant')
+    // after reload the portal, check if the input value is still 123
+    expect((document.getElementById('companyInput') as HTMLInputElement).value).toEqual('123')
   })
 })
