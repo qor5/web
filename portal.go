@@ -14,7 +14,7 @@ func Portal(children ...h.HTMLComponent) (r *PortalBuilder) {
 	r = &PortalBuilder{
 		tag: h.Tag("go-plaid-portal").Children(children...),
 	}
-	r.Visible("true").Form("plaidForm").Locals()
+	r.Visible("true").Form("form").Locals()
 	return
 }
 
@@ -34,7 +34,7 @@ func (b *PortalBuilder) Name(v string) (r *PortalBuilder) {
 }
 
 func (b *PortalBuilder) Form(v string) (r *PortalBuilder) {
-	b.tag.Attr(":plaid-form", v)
+	b.tag.Attr(":form", v)
 	return b
 }
 
