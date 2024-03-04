@@ -121,7 +121,7 @@ describe('portal', () => {
     expect(Object.fromEntries(form.value)).toEqual({ value1: '333' })
   })
 
-  it('scoped new plaidForm replace value with portal', async () => {
+  it('scoped new form replace value with portal', async () => {
     const Root = defineComponent({
       template: `
         <go-plaid-scope v-slot="{ form }" :form-init="{ Age: '222', Company: 'The Plant', Name: '222' }">
@@ -183,9 +183,8 @@ describe('portal', () => {
           <go-plaid-portal
             portal-name="portal1"
             :visible='true' 
-            :plaid-form='plaidForm' 
             :locals='locals' 
-            :loader='plaid().vars(vars).locals(locals).form(plaidForm).method("POST").eventFunc("autoReload")' 
+            :loader='plaid().vars(vars).locals(locals).form(form).method("POST").eventFunc("autoReload")' 
             :auto-reload-interval='locals.interval'>
           </go-plaid-portal>
           <button @click='locals.interval = 0'>stop</button>
@@ -198,5 +197,45 @@ describe('portal', () => {
     await flushPromises()
     console.log(wrapper.html())
     await wrapper.find('.mycomp h3').trigger('click')
+  })
+
+  it('reload portal should keep form value', async () => {
+    const template = `
+        <go-plaid-scope v-slot="{ form }" :form-init="{ Age: '222', Company: 'The Plant' }">
+          <div>{{ form.Age }}</div>
+          <input v-model='form.Age' type="text" />
+          <go-plaid-portal :form="form" :portal-name="'portalA'" :loader='plaid().form(form).eventFunc("loadPortalA")' :visible="true" >
+          </go-plaid-portal>
+        </go-plaid-scope>
+      `
+
+    const form = ref(new FormData())
+    // Use any tag with any attributes that set locals value to update the form value
+    mockFetchWithReturnTemplate(form, (url: any, opts: any) => {
+      if (url.includes('reloadPortal')) {
+        return {
+          reloadPortals: ['portalA']
+        }
+      }
+      if (url.includes('loadPortalA')) {
+        return {
+          body: `
+            <input id="server" type="text" :value='form.Company'/>
+            <button @click='plaid().form(form).eventFunc("reloadPortal").go()'></button>
+          `
+        }
+      }
+    })
+
+    const wrapper = mountTemplate(template)
+
+    await nextTick()
+    await flushPromises()
+    console.log(wrapper.html())
+    expect((wrapper.find('#server').element as HTMLInputElement).value).toEqual('The Plant')
+    await wrapper.find('button').trigger('click')
+    await flushPromises()
+
+    expect((wrapper.find('#server').element as HTMLInputElement).value).toEqual('The Plant')
   })
 })

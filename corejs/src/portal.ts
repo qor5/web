@@ -56,6 +56,7 @@ export const GoPlaidPortal = defineComponent({
         return
       }
       ef.loadPortalBody(true)
+        .form(props.form)
         .go()
         .then((r: EventResponse) => {
           updatePortalTemplate(r.body)
