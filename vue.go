@@ -32,6 +32,7 @@ func Plaid() (r *VueEventTagBuilder) {
 		},
 	}
 	r.Vars(Var("vars")).
+		Locals(Var("locals")).
 		Form(Var("form"))
 	return
 }
