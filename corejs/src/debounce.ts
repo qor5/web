@@ -10,7 +10,7 @@ export const debounceDirective: ObjectDirective<HTMLElement> = {
     elAny.debounceFunc = debounce(
       function (e: Event) {
         // Emit an event from the directive. This requires handling in the parent component.
-        let customEvent = createNewEvent(evt + ':debounced')
+        const customEvent = createNewEvent(evt + ':debounced')
         el.dispatchEvent(customEvent)
       },
       parseInt(binding.value) || 800
@@ -28,7 +28,7 @@ export const debounceDirective: ObjectDirective<HTMLElement> = {
 
 // IE Support
 function createNewEvent(eventName: string) {
-  var e: Event
+  let e: Event
   if (typeof Event === 'function') {
     e = new Event(eventName, { bubbles: true, cancelable: true })
   } else {

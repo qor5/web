@@ -1,7 +1,7 @@
 import type { EventFuncID, EventResponse, Location, Queries, QueryValue } from './types'
 import { buildPushState, objectToFormData, setFormValue } from '@/utils'
 
-declare var window: any
+declare let window: any
 
 export class Builder {
   _eventFuncID: EventFuncID = { id: '__reload__' }

@@ -5,7 +5,7 @@ if (!appElement) {
   throw new Error('#app required')
 }
 
-declare var window: any
+declare let window: any
 
 const vueOptions = {}
 const app = createWebApp(appElement.innerHTML)
