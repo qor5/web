@@ -2,6 +2,7 @@ package web
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	h "github.com/theplant/htmlgo"
@@ -51,6 +52,17 @@ func (b *ScopeBuilder) Init(vs ...interface{}) (r *ScopeBuilder) {
 
 func (b *ScopeBuilder) FormInit(vs ...interface{}) (r *ScopeBuilder) {
 	b.init(":form-init", vs...)
+	return b
+}
+
+func (b *ScopeBuilder) OnChange(v string) (r *ScopeBuilder) {
+	b.tag.Attr("@change-debounced", fmt.Sprintf(`({locals, form, oldLocals, oldForm}) => { %s }`, v)).
+		Attr(":use-debounce", 800)
+	return b
+}
+
+func (b *ScopeBuilder) UseDebounce(v int) (r *ScopeBuilder) {
+	b.tag.Attr(":use-debounce", v)
 	return b
 }
 

@@ -10,11 +10,10 @@ import {
   ref
 } from 'vue'
 import { GlobalEvents } from 'vue-global-events'
-import Scope from '@/scope'
-import { GoPlaidPortal } from '@/portal'
+import GoPlaidScope from '@/go-plaid-scope.vue'
+import GoPlaidPortal from '@/go-plaid-portal.vue'
 import { componentByTemplate } from '@/utils'
 import { Builder, plaid } from '@/builder'
-import { debounceDirective } from '@/debounce'
 import { keepScroll } from '@/keepScroll'
 
 export const Root = defineComponent({
@@ -72,9 +71,8 @@ export const Root = defineComponent({
 
 export const plaidPlugin = {
   install(app: App) {
-    app.component('GoPlaidScope', Scope)
+    app.component('GoPlaidScope', GoPlaidScope)
     app.component('GoPlaidPortal', GoPlaidPortal)
-    app.directive('debounce', debounceDirective)
     app.directive('keep-scroll', keepScroll)
     app.component('GlobalEvents', GlobalEvents)
   }
