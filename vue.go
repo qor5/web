@@ -286,6 +286,15 @@ func ObjectAssignTag(varName string, v interface{}) h.HTMLComponent {
 	return h.Span("").Attr("v-if", fmt.Sprintf("!Object.assign(%s, %s)", varName, varVal))
 }
 
+func VField(name string, value interface{}) []interface{} {
+	return []interface{}{
+		"v-model",
+		fmt.Sprintf("form.%s", name),
+		":__init",
+		fmt.Sprintf("(form.%s = %s) && null", name, h.JSONString(value)),
+	}
+}
+
 func GlobalEvents() *h.HTMLTagBuilder {
 	return h.Tag("global-events")
 }

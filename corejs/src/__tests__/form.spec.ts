@@ -325,5 +325,23 @@ describe('form', () => {
       await wrapper.find('button').trigger('click')
       expect(form.value.get('Text1')).toEqual(value)
     })
+
+    it('test assign form value without :form-init', async () => {
+      const template = `
+        <div class="Text1">
+          <go-plaid-scope v-slot="{ form }" :form-init='{Text1: "text value 1"}'>
+            <input type="text" v-model="form.Text1" :_init='(form.Text1 = "123") && null'/>
+            <button @click='plaid().form(form).eventFunc("hello").go()'></button>
+          </go-plaid-scope>
+        </div>`
+      const wrapper = mountTemplate(template, {})
+      await nextTick()
+      const form = ref(new FormData())
+      mockFetchWithReturnTemplate(form, { body: template })
+      await wrapper.find('button').trigger('click')
+      await flushPromises()
+      console.log(wrapper.html())
+      expect(Object.fromEntries(form.value)).toEqual({ Text1: '123' })
+    })
   })
 })
