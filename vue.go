@@ -286,6 +286,17 @@ func ObjectAssignTag(varName string, v interface{}) h.HTMLComponent {
 	return h.Span("").Attr("v-if", fmt.Sprintf("!Object.assign(%s, %s)", varName, varVal))
 }
 
+func ObjectAssign(varName string, v interface{}) []interface{} {
+	varVal, ok := v.(string)
+	if !ok {
+		varVal = h.JSONString(v)
+	}
+	return []interface{}{
+		":__init",
+		fmt.Sprintf("Object.assign(%s, %s) && null", varName, varVal),
+	}
+}
+
 func VField(name string, value interface{}) []interface{} {
 	return []interface{}{
 		"v-model",
