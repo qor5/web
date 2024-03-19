@@ -48,7 +48,7 @@ func (b *Builder) PacksHandler(contentType string, packs ...ComponentsPack) http
 		// buf = append(buf, []byte(fmt.Sprintf("\n// pack %d\n", i+1))...)
 		// buf = append(buf, []byte(fmt.Sprintf("\nconsole.log('pack %d, length %d');\n", i+1, len(pk)))...)
 		buf.WriteString(string(pk))
-		buf.WriteString("\n\n")
+		buf.WriteString(";\n\n")
 	}
 
 	body := bytes.NewReader(buf.Bytes())
