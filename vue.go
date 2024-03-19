@@ -301,8 +301,6 @@ func VField(name string, value interface{}) []interface{} {
 	return []interface{}{
 		"v-model",
 		fmt.Sprintf("form.%s", name),
-		":__init",
-		fmt.Sprintf("(form.%s = %s) && null", name, h.JSONString(value)),
 	}
 }
 
