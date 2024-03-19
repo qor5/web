@@ -292,16 +292,17 @@ func ObjectAssign(varName string, v interface{}) []interface{} {
 		varVal = h.JSONString(v)
 	}
 	return []interface{}{
-		":__init",
-		fmt.Sprintf("Object.assign(%s, %s) && null", varName, varVal),
+		"v-assign",
+		fmt.Sprintf("[%s, %s]", varName, varVal),
 	}
 }
 
 func VField(name string, value interface{}) []interface{} {
-	return []interface{}{
+	objValue := map[string]interface{}{name: value}
+	return append([]interface{}{
 		"v-model",
 		fmt.Sprintf("form.%s", name),
-	}
+	}, ObjectAssign("form", objValue)...)
 }
 
 func GlobalEvents() *h.HTMLTagBuilder {

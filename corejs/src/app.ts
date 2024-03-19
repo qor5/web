@@ -15,6 +15,7 @@ import GoPlaidPortal from '@/go-plaid-portal.vue'
 import { componentByTemplate } from '@/utils'
 import { Builder, plaid } from '@/builder'
 import { keepScroll } from '@/keepScroll'
+import { assignOnCreate } from '@/assign'
 
 export const Root = defineComponent({
   props: {
@@ -74,6 +75,7 @@ export const plaidPlugin = {
     app.component('GoPlaidScope', GoPlaidScope)
     app.component('GoPlaidPortal', GoPlaidPortal)
     app.directive('keep-scroll', keepScroll)
+    app.directive('assign', assignOnCreate)
     app.component('GlobalEvents', GlobalEvents)
   }
 }

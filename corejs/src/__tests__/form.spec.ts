@@ -330,7 +330,7 @@ describe('form', () => {
       const template = `
         <div class="Text1">
           <go-plaid-scope v-slot="{ form }" :form-init='{Text1: "text value 1"}'>
-            <input type="text" v-model="form.Text1" :_init='(form.Text1 = "123") && null'/>
+            <input type="text" v-model="form.Text1" v-assign='[form, {Text1: "123"}]'/>
             <button @click='plaid().form(form).eventFunc("hello").go()'></button>
           </go-plaid-scope>
         </div>`
