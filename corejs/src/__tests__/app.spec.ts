@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { nextTick, ref } from 'vue'
 import { mockFetchWithReturnTemplate, mountTemplate, waitUntil } from './testutils'
 import { flushPromises } from '@vue/test-utils'
@@ -160,5 +160,24 @@ describe('app', () => {
     })
     await flushPromises()
     console.log(wrapper.html())
+  })
+
+  it('runscript with plaid', async () => {
+    const template = `<button @click='plaid().pushState(true).url("/test").go()'>go</button>`
+    const wrapper = mountTemplate(template)
+    await nextTick()
+    const form = ref(new FormData())
+    mockFetchWithReturnTemplate(form, (url: any, opts: any) => {
+      if (url.includes('/test')) {
+        return {
+          runScript:
+            'plaid().vars(vars).locals(locals).url("/home").form(form).pushState(true).go()'
+        }
+      }
+
+      return { body: template }
+    })
+    await wrapper.find('button').trigger('click')
+    await flushPromises()
   })
 })
