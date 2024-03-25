@@ -235,7 +235,13 @@ export class Builder {
             this._vars,
             this._locals,
             this._form,
-            this
+            (): Builder => {
+              return plaid()
+                .vars(this._vars)
+                .locals(this._locals)
+                .form(this._form)
+                .updateRootTemplate(this._updateRootTemplate)
+            }
           ])
         }
         return r
