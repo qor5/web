@@ -301,7 +301,7 @@ func VField(name string, value interface{}) []interface{} {
 	objValue := map[string]interface{}{name: value}
 	return append([]interface{}{
 		"v-model",
-		fmt.Sprintf("form.%s", name),
+		fmt.Sprintf("form[%s]", h.JSONString(name)),
 	}, ObjectAssign("form", objValue)...)
 }
 
