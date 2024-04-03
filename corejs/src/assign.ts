@@ -1,6 +1,5 @@
 import type { Directive } from 'vue'
-
-import * as lodash from 'lodash'
+import set from 'lodash/set'
 
 export const assignOnCreate: Directive = {
   created: (el, binding) => {
@@ -8,7 +7,7 @@ export const assignOnCreate: Directive = {
     const newObj = {}
 
     for (const [key, value] of Object.entries(obj)) {
-      lodash.set(newObj, key, value)
+      set(newObj, key, value)
     }
     Object.assign(form, newObj)
   }
