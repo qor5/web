@@ -5,11 +5,10 @@ import { flushPromises } from '@vue/test-utils'
 
 describe('assign', () => {
   it('test assign', async () => {
-    const template = `<v-text-field type='text' v-model='form.Text1' v-assign='[form, {"Text1":"123"}]'/>`
+    const template = `<input type='text' v-model='form.Text1' v-assign='[form, {"Text1":"123"}]'/>`
     const wrapper = mountTemplate(template)
     await nextTick()
-    await flushPromises()
-    expect(wrapper.find('input').element.value).toContain('123')
-    expect(wrapper.find('input').element.value).not.toContain('321')
+    await waitUntil(() => wrapper.find('input').element.value === '123')
+
   })
 })
