@@ -274,7 +274,12 @@ export class Builder {
         }
 
         if (r.pushState) {
-          return this.reload().pushState(true).location(r.pushState).go()
+          return plaid()
+            .updateRootTemplate(this._updateRootTemplate)
+            .reload()
+            .pushState(true)
+            .location(r.pushState)
+            .go()
         }
 
         if (this._loadPortalBody && r.body) {
