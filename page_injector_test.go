@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/qor5/web"
+	"github.com/qor5/web/v3"
 	h "github.com/theplant/htmlgo"
 	"github.com/theplant/testingutils"
 )

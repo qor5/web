@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/go-playground/form"
+	"github.com/go-playground/form/v4"
 	"github.com/sunfmin/reflectutils"
 	h "github.com/theplant/htmlgo"
 )

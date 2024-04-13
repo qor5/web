@@ -9,13 +9,13 @@ import (
 	"strings"
 	"testing"
 
-	. "github.com/qor5/web"
-	"github.com/qor5/web/multipartestutils"
+	. "github.com/qor5/web/v3"
+	"github.com/qor5/web/v3/multipartestutils"
 	h "github.com/theplant/htmlgo"
 	"github.com/theplant/htmltestingutils"
 	"github.com/theplant/testingutils"
-	"goji.io"
-	"goji.io/pat"
+	"goji.io/v3"
+	"goji.io/v3/pat"
 )
 
 type User struct {
