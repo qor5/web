@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/NYTimes/gziphandler"
@@ -48,7 +49,11 @@ func (b *Builder) PacksHandler(contentType string, packs ...ComponentsPack) http
 		// buf = append(buf, []byte(fmt.Sprintf("\n// pack %d\n", i+1))...)
 		// buf = append(buf, []byte(fmt.Sprintf("\nconsole.log('pack %d, length %d');\n", i+1, len(pk)))...)
 		buf.WriteString(string(pk))
-		buf.WriteString(";\n\n")
+		// fmt.Println(contentType)
+		if strings.Contains(strings.ToLower(contentType), "javascript") {
+			buf.WriteString(";")
+		}
+		buf.WriteString("\n\n")
 	}
 
 	body := bytes.NewReader(buf.Bytes())
