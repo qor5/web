@@ -278,15 +278,7 @@ func (b *VueEventTagBuilder) MarshalJSON() ([]byte, error) {
 	panic(fmt.Sprintf("call .Go() at the end, value: %s", b.String()))
 }
 
-func ObjectAssignTag(varName string, v interface{}) h.HTMLComponent {
-	varVal, ok := v.(string)
-	if !ok {
-		varVal = h.JSONString(v)
-	}
-	return h.Span("").Attr("v-if", fmt.Sprintf("!Object.assign(%s, %s)", varName, varVal))
-}
-
-func ObjectAssign(varName string, v interface{}) []interface{} {
+func VAssign(varName string, v interface{}) []interface{} {
 	varVal, ok := v.(string)
 	if !ok {
 		varVal = h.JSONString(v)
@@ -302,7 +294,7 @@ func VField(name string, value interface{}) []interface{} {
 	return append([]interface{}{
 		"v-model",
 		fmt.Sprintf("form[%s]", h.JSONString(name)),
-	}, ObjectAssign("form", objValue)...)
+	}, VAssign("form", objValue)...)
 }
 
 func GlobalEvents() *h.HTMLTagBuilder {
