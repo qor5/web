@@ -5,7 +5,7 @@ go 1.22
 require (
 	github.com/NYTimes/gziphandler v1.1.1
 	github.com/go-playground/form/v4 v4.2.1
-	github.com/sunfmin/reflectutils v1.0.3
+	github.com/sunfmin/reflectutils v1.0.4
 	github.com/theplant/htmlgo v1.0.3
 	github.com/theplant/htmltestingutils v0.0.0-20190423050759-0e06de7b6967
 	github.com/theplant/testingutils v0.0.0-20240326065615-ab2586803ce4
