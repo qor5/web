@@ -13,8 +13,9 @@ import (
 )
 
 type PageResponse struct {
-	PageTitle string
-	Body      h.HTMLComponent
+	PageTitle      string
+	AfterTitleComp h.HTMLComponent
+	Body           h.HTMLComponent
 }
 
 type PortalUpdate struct {
