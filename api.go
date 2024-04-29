@@ -13,9 +13,8 @@ import (
 )
 
 type PageResponse struct {
-	PageTitle      string
-	AfterTitleComp h.HTMLComponent
-	Body           h.HTMLComponent
+	PageTitle string
+	Body      h.HTMLComponent
 }
 
 type PortalUpdate struct {
@@ -69,6 +68,15 @@ type EventContext struct {
 	W        http.ResponseWriter
 	Injector *PageInjector
 	Flash    interface{} // pass value from actions to index
+}
+
+func (e *EventContext) WithContextValue(key any, value any) (r *EventContext) {
+	e.R = e.R.WithContext(context.WithValue(e.R.Context(), key, value))
+	return e
+}
+
+func (e *EventContext) ContextValue(key any) any {
+	return e.R.Context().Value(key)
 }
 
 func (e *EventContext) QueryAsInt(key string) (r int) {

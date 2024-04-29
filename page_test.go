@@ -386,3 +386,43 @@ func TestEmbed(t *testing.T) {
 		t.Fatal("No embed string")
 	}
 }
+
+func PageFunc1(ctx *EventContext) (r PageResponse, err error) {
+	r.Body = h.H1("Page1")
+	ctx.WithContextValue("afterTitle", h.H2("abc")).
+		WithContextValue("customizeHeader", h.Components())
+
+	ctx.R = ctx.R.WithContext(context.WithValue(ctx.R.Context(), "abc", h.H2("abc")))
+	return
+}
+
+func Layout1(pf PageFunc) (r PageFunc) {
+	return func(ctx *EventContext) (r PageResponse, err error) {
+		pr, err := pf(ctx)
+		if err != nil {
+			panic(err)
+		}
+
+		var header h.HTMLComponent = h.Header()
+		if ctx.ContextValue("customizeHeader") != nil {
+			header = ctx.ContextValue("customizeHeader").(h.HTMLComponent)
+		}
+		r.Body = h.Div(
+			header,
+			ctx.ContextValue("afterTitle").(h.HTMLComponent),
+			ctx.ContextValue("abc").(h.HTMLComponent),
+			pr.Body,
+		)
+		return
+	}
+}
+
+func TestLayoutWithExtra(t *testing.T) {
+	pf := Layout1(PageFunc1)
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("GET", "/", nil)
+	Page(pf).ServeHTTP(w, r)
+	if !strings.Contains(w.Body.String(), "abc") {
+		t.Errorf("wrong response %s", w.Body.String())
+	}
+}
