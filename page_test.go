@@ -35,7 +35,7 @@ func runEvent(
 ) (indexResp *bytes.Buffer, eventResp *bytes.Buffer) {
 	pb := New()
 
-	var f = func(ctx *EventContext) (r EventResponse, err error) {
+	f := func(ctx *EventContext) (r EventResponse, err error) {
 		r.Reload = true
 		return
 	}
@@ -44,8 +44,7 @@ func runEvent(
 		f = eventFunc
 	}
 
-	var p = pb.Page(func(ctx *EventContext) (pr PageResponse, err error) {
-
+	p := pb.Page(func(ctx *EventContext) (pr PageResponse, err error) {
 		if renderChanger != nil {
 			renderChanger(ctx, &pr)
 		} else {
@@ -80,7 +79,7 @@ func TestFileUpload(t *testing.T) {
 		File1 []*multipart.FileHeader `form:"-"`
 	}
 
-	var uploadFile = func(ctx *EventContext) (r EventResponse, err error) {
+	uploadFile := func(ctx *EventContext) (r EventResponse, err error) {
 		s := &mystate{}
 		ctx.MustUnmarshalForm(s)
 
@@ -91,7 +90,6 @@ func TestFileUpload(t *testing.T) {
 
 	pb := New()
 	p := pb.Page(func(ctx *EventContext) (pr PageResponse, err error) {
-
 		s := &mystate{}
 		if ctx.Flash != nil {
 			s = ctx.Flash.(*mystate)
@@ -134,8 +132,7 @@ func TestFileUpload(t *testing.T) {
 	}
 }
 
-type DummyComp struct {
-}
+type DummyComp struct{}
 
 func (dc *DummyComp) MarshalHTML(ctx context.Context) (r []byte, err error) {
 	r = []byte("<div>hello</div>")
@@ -238,7 +235,6 @@ var eventCases = []struct {
 func TestEvents(t *testing.T) {
 	for _, c := range eventCases {
 		t.Run(c.name, func(t *testing.T) {
-
 			indexResp, eventResp := runEvent(c.eventFunc, c.renderChanger, c.eventFormChanger)
 			var diff string
 			if len(c.expectedIndexResp) > 0 {
@@ -290,18 +286,18 @@ var mountCases = []struct {
 }
 
 func TestMultiplePagesAndEvents(t *testing.T) {
-	var topicIndex = func(ctx *EventContext) (r PageResponse, err error) {
+	topicIndex := func(ctx *EventContext) (r PageResponse, err error) {
 		r.Body = h.H1("Hello Topic List")
 		return
 	}
 
-	var bookmark = func(ctx *EventContext) (r EventResponse, err error) {
+	bookmark := func(ctx *EventContext) (r EventResponse, err error) {
 		topicId := pat.Param(ctx.R, "topicID")
 		r.Body = h.H1(topicId + " bookmarked")
 		return
 	}
 
-	var topicDetail = func(ctx *EventContext) (r PageResponse, err error) {
+	topicDetail := func(ctx *EventContext) (r PageResponse, err error) {
 		// remove to test global event func with web.New().RegisterEventFunc
 		// ctx.Hub.RegisterEventFunc("bookmark", bookmark)
 
@@ -329,7 +325,6 @@ func TestMultiplePagesAndEvents(t *testing.T) {
 
 	for _, c := range mountCases {
 		t.Run(c.name, func(t *testing.T) {
-
 			r := httptest.NewRequest(c.method, c.path, nil)
 			if c.bodyFunc != nil {
 				b := multipartestutils.NewMultipartBuilder().
@@ -350,7 +345,6 @@ func TestMultiplePagesAndEvents(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestEventFuncsOnPageAndBuilder(t *testing.T) {

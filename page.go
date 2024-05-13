@@ -79,7 +79,6 @@ func (p *PageBuilder) render(
 	c context.Context,
 	head *PageInjector,
 ) (pager *PageResponse, body string) {
-
 	if p.pageRenderFunc == nil {
 		return
 	}
@@ -113,7 +112,7 @@ func (p *PageBuilder) render(
 func (p *PageBuilder) index(w http.ResponseWriter, r *http.Request) {
 	var err error
 
-	var head = &PageInjector{}
+	head := &PageInjector{}
 
 	ctx := new(EventContext)
 	c := WrapEventContext(r.Context(), ctx)
@@ -149,7 +148,6 @@ func (p *PageBuilder) parseForm(r *http.Request) *multipart.Form {
 const EventFuncIDName = "__execute_event__"
 
 func (p *PageBuilder) executeEvent(w http.ResponseWriter, r *http.Request) {
-
 	ctx := new(EventContext)
 	ctx.R = r
 	ctx.W = w

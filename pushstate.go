@@ -40,6 +40,7 @@ func (b *LocationBuilder) MergeWithRemove(key string, values []string) (r *Locat
 	}
 	return b
 }
+
 func (b *LocationBuilder) Query(query url.Values) (r *LocationBuilder) {
 	for k, vs := range query {
 		b.PutQuery(k, vs)

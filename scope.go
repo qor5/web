@@ -28,7 +28,7 @@ func (b *ScopeBuilder) init(attr string, vs ...interface{}) (r *ScopeBuilder) {
 	if len(vs) == 0 {
 		return
 	}
-	var js = make([]string, 0)
+	js := make([]string, 0)
 	for _, v := range vs {
 		switch vt := v.(type) {
 		case string:
@@ -37,7 +37,7 @@ func (b *ScopeBuilder) init(attr string, vs ...interface{}) (r *ScopeBuilder) {
 			js = append(js, h.JSONString(v))
 		}
 	}
-	var initVal = js[0]
+	initVal := js[0]
 	if len(js) > 1 {
 		initVal = "[" + strings.Join(js, ", ") + "]"
 	}

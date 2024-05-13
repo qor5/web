@@ -44,7 +44,7 @@ func PacksHandler(contentType string, packs ...ComponentsPack) http.Handler {
 }
 
 func (b *Builder) PacksHandler(contentType string, packs ...ComponentsPack) http.Handler {
-	var buf = bytes.NewBuffer(nil)
+	buf := bytes.NewBuffer(nil)
 	for _, pk := range packs {
 		// buf = append(buf, []byte(fmt.Sprintf("\n// pack %d\n", i+1))...)
 		// buf = append(buf, []byte(fmt.Sprintf("\nconsole.log('pack %d, length %d');\n", i+1, len(pk)))...)

@@ -48,7 +48,6 @@ func (b *PageInjector) putComp(key interface{}, comp h.HTMLComponent, pos inject
 	}
 
 	b.comps[pos] = append(b.comps[pos], &keyComp{key: key, comp: comp})
-
 }
 
 func (b *PageInjector) getComp(key interface{}, pos injectPosition) *keyComp {

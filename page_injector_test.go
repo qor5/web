@@ -94,7 +94,6 @@ var cases = []struct {
 func TestDefaultPageInjector(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-
 			var b web.PageInjector
 			c.operation(&b)
 			web.SetDefault(&b, "")

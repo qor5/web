@@ -9,3 +9,4 @@ rm -r $CUR/corejs/dist
 echo "Building corejs"
 cd $CUR/corejs && pnpm install && pnpm format && pnpm run build
 curl -fsSL https://unpkg.com/vue@3.4.21/dist/vue.global.prod.js > $CUR/corejs/dist/vue.global.prod.js
+curl -fsSL https://unpkg.com/vue@3.4.21/dist/vue.global.js > $CUR/corejs/dist/vue.global.dev.js

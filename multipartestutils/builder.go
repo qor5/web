@@ -42,7 +42,6 @@ func (b *Builder) AddField(fieldName, value string) *Builder {
 // AddReader adds multipart file field from provided reader.
 func (b *Builder) AddReader(fieldName, fileName string, reader io.Reader) *Builder {
 	b.cbs = append(b.cbs, func(mw *multipart.Writer) error {
-
 		w, err := mw.CreateFormFile(fieldName, fileName)
 		if err != nil {
 			return fmt.Errorf("multipartbuilder: failed to create form file %s (%s) for reader: %s", fieldName, fileName, err.Error())
@@ -61,7 +60,6 @@ func (b *Builder) AddReader(fieldName, fileName string, reader io.Reader) *Build
 // AddFile adds multipart file field from specified file path.
 func (b *Builder) AddFile(fieldName, filePath string) *Builder {
 	b.cbs = append(b.cbs, func(mw *multipart.Writer) error {
-
 		f, err := os.Open(filePath)
 		if err != nil {
 			return fmt.Errorf("multipartbuilder: failed to open file %s (%s): %s", fieldName, filePath, err.Error())

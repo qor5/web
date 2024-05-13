@@ -38,8 +38,10 @@ type EventResponse struct {
 // @snippet_end
 
 // @snippet_begin(PageFuncAndEventFuncDefinition)
-type PageFunc func(ctx *EventContext) (r PageResponse, err error)
-type EventFunc func(ctx *EventContext) (r EventResponse, err error)
+type (
+	PageFunc  func(ctx *EventContext) (r PageResponse, err error)
+	EventFunc func(ctx *EventContext) (r EventResponse, err error)
+)
 
 // @snippet_end
 

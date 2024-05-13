@@ -220,6 +220,7 @@ func (b *VueEventTagBuilder) AfterScript(script string) (r *VueEventTagBuilder) 
 	b.afterScript = script
 	return b
 }
+
 func (b *VueEventTagBuilder) ThenScript(script string) (r *VueEventTagBuilder) {
 	b.thenScript = script
 	return b
