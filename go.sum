@@ -20,6 +20,8 @@ github.com/theplant/htmlgo v1.0.3 h1:G7/YSf8OrOIRHVQ13avd78T/GV1kDl/jMwpQURrXB0o
 github.com/theplant/htmlgo v1.0.3/go.mod h1:pCKSFJsoVNkyW+yN2i1Mst+8130NSQzIU7L2IbnuyKg=
 github.com/theplant/htmltestingutils v0.0.0-20190423050759-0e06de7b6967 h1:yPrgtU8bj7Q/XbXgjjmngZtOhsUufBAraruNwxv/eXM=
 github.com/theplant/htmltestingutils v0.0.0-20190423050759-0e06de7b6967/go.mod h1:86iN4EAYaQbx1VTW5uPslTIviRkYH8CzslMC//g+BgY=
+github.com/theplant/osenv v0.0.1 h1:CCuIqyEVHJmqPTJk9xbCkP3C9tGzkHVsZ5E8m2DmZ7c=
+github.com/theplant/osenv v0.0.1/go.mod h1:gUdlLzvmJb/dyBmXk+qEWiIhAN1tmVhYktzK1HHEz3c=
 github.com/theplant/testingutils v0.0.0-20240326065615-ab2586803ce4 h1:3c6o1DpsFq4u6q7twLE3GxoBERsFNI5+tg+7k8Ivh00=
 github.com/theplant/testingutils v0.0.0-20240326065615-ab2586803ce4/go.mod h1:nh7wj3YTJehg0PBHnPXtvqIqdnBUn0Gqb79JHnblFuc=
 github.com/yosssi/gohtml v0.0.0-20201013000340-ee4748c638f4 h1:0sw0nJM544SpsihWx1bkXdYLQDlzRflMgFJQ4Yih9ts=
