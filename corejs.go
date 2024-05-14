@@ -3,6 +3,7 @@ package web
 // @snippet_begin(PackrSample)
 import (
 	"embed"
+	"os"
 )
 
 //go:embed corejs/dist/*.js
@@ -18,7 +19,11 @@ func JSComponentsPack() ComponentsPack {
 }
 
 func JSVueComponentsPack() ComponentsPack {
-	v, err := box.ReadFile("corejs/dist/vue.global.prod.js")
+	name := "corejs/dist/vue.global.prod.js"
+	if os.Getenv("WEB_VUE_DEBUG") == "true" {
+		name = "corejs/dist/vue.global.dev.js"
+	}
+	v, err := box.ReadFile(name)
 	if err != nil {
 		panic(err)
 	}
