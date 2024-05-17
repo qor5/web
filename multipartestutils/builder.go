@@ -1,7 +1,6 @@
 package multipartestutils
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -144,15 +143,23 @@ func (b *Builder) PageURL(url string) *Builder {
 }
 
 func (b *Builder) BuildEventFuncRequest() (r *http.Request) {
-	eventBody, _ := json.Marshal(b.eb)
-	b.AddField("__event_data__", string(eventBody))
 
 	contentType, body := b.Build()
 	pu := b.pageURL
 	if len(b.pageURL) == 0 {
 		pu = "/"
 	}
-	r = httptest.NewRequest("POST", fmt.Sprintf("%s?%s", pu, b.queries.Encode()), body)
+	parsed, err := url.Parse(pu)
+	if err != nil {
+		panic(err)
+	}
+	for k, vs := range b.queries {
+		for _, v := range vs {
+			parsed.Query().Add(k, v)
+		}
+	}
+
+	r = httptest.NewRequest("POST", parsed.String(), body)
 	r.Header.Add("Content-Type", contentType)
 	return
 }
