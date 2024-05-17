@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"net/http/httputil"
 	"testing"
 )
 
@@ -13,6 +14,7 @@ type TestCase struct {
 	ReqFunc            func() *http.Request
 	EventResponseMatch func(t *testing.T, er *TestEventResponse)
 	PageMatch          func(t *testing.T, body *bytes.Buffer)
+	Debug              bool
 }
 
 type TestPortalUpdate struct {
@@ -33,7 +35,16 @@ type TestEventResponse struct {
 func RunCase(t *testing.T, c TestCase, handler http.Handler) {
 	w := httptest.NewRecorder()
 	r := c.ReqFunc()
+	if c.Debug {
+		bs, _ := httputil.DumpRequest(r, true)
+		t.Log("======== Request ========")
+		t.Log(string(bs))
+	}
 	handler.ServeHTTP(w, r)
+	if c.Debug {
+		t.Log("======== Response ========")
+		t.Log(w.Body.String())
+	}
 	if c.EventResponseMatch != nil {
 		var er TestEventResponse
 		err := json.NewDecoder(w.Body).Decode(&er)
