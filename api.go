@@ -81,8 +81,16 @@ func (e *EventContext) ContextValue(key any) any {
 	return e.R.Context().Value(key)
 }
 
-func (e *EventContext) QueryAsInt(key string) (r int) {
-	strVal := e.R.FormValue(key)
+func (e *EventContext) Param(key string) (r string) {
+	r = e.R.PathValue(key)
+	if len(r) == 0 {
+		r = e.R.FormValue(key)
+	}
+	return
+}
+
+func (e *EventContext) ParamAsInt(key string) (r int) {
+	strVal := e.Param(key)
 	if len(strVal) == 0 {
 		return
 	}

@@ -1,5 +1,7 @@
 package web
 
+import "fmt"
+
 type idEventFunc struct {
 	id string
 	ef EventFunc
@@ -7,6 +9,14 @@ type idEventFunc struct {
 
 type EventsHub struct {
 	eventFuncs []*idEventFunc
+}
+
+func (p *EventsHub) String() string {
+	var rs []string
+	for _, ne := range p.eventFuncs {
+		rs = append(rs, ne.id)
+	}
+	return fmt.Sprintf("%#+v", rs)
 }
 
 func (p *EventsHub) RegisterEventFunc(eventFuncId string, ef EventFunc) (key string) {

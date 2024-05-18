@@ -174,7 +174,7 @@ func (p *PageBuilder) executeEvent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if ef == nil {
-		log.Printf("event %s not found\n", eventFuncID)
+		log.Printf("event %s not found in %s\n", eventFuncID, p.EventsHub.String())
 		http.NotFound(w, r)
 		return
 	}
