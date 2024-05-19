@@ -11,13 +11,15 @@ import (
 )
 
 type TestCase struct {
-	Name                        string
-	ReqFunc                     func() *http.Request
-	EventResponseMatch          func(t *testing.T, er *TestEventResponse)
-	PageMatch                   func(t *testing.T, body *bytes.Buffer)
-	Debug                       bool
-	ExpectPageBodyContains      []string
-	ExpectPortalUpdate0Contains []string
+	Name                           string
+	ReqFunc                        func() *http.Request
+	EventResponseMatch             func(t *testing.T, er *TestEventResponse)
+	PageMatch                      func(t *testing.T, body *bytes.Buffer)
+	Debug                          bool
+	ExpectPageBodyContains         []string
+	ExpectPortalUpdate0Contains    []string
+	ExpectPageBodyNotContains      []string
+	ExpectPortalUpdate0NotContains []string
 }
 
 type TestPortalUpdate struct {
@@ -58,19 +60,10 @@ func RunCase(t *testing.T, c TestCase, handler http.Handler) {
 		c.EventResponseMatch(t, &er)
 	}
 	if len(c.ExpectPortalUpdate0Contains) > 0 {
-		var er TestEventResponse
-		err := json.NewDecoder(w.Body).Decode(&er)
-		if err != nil {
-			t.Errorf("%s for: %s", err, w.Body.String())
-		}
-		if len(er.UpdatePortals) == 0 {
-			t.Errorf("No UpdatePortals in : %#+v", er)
-		}
-		for _, u := range c.ExpectPortalUpdate0Contains {
-			if !strings.Contains(er.UpdatePortals[0].Body, u) {
-				t.Errorf("portal %s doesn't contains: %s", er.UpdatePortals[0].Body, u)
-			}
-		}
+		portalUpdate0AssertFunc(t, c.Debug, c.ExpectPortalUpdate0Contains, w.Body, true)
+	}
+	if len(c.ExpectPortalUpdate0NotContains) > 0 {
+		portalUpdate0AssertFunc(t, c.Debug, c.ExpectPortalUpdate0NotContains, w.Body, false)
 	}
 
 	if c.PageMatch != nil {
@@ -80,6 +73,39 @@ func RunCase(t *testing.T, c TestCase, handler http.Handler) {
 		for _, v := range c.ExpectPageBodyContains {
 			if !strings.Contains(w.Body.String(), v) {
 				t.Errorf("page body %s doesn't contains: %s", w.Body.String(), v)
+			}
+		}
+	}
+	if len(c.ExpectPageBodyNotContains) > 0 {
+		for _, v := range c.ExpectPageBodyNotContains {
+			if strings.Contains(w.Body.String(), v) {
+				t.Errorf("page body %s should not contains: %s", w.Body.String(), v)
+			}
+		}
+	}
+}
+
+func portalUpdate0AssertFunc(t *testing.T, debug bool, candidates []string, body *bytes.Buffer, contains bool) {
+	var er TestEventResponse
+	err := json.NewDecoder(body).Decode(&er)
+	if err != nil {
+		t.Errorf("%s for: %s", err, body.String())
+	}
+	if len(er.UpdatePortals) == 0 {
+		t.Errorf("No UpdatePortals in : %#+v", er)
+	}
+	if debug {
+		t.Log("======== Response UpdatePortal[0] Body ========")
+		t.Log(er.UpdatePortals[0].Body)
+	}
+	for _, u := range candidates {
+		if contains {
+			if !strings.Contains(er.UpdatePortals[0].Body, u) {
+				t.Errorf("portal %s doesn't contains: %s", er.UpdatePortals[0].Body, u)
+			}
+		} else {
+			if strings.Contains(er.UpdatePortals[0].Body, u) {
+				t.Errorf("portal %s should not contains: %s", er.UpdatePortals[0].Body, u)
 			}
 		}
 	}
