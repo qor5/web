@@ -53,7 +53,7 @@ func RunCase(t *testing.T, c TestCase, handler http.Handler) {
 	}
 
 	var er TestEventResponse
-	if w.Header().Get("Content-Type") != "application/json" {
+	if strings.Contains(w.Header().Get("Content-Type"), "application/json") {
 		err := json.NewDecoder(w.Body).Decode(&er)
 		if err != nil {
 			t.Errorf("%s for: %s", err, w.Body.String())
@@ -94,6 +94,7 @@ func portalUpdate0AssertFunc(t *testing.T, er *TestEventResponse, debug bool, ca
 ) {
 	if len(er.UpdatePortals) == 0 {
 		t.Errorf("No UpdatePortals in : %#+v", er)
+		return
 	}
 	if debug {
 		t.Log("======== Response UpdatePortal[0] Body ========")
