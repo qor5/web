@@ -48,22 +48,16 @@ func RunCase(t *testing.T, c TestCase, handler http.Handler) {
 	handler.ServeHTTP(w, r)
 	if c.Debug {
 		t.Log("======== Response ========")
+		t.Log(w.Header())
 		t.Log(w.Body.String())
 	}
 
-	if c.EventResponseMatch != nil {
-		var er TestEventResponse
+	var er TestEventResponse
+	if w.Header().Get("Content-Type") != "application/json" {
 		err := json.NewDecoder(w.Body).Decode(&er)
 		if err != nil {
 			t.Errorf("%s for: %s", err, w.Body.String())
 		}
-		c.EventResponseMatch(t, &er)
-	}
-	if len(c.ExpectPortalUpdate0Contains) > 0 {
-		portalUpdate0AssertFunc(t, c.Debug, c.ExpectPortalUpdate0Contains, w.Body, true)
-	}
-	if len(c.ExpectPortalUpdate0NotContains) > 0 {
-		portalUpdate0AssertFunc(t, c.Debug, c.ExpectPortalUpdate0NotContains, w.Body, false)
 	}
 
 	if c.PageMatch != nil {
@@ -83,14 +77,21 @@ func RunCase(t *testing.T, c TestCase, handler http.Handler) {
 			}
 		}
 	}
+
+	if c.EventResponseMatch != nil {
+		c.EventResponseMatch(t, &er)
+	}
+	if len(c.ExpectPortalUpdate0Contains) > 0 {
+		portalUpdate0AssertFunc(t, &er, c.Debug, c.ExpectPortalUpdate0Contains, w.Body, true)
+	}
+	if len(c.ExpectPortalUpdate0NotContains) > 0 {
+		portalUpdate0AssertFunc(t, &er, c.Debug, c.ExpectPortalUpdate0NotContains, w.Body, false)
+	}
 }
 
-func portalUpdate0AssertFunc(t *testing.T, debug bool, candidates []string, body *bytes.Buffer, contains bool) {
-	var er TestEventResponse
-	err := json.NewDecoder(body).Decode(&er)
-	if err != nil {
-		t.Errorf("%s for: %s", err, body.String())
-	}
+func portalUpdate0AssertFunc(t *testing.T, er *TestEventResponse, debug bool, candidates []string, body *bytes.Buffer,
+	contains bool,
+) {
 	if len(er.UpdatePortals) == 0 {
 		t.Errorf("No UpdatePortals in : %#+v", er)
 	}

@@ -199,6 +199,7 @@ func (p *PageBuilder) executeEvent(w http.ResponseWriter, r *http.Request) {
 		up.Body = h.RawHTML(h.MustString(up.Body, c))
 	}
 
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	err = json.NewEncoder(w).Encode(er)
 	if err != nil {
 		panic(err)
