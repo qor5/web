@@ -125,6 +125,8 @@ func (p *PageBuilder) index(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	_, err = fmt.Fprintln(w, resp)
 	if err != nil {
 		panic(err)

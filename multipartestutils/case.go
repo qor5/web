@@ -15,6 +15,7 @@ type TestCase struct {
 	ReqFunc                        func() *http.Request
 	EventResponseMatch             func(t *testing.T, er *TestEventResponse)
 	PageMatch                      func(t *testing.T, body *bytes.Buffer)
+	ResponseMatch                  func(t *testing.T, w *httptest.ResponseRecorder)
 	Debug                          bool
 	ExpectPageBodyContains         []string
 	ExpectPortalUpdate0Contains    []string
@@ -50,6 +51,10 @@ func RunCase(t *testing.T, c TestCase, handler http.Handler) {
 		t.Log("======== Response ========")
 		t.Log(w.Header())
 		t.Log(w.Body.String())
+	}
+
+	if c.ResponseMatch != nil {
+		c.ResponseMatch(t, w)
 	}
 
 	var er TestEventResponse
