@@ -1,6 +1,15 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { mountTemplate } from './testutils'
-import { nextTick } from 'vue'
+import { defineComponent, nextTick } from 'vue'
+import { flushPromises } from '@vue/test-utils'
+import GoPlaidScope from '../go-plaid-scope.vue'
+import GoPlaidPortal from '../go-plaid-portal.vue'
+
+export default defineComponent({
+  components: { GoPlaidPortal, GoPlaidScope }
+})
+
+declare let window: any
 
 describe('scope', () => {
   it('vars and form', async () => {
@@ -79,5 +88,37 @@ describe('scope', () => {
     expect(testArray.text()).toEqual(`123, true, two`)
     const testObject: any = wrapper.find('#testObject')
     expect(testObject.text()).toEqual(`123, 456, three`)
+  })
+
+  it('scope locals update portal', async () => {
+    const Root = {
+      template: `
+              <go-plaid-scope :init="{hello:'123'}" v-slot="{locals }">
+                <go-plaid-portal portal-name="test" :locals="locals" :visible="true">
+                </go-plaid-portal>
+                <button
+                    @click='update'>
+                </button>
+              </go-plaid-scope>
+
+            `,
+      setup() {
+        return {
+          update: () => {
+            window.__goplaid = window.__goplaid ?? {}
+            window.__goplaid.portals = window.__goplaid.portals ?? {}
+            const { updatePortalTemplate } = window.__goplaid.portals['test']
+            updatePortalTemplate(`<div id="test">{{locals.hello}}</div>`)
+          }
+        }
+      }
+    }
+    const wrapper = mountTemplate(`<Root></Root>`, { components: { Root } })
+    await nextTick()
+    await flushPromises()
+    await wrapper.find('button').trigger('click')
+    await nextTick()
+    await flushPromises()
+    expect(wrapper.html()).toContain('123')
   })
 })

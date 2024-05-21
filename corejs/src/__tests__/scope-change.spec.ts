@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { mockFetchWithReturnTemplate, mountTemplate, waitUntil } from './testutils'
 import { nextTick, ref } from 'vue'
 
@@ -59,5 +59,40 @@ describe('scope change', () => {
     await waitUntil(() => form.value.get('value') === '123')
     console.log(wrapper.html())
     expect(fetchCount).toEqual(1)
+  })
+
+  it('debounce assign', async () => {
+    const wrapper = mountTemplate(`
+      <div>
+        <go-plaid-scope 
+            :form-init="{value:0}"
+            v-slot="{ form }" 
+            @change-debounced='({form,locals,oldLocals,oldForm}) => { form.value++ }'
+            :use-debounce='800'
+        >
+          <v-text-field id="name" v-model="form.name" v-assign="[form,{'name':'debounced'}]"></v-text-field>
+          <button @click="form.name='change'"></button>
+          <h1>{{form.value}}</h1>
+        </go-plaid-scope>
+      </div>
+      `)
+
+    await nextTick()
+    await waitUntil(() => (wrapper.find('.v-field input').element as any).value === 'debounced')
+    await new Promise((resolve, reject) => {
+      setTimeout(() => {
+        resolve('')
+      }, 800)
+    })
+    expect(wrapper.find('h1').text()).toEqual('0')
+    await wrapper.find('button').trigger('click')
+    await waitUntil(() => (wrapper.find('.v-field input').element as any).value === 'change')
+    await new Promise((resolve, reject) => {
+      setTimeout(() => {
+        resolve('')
+      }, 800)
+    })
+    expect(wrapper.find('h1').text()).toEqual('1')
+    console.log(wrapper.html())
   })
 })

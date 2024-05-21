@@ -143,7 +143,6 @@ func (b *Builder) PageURL(url string) *Builder {
 }
 
 func (b *Builder) BuildEventFuncRequest() (r *http.Request) {
-
 	contentType, body := b.Build()
 	pu := b.pageURL
 	if len(b.pageURL) == 0 {
