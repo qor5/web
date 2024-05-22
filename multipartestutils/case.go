@@ -11,16 +11,16 @@ import (
 )
 
 type TestCase struct {
-	Name                           string
-	ReqFunc                        func() *http.Request
-	EventResponseMatch             func(t *testing.T, er *TestEventResponse)
-	PageMatch                      func(t *testing.T, body *bytes.Buffer)
-	ResponseMatch                  func(t *testing.T, w *httptest.ResponseRecorder)
-	Debug                          bool
-	ExpectPageBodyContains         []string
-	ExpectPortalUpdate0Contains    []string
-	ExpectPageBodyNotContains      []string
-	ExpectPortalUpdate0NotContains []string
+	Name                               string
+	ReqFunc                            func() *http.Request
+	EventResponseMatch                 func(t *testing.T, er *TestEventResponse)
+	PageMatch                          func(t *testing.T, body *bytes.Buffer)
+	ResponseMatch                      func(t *testing.T, w *httptest.ResponseRecorder)
+	Debug                              bool
+	ExpectPageBodyContainsInOrder      []string
+	ExpectPortalUpdate0ContainsInOrder []string
+	ExpectPageBodyNotContains          []string
+	ExpectPortalUpdate0NotContains     []string
 }
 
 type TestPortalUpdate struct {
@@ -68,11 +68,9 @@ func RunCase(t *testing.T, c TestCase, handler http.Handler) {
 	if c.PageMatch != nil {
 		c.PageMatch(t, w.Body)
 	}
-	if len(c.ExpectPageBodyContains) > 0 {
-		for _, v := range c.ExpectPageBodyContains {
-			if !strings.Contains(w.Body.String(), v) {
-				t.Errorf("page body %s doesn't contains: %s", w.Body.String(), v)
-			}
+	if len(c.ExpectPageBodyContainsInOrder) > 0 {
+		if !containsInOrder(w.Body.String(), c.ExpectPageBodyContainsInOrder) {
+			t.Errorf("page body %s should contains in correct order: %#+v", w.Body.String(), c.ExpectPageBodyContainsInOrder)
 		}
 	}
 	if len(c.ExpectPageBodyNotContains) > 0 {
@@ -86,12 +84,25 @@ func RunCase(t *testing.T, c TestCase, handler http.Handler) {
 	if c.EventResponseMatch != nil {
 		c.EventResponseMatch(t, &er)
 	}
-	if len(c.ExpectPortalUpdate0Contains) > 0 {
-		portalUpdate0AssertFunc(t, &er, c.Debug, c.ExpectPortalUpdate0Contains, w.Body, true)
+	if len(c.ExpectPortalUpdate0ContainsInOrder) > 0 {
+		portalUpdate0AssertFunc(t, &er, c.Debug, c.ExpectPortalUpdate0ContainsInOrder, w.Body, true)
 	}
 	if len(c.ExpectPortalUpdate0NotContains) > 0 {
 		portalUpdate0AssertFunc(t, &er, c.Debug, c.ExpectPortalUpdate0NotContains, w.Body, false)
 	}
+}
+
+func containsInOrder(body string, candidates []string) bool {
+	var previousIndex int
+	for _, candidate := range candidates {
+		i := strings.Index(body, candidate)
+
+		if i < previousIndex {
+			return false
+		}
+		previousIndex = i
+	}
+	return true
 }
 
 func portalUpdate0AssertFunc(t *testing.T, er *TestEventResponse, debug bool, candidates []string, body *bytes.Buffer,
@@ -105,12 +116,12 @@ func portalUpdate0AssertFunc(t *testing.T, er *TestEventResponse, debug bool, ca
 		t.Log("======== Response UpdatePortal[0] Body ========")
 		t.Log(er.UpdatePortals[0].Body)
 	}
-	for _, u := range candidates {
-		if contains {
-			if !strings.Contains(er.UpdatePortals[0].Body, u) {
-				t.Errorf("portal %s doesn't contains: %s", er.UpdatePortals[0].Body, u)
-			}
-		} else {
+	if contains {
+		if !containsInOrder(er.UpdatePortals[0].Body, candidates) {
+			t.Errorf("portal %s should contains in correct order: %#+v", er.UpdatePortals[0].Body, candidates)
+		}
+	} else {
+		for _, u := range candidates {
 			if strings.Contains(er.UpdatePortals[0].Body, u) {
 				t.Errorf("portal %s should not contains: %s", er.UpdatePortals[0].Body, u)
 			}
