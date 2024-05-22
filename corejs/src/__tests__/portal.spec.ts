@@ -2,6 +2,7 @@ import { defineComponent, inject, nextTick, ref } from 'vue'
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect } from 'vitest'
 import { mockFetchWithReturnTemplate, mountTemplate, waitUntil } from './testutils'
+declare let window: any
 
 describe('portal', () => {
   it('vars and form value change', async () => {
@@ -272,5 +273,26 @@ describe('portal', () => {
 
     // after reload the portal, check if the input value is still 123
     expect((document.getElementById('companyInput') as HTMLInputElement).value).toEqual('123')
+  })
+  it('reload portal  keep height', async () => {
+    const template = `
+        <div>
+        <go-plaid-portal  portal-name='content' :visible="true">
+            </go-plaid-portal>
+        </div>
+      `
+
+    const wrapper = mountTemplate(template)
+    await nextTick()
+    await flushPromises()
+    window.__goplaid = window.__goplaid ?? {}
+    window.__goplaid.portals = window.__goplaid.portals ?? {}
+    const { updatePortalTemplate } = window.__goplaid.portals['content']
+    updatePortalTemplate(
+      `<iframe ref="test" style="height: 400px;width: 100px" id="content" src="https://www.google.com/"></iframe>`
+    )
+    await nextTick()
+    await flushPromises()
+    expect(wrapper.find('.go-plaid-portal').attributes().style.concat('height: 400px;'))
   })
 })

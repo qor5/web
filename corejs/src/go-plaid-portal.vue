@@ -1,5 +1,5 @@
 <template>
-  <div class="go-plaid-portal" v-if="visible">
+  <div class="go-plaid-portal" v-if="visible" ref="portal">
     <component :is="current" v-if="current">
       <slot :form="form" :locals="locals"></slot>
     </component>
@@ -9,6 +9,7 @@
 <script setup lang="ts">
 import {
   type DefineComponent,
+  onBeforeMount,
   onBeforeUnmount,
   onMounted,
   onUpdated,
@@ -21,6 +22,8 @@ import type { EventResponse } from '@/types'
 declare let window: any
 window.__goplaid = window.__goplaid ?? {}
 window.__goplaid.portals = window.__goplaid.portals ?? {}
+
+const portal = ref()
 
 const props = defineProps({
   loader: Object,
@@ -36,17 +39,20 @@ const current = shallowRef<DefineComponent | null>(null)
 const autoReloadIntervalID = ref<number>(0)
 
 const updatePortalTemplate = (template: string) => {
-  current.value = componentByTemplate(template, props.form, props.locals)
+  current.value = componentByTemplate(template, props.form, props.locals, portal)
 }
 const slots = useSlots()
 
 // other reactive properties and methods
 const reload = () => {
   if (slots.default) {
-    current.value = componentByTemplate('<slot :form="form" :locals="locals"></slot>', props.locals)
+    current.value = componentByTemplate(
+      '<slot :form="form" :locals="locals"></slot>',
+      props.locals,
+      portal
+    )
     return
   }
-
   const ef = props.loader
   if (!ef) {
     return
@@ -64,7 +70,6 @@ onMounted(() => {
   if (pn) {
     window.__goplaid.portals[pn] = { updatePortalTemplate, reload }
   }
-
   reload()
 })
 

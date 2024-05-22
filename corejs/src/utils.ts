@@ -3,8 +3,7 @@ import querystring from 'query-string'
 import union from 'lodash/union'
 import without from 'lodash/without'
 import type { EventFuncID, ValueOp } from './types'
-import { defineComponent, inject } from 'vue'
-import type { DefineComponent } from 'vue'
+import { type DefineComponent, defineComponent, inject, ref, type Ref } from 'vue'
 
 export function buildPushState(eventFuncId: EventFuncID, url: string): any {
   const loc = eventFuncId.location
@@ -191,7 +190,8 @@ function formSet(form: FormData, fieldName: string, val: string): boolean {
 export function componentByTemplate(
   template: string,
   form: any,
-  locals: any = {}
+  locals: any = {},
+  portal: Ref = ref()
 ): DefineComponent {
   return defineComponent({
     setup() {
@@ -203,6 +203,13 @@ export function componentByTemplate(
         form: form,
         locals: locals
       }
+    },
+    mounted() {
+      this.$nextTick(() => /**/ {
+        if (this.$el.style && this.$el.style.height) {
+          portal.value.style.height = this.$el.style.height
+        }
+      })
     },
     template
   })
