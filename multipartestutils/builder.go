@@ -152,10 +152,15 @@ func (b *Builder) BuildEventFuncRequest() (r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	for k, vs := range b.queries {
-		for _, v := range vs {
-			parsed.Query().Add(k, v)
+
+	if len(b.queries) > 0 {
+		query := parsed.Query()
+		for k, vs := range b.queries {
+			for _, v := range vs {
+				query.Add(k, v)
+			}
 		}
+		parsed.RawQuery = query.Encode()
 	}
 
 	r = httptest.NewRequest("POST", parsed.String(), body)
