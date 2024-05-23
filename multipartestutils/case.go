@@ -29,13 +29,24 @@ type TestPortalUpdate struct {
 	AfterLoaded string `json:"afterLoaded,omitempty"`
 }
 
+type TestLocationBuilder struct {
+	MyMergeQuery          bool     `json:"mergeQuery,omitempty"`
+	MyURL                 string   `json:"url,omitempty"`
+	MyStringQuery         string   `json:"stringQuery,omitempty"`
+	MyClearMergeQueryKeys []string `json:"clearMergeQueryKeys,omitempty"`
+	// MyQuery               map[string]json.Marshaler `json:"query,omitempty"` // TODO: need test
+}
+
 type TestEventResponse struct {
-	PageTitle     string              `json:"pageTitle,omitempty"`
-	Body          string              `json:"body,omitempty"`
-	Reload        bool                `json:"reload,omitempty"`
-	ReloadPortals []string            `json:"reloadPortals,omitempty"`
-	UpdatePortals []*TestPortalUpdate `json:"updatePortals,omitempty"`
-	Data          interface{}         `json:"data,omitempty"`
+	PageTitle     string               `json:"pageTitle,omitempty"`
+	Body          string               `json:"body,omitempty"`
+	Reload        bool                 `json:"reload,omitempty"`
+	PushState     *TestLocationBuilder `json:"pushState"`
+	RedirectURL   string               `json:"redirectURL,omitempty"`
+	ReloadPortals []string             `json:"reloadPortals,omitempty"`
+	UpdatePortals []*TestPortalUpdate  `json:"updatePortals,omitempty"`
+	Data          interface{}          `json:"data,omitempty"`
+	RunScript     string               `json:"runScript,omitempty"`
 }
 
 func RunCase(t *testing.T, c TestCase, handler http.Handler) {
