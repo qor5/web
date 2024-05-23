@@ -21,6 +21,7 @@ type TestCase struct {
 	ExpectPortalUpdate0ContainsInOrder []string
 	ExpectPageBodyNotContains          []string
 	ExpectPortalUpdate0NotContains     []string
+	ExpectRunScriptContainsInOrder     []string
 }
 
 type TestPortalUpdate struct {
@@ -94,6 +95,11 @@ func RunCase(t *testing.T, c TestCase, handler http.Handler) {
 
 	if c.EventResponseMatch != nil {
 		c.EventResponseMatch(t, &er)
+	}
+	if len(c.ExpectRunScriptContainsInOrder) > 0 {
+		if !containsInOrder(er.RunScript, c.ExpectRunScriptContainsInOrder) {
+			t.Errorf("runScript %s should contains in correct order: %#+v", er.RunScript, c.ExpectRunScriptContainsInOrder)
+		}
 	}
 	if len(c.ExpectPortalUpdate0ContainsInOrder) > 0 {
 		portalUpdate0AssertFunc(t, &er, c.Debug, c.ExpectPortalUpdate0ContainsInOrder, w.Body, true)
