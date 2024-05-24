@@ -301,3 +301,7 @@ func VField(name string, value interface{}) []interface{} {
 func GlobalEvents() *h.HTMLTagBuilder {
 	return h.Tag("global-events")
 }
+
+func RunScript(s string) *h.HTMLTagBuilder {
+	return h.Tag("go-plaid-run-script").Attr(":script", s)
+}

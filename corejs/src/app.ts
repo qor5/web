@@ -12,6 +12,7 @@ import {
 import { GlobalEvents } from 'vue-global-events'
 import GoPlaidScope from '@/go-plaid-scope.vue'
 import GoPlaidPortal from '@/go-plaid-portal.vue'
+import GoPlaidRunScript from '@/go-plaid-run-script.vue'
 import { componentByTemplate } from '@/utils'
 import { Builder, plaid } from '@/builder'
 import { keepScroll } from '@/keepScroll'
@@ -74,6 +75,7 @@ export const plaidPlugin = {
   install(app: App) {
     app.component('GoPlaidScope', GoPlaidScope)
     app.component('GoPlaidPortal', GoPlaidPortal)
+    app.component('GoPlaidRunScript', GoPlaidRunScript)
     app.directive('keep-scroll', keepScroll)
     app.directive('assign', assignOnMounted)
     app.component('GlobalEvents', GlobalEvents)
