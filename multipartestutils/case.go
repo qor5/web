@@ -110,14 +110,12 @@ func RunCase(t *testing.T, c TestCase, handler http.Handler) {
 }
 
 func containsInOrder(body string, candidates []string) bool {
-	var previousIndex int
 	for _, candidate := range candidates {
 		i := strings.Index(body, candidate)
-
-		if i < previousIndex {
+		if i < 0 {
 			return false
 		}
-		previousIndex = i
+		body = body[i+len(candidate):]
 	}
 	return true
 }
