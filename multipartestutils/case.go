@@ -12,6 +12,7 @@ import (
 
 type TestCase struct {
 	Name                               string
+	HandlerMaker                       func() http.Handler
 	ReqFunc                            func() *http.Request
 	EventResponseMatch                 func(t *testing.T, er *TestEventResponse)
 	PageMatch                          func(t *testing.T, body *bytes.Buffer)
@@ -48,6 +49,10 @@ type TestEventResponse struct {
 	UpdatePortals []*TestPortalUpdate  `json:"updatePortals,omitempty"`
 	Data          interface{}          `json:"data,omitempty"`
 	RunScript     string               `json:"runScript,omitempty"`
+}
+
+func RunHandlerCase(t *testing.T, c TestCase) {
+	RunCase(t, c, c.HandlerMaker())
 }
 
 func RunCase(t *testing.T, c TestCase, handler http.Handler) {

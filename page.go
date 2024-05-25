@@ -78,9 +78,14 @@ func (p *PageBuilder) render(
 	r *http.Request,
 	c context.Context,
 	head *PageInjector,
+	event bool,
 ) (pager *PageResponse, body string) {
 	if p.pageRenderFunc == nil {
 		return
+	}
+	rf := p.pageRenderFunc
+	if !event {
+		rf = p.b.layoutFunc(p.pageRenderFunc)
 	}
 
 	ctx := MustGetEventContext(c)
@@ -89,7 +94,7 @@ func (p *PageBuilder) render(
 	ctx.W = w
 	ctx.Injector = head
 
-	pr, err := p.pageRenderFunc(ctx)
+	pr, err := rf(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -112,22 +117,14 @@ func (p *PageBuilder) render(
 func (p *PageBuilder) index(w http.ResponseWriter, r *http.Request) {
 	var err error
 
-	head := &PageInjector{}
+	inj := &PageInjector{}
 
 	ctx := new(EventContext)
 	c := WrapEventContext(r.Context(), ctx)
-	pr, body := p.render(w, r, c, head)
-
-	head.setDefault(pr.PageTitle)
-
-	var resp string
-	resp, err = p.b.layoutFunc(r, head, body)
-	if err != nil {
-		panic(err)
-	}
+	_, body := p.render(w, r, c, inj, false)
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	_, err = fmt.Fprintln(w, resp)
+	_, err = fmt.Fprintln(w, body)
 	if err != nil {
 		panic(err)
 	}
@@ -166,8 +163,7 @@ func (p *PageBuilder) executeEvent(w http.ResponseWriter, r *http.Request) {
 		p.eventFuncById(eventFuncID) == nil &&
 		p.b.eventFuncById(eventFuncID) == nil {
 		log.Println("Re-render because event funcs gone, might server restarted")
-		head := &PageInjector{}
-		p.render(w, r, c, head)
+		p.render(w, r, c, &PageInjector{}, true)
 	}
 
 	ef := p.eventFuncById(eventFuncID)
@@ -187,8 +183,7 @@ func (p *PageBuilder) executeEvent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if er.Reload {
-		head := &PageInjector{}
-		pr, body := p.render(w, r, c, head)
+		pr, body := p.render(w, r, c, &PageInjector{}, true)
 		er.Body = h.RawHTML(body)
 		if len(er.PageTitle) == 0 {
 			er.PageTitle = pr.PageTitle

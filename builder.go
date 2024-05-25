@@ -2,7 +2,6 @@ package web
 
 import (
 	"bytes"
-	"context"
 	"net/http"
 	"strings"
 	"time"
@@ -69,31 +68,29 @@ func NoopLayoutFunc(r *http.Request, injector *PageInjector, body string) (outpu
 	return
 }
 
-func defaultLayoutFunc(r *http.Request, injector *PageInjector, body string) (output string, err error) {
-	root := h.HTMLComponents{
-		h.RawHTML("<!DOCTYPE html>\n"),
-		h.Tag("html").Children(
-			h.Head(
-				injector.GetHeadHTMLComponent(),
-			),
-			h.Body(
-				h.Div(
-					h.RawHTML(body),
-				).Id("app").Attr("v-cloak", true),
-				injector.GetTailHTMLComponent(),
-			).Class("front"),
-		).AttrIf("lang", injector.GetHTMLLang(), injector.GetHTMLLang() != ""),
-	}
-
-	buf := bytes.NewBuffer(nil)
-	ctx := new(EventContext)
-	ctx.R = r
-
-	err = h.Fprint(buf, root, WrapEventContext(context.TODO(), ctx))
-	if err != nil {
+func defaultLayoutFunc(in PageFunc) PageFunc {
+	return func(ctx *EventContext) (r PageResponse, err error) {
+		r, err = in(ctx)
+		if r.PageTitle != "" {
+			ctx.Injector.Title(r.PageTitle)
+		}
+		if err != nil {
+			panic(err)
+		}
+		r.Body = h.HTMLComponents{
+			h.RawHTML("<!DOCTYPE html>\n"),
+			h.Tag("html").Children(
+				h.Head(
+					ctx.Injector.GetHeadHTMLComponent(),
+				),
+				h.Body(
+					h.Div(
+						r.Body,
+					).Id("app").Attr("v-cloak", true),
+					ctx.Injector.GetTailHTMLComponent(),
+				).Class("front"),
+			).Attr(ctx.Injector.HTMLLangAttrs()...),
+		}
 		return
 	}
-
-	output = buf.String()
-	return
 }

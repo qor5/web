@@ -45,7 +45,7 @@ type (
 
 // @snippet_end
 
-type LayoutFunc func(r *http.Request, injector *PageInjector, body string) (output string, err error)
+type LayoutFunc func(in PageFunc) PageFunc
 
 // @snippet_begin(EventFuncHubDefinition)
 type EventFuncHub interface {

@@ -65,14 +65,11 @@ func (b *PageInjector) SkipDefaultSetting() {
 	b.skipDefaultSetting = true
 }
 
-func (b *PageInjector) setDefault(pageTitle string) {
+func (b *PageInjector) setDefault() {
 	if b.skipDefaultSetting {
 		return
 	}
 
-	if !b.HasTitle() && len(pageTitle) > 0 {
-		b.Title(pageTitle)
-	}
 	if b.getComp(MetaKey("charset"), head) == nil {
 		b.Meta(MetaKey("charset"), "charset", "utf8")
 	}
@@ -134,6 +131,7 @@ func toHTMLComponent(list []*keyComp) h.HTMLComponent {
 }
 
 func (b *PageInjector) GetHeadHTMLComponent() h.HTMLComponent {
+	b.setDefault()
 	return toHTMLComponent(b.comps[head])
 }
 
@@ -150,8 +148,11 @@ func (b *PageInjector) HTMLLang(lang string) {
 	return
 }
 
-func (b *PageInjector) GetHTMLLang() string {
-	return b.lang
+func (b *PageInjector) HTMLLangAttrs() []any {
+	if len(b.lang) == 0 {
+		return nil
+	}
+	return []any{"lang", b.lang}
 }
 
 func (b *PageInjector) addNode(tag *h.HTMLTagBuilder, key interface{}, replace bool, body string, attrs ...string) {
