@@ -63,9 +63,8 @@ func (b *Builder) PacksHandler(contentType string, packs ...ComponentsPack) http
 	}))
 }
 
-func NoopLayoutFunc(r *http.Request, injector *PageInjector, body string) (output string, err error) {
-	output = body
-	return
+func NoopLayoutFunc(in PageFunc) PageFunc {
+	return in
 }
 
 func defaultLayoutFunc(in PageFunc) PageFunc {
