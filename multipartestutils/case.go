@@ -36,7 +36,6 @@ type TestLocationBuilder struct {
 	MyURL                 string   `json:"url,omitempty"`
 	MyStringQuery         string   `json:"stringQuery,omitempty"`
 	MyClearMergeQueryKeys []string `json:"clearMergeQueryKeys,omitempty"`
-	// MyQuery               map[string]json.Marshaler `json:"query,omitempty"` // TODO: need test
 }
 
 type TestEventResponse struct {
