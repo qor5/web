@@ -115,7 +115,7 @@ func TestLayoutFunc(t *testing.T) {
 			Debug: true,
 			Name:  "customized layout",
 			HandlerMaker: func() http.Handler {
-				var b = web.New().LayoutFunc(func(in web.PageFunc) web.PageFunc {
+				b := web.New().LayoutFunc(func(in web.PageFunc) web.PageFunc {
 					return func(ctx *web.EventContext) (r web.PageResponse, err error) {
 						r, err = in(ctx)
 						r.Body = h.Div(r.Body)
@@ -129,7 +129,6 @@ func TestLayoutFunc(t *testing.T) {
 				}).Builder(b)
 			},
 			ReqFunc: func() *http.Request {
-
 				return httptest.NewRequest("GET", "/hello", nil)
 			},
 			ExpectPageBodyNotContains: []string{"<head>", "utf8", "viewport", "<body>"},
@@ -164,6 +163,20 @@ func TestLayoutFunc(t *testing.T) {
 			},
 			ExpectPageBodyNotContains: []string{"utf8"},
 		},
+		{
+			Debug: true,
+			Name:  "no op layout",
+			HandlerMaker: func() http.Handler {
+				return web.Page(func(ctx *web.EventContext) (r web.PageResponse, err error) {
+					r.Body = h.Div().Text("hello")
+					return
+				}).Builder(web.New().LayoutFunc(web.NoopLayoutFunc))
+			},
+			ReqFunc: func() *http.Request {
+				return httptest.NewRequest("GET", "/hello", nil)
+			},
+			ExpectPageBodyContainsInOrder: []string{"<div>hello</div>"},
+		},
 	}
 
 	for _, c := range cases {
@@ -171,5 +184,4 @@ func TestLayoutFunc(t *testing.T) {
 			multipartestutils.RunHandlerCase(t, c)
 		})
 	}
-
 }
