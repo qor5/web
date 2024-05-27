@@ -181,7 +181,7 @@ func TestLayoutFunc(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.Name, func(t *testing.T) {
-			multipartestutils.RunHandlerCase(t, c)
+			multipartestutils.RunCase(t, c, nil)
 		})
 	}
 }

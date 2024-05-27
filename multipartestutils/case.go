@@ -50,10 +50,6 @@ type TestEventResponse struct {
 	RunScript     string               `json:"runScript,omitempty"`
 }
 
-func RunHandlerCase(t *testing.T, c TestCase) {
-	RunCase(t, c, c.HandlerMaker())
-}
-
 func RunCase(t *testing.T, c TestCase, handler http.Handler) {
 	w := httptest.NewRecorder()
 	r := c.ReqFunc()
@@ -61,6 +57,9 @@ func RunCase(t *testing.T, c TestCase, handler http.Handler) {
 		bs, _ := httputil.DumpRequest(r, true)
 		t.Log("======== Request ========")
 		t.Log(string(bs))
+	}
+	if c.HandlerMaker != nil {
+		handler = c.HandlerMaker()
 	}
 	handler.ServeHTTP(w, r)
 	if c.Debug {
