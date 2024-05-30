@@ -30,6 +30,11 @@ func (b *SlotBuilder) Name(v string) (r *SlotBuilder) {
 	return b
 }
 
+func (b *SlotBuilder) Children(comps ...h.HTMLComponent) (r *SlotBuilder) {
+	b.tag.Children(comps...)
+	return b
+}
+
 func (b *SlotBuilder) MarshalHTML(ctx context.Context) (r []byte, err error) {
 	if len(b.name) == 0 {
 		panic("Slot(...).Name(name) required")

@@ -66,6 +66,11 @@ func (b *ScopeBuilder) UseDebounce(v int) (r *ScopeBuilder) {
 	return b
 }
 
+func (b *ScopeBuilder) Children(comps ...h.HTMLComponent) (r *ScopeBuilder) {
+	b.tag.Children(comps...)
+	return b
+}
+
 func (b *ScopeBuilder) MarshalHTML(ctx context.Context) (r []byte, err error) {
 	return b.tag.MarshalHTML(ctx)
 }
