@@ -26,4 +26,4 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Install pnpm
         run: npm install -g pnpm
-      - run: cd ./corejs && pnpm install && pnpm run test
+      - run: cd ./corejs && pnpm install && pnpm run test:unit
