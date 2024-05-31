@@ -1,50 +1,17 @@
-import Vue from 'vue';
-import {DynaCompData} from "@/portal";
-import {componentByTemplate} from "@/utils";
-import "@/setup"
+import { createWebApp } from '@/app'
 
-const app = document.getElementById('app');
-if (!app) {
-	throw new Error('#app required');
+const appElement = document.getElementById('app')
+if (!appElement) {
+  throw new Error('#app required')
 }
 
-declare var window: any;
+declare let window: any
 
-const vueOptions = {};
-for (const registerComp of (window.__goplaidVueComponentRegisters || [])) {
-	registerComp(Vue, vueOptions);
+const vueOptions = {}
+const app = createWebApp(appElement.innerHTML)
+
+for (const registerComp of window.__goplaidVueComponentRegisters || []) {
+  registerComp(app, vueOptions)
 }
 
-const vm = new Vue({
-	...{
-
-		provide: {
-			vars: Vue.observable({}),
-		},
-
-		template: `
-			<div id="app" v-cloak>
-			<component :is="current"></component>
-			</div>
-		`,
-
-		mounted() {
-			this.current = componentByTemplate(app.innerHTML, (this as any).plaidForm)
-			window.onpopstate = (evt: any) => {
-				if (evt && evt.state != null) {
-					(this as any).$plaid().onpopstate(evt);
-				}
-			};
-		},
-
-		data(): DynaCompData {
-			return {
-				current: null,
-			};
-		},
-
-	},
-	...vueOptions,
-});
-
-vm.$mount('#app');
+app.mount('#app')

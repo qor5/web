@@ -1,7 +1,6 @@
 package multipartestutils
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -42,7 +41,6 @@ func (b *Builder) AddField(fieldName, value string) *Builder {
 // AddReader adds multipart file field from provided reader.
 func (b *Builder) AddReader(fieldName, fileName string, reader io.Reader) *Builder {
 	b.cbs = append(b.cbs, func(mw *multipart.Writer) error {
-
 		w, err := mw.CreateFormFile(fieldName, fileName)
 		if err != nil {
 			return fmt.Errorf("multipartbuilder: failed to create form file %s (%s) for reader: %s", fieldName, fileName, err.Error())
@@ -61,7 +59,6 @@ func (b *Builder) AddReader(fieldName, fileName string, reader io.Reader) *Build
 // AddFile adds multipart file field from specified file path.
 func (b *Builder) AddFile(fieldName, filePath string) *Builder {
 	b.cbs = append(b.cbs, func(mw *multipart.Writer) error {
-
 		f, err := os.Open(filePath)
 		if err != nil {
 			return fmt.Errorf("multipartbuilder: failed to open file %s (%s): %s", fieldName, filePath, err.Error())
@@ -146,15 +143,27 @@ func (b *Builder) PageURL(url string) *Builder {
 }
 
 func (b *Builder) BuildEventFuncRequest() (r *http.Request) {
-	eventBody, _ := json.Marshal(b.eb)
-	b.AddField("__event_data__", string(eventBody))
-
 	contentType, body := b.Build()
 	pu := b.pageURL
 	if len(b.pageURL) == 0 {
 		pu = "/"
 	}
-	r = httptest.NewRequest("POST", fmt.Sprintf("%s?%s", pu, b.queries.Encode()), body)
+	parsed, err := url.Parse(pu)
+	if err != nil {
+		panic(err)
+	}
+
+	if len(b.queries) > 0 {
+		query := parsed.Query()
+		for k, vs := range b.queries {
+			for _, v := range vs {
+				query.Add(k, v)
+			}
+		}
+		parsed.RawQuery = query.Encode()
+	}
+
+	r = httptest.NewRequest("POST", parsed.String(), body)
 	r.Header.Add("Content-Type", contentType)
 	return
 }

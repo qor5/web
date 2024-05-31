@@ -9,13 +9,13 @@ import (
 	"strings"
 	"testing"
 
-	. "github.com/qor5/web"
-	"github.com/qor5/web/multipartestutils"
+	. "github.com/qor5/web/v3"
+	"github.com/qor5/web/v3/multipartestutils"
 	h "github.com/theplant/htmlgo"
 	"github.com/theplant/htmltestingutils"
 	"github.com/theplant/testingutils"
-	"goji.io"
-	"goji.io/pat"
+	"goji.io/v3"
+	"goji.io/v3/pat"
 )
 
 type User struct {
@@ -35,7 +35,7 @@ func runEvent(
 ) (indexResp *bytes.Buffer, eventResp *bytes.Buffer) {
 	pb := New()
 
-	var f = func(ctx *EventContext) (r EventResponse, err error) {
+	f := func(ctx *EventContext) (r EventResponse, err error) {
 		r.Reload = true
 		return
 	}
@@ -44,8 +44,7 @@ func runEvent(
 		f = eventFunc
 	}
 
-	var p = pb.Page(func(ctx *EventContext) (pr PageResponse, err error) {
-
+	p := pb.Page(func(ctx *EventContext) (pr PageResponse, err error) {
 		if renderChanger != nil {
 			renderChanger(ctx, &pr)
 		} else {
@@ -80,7 +79,7 @@ func TestFileUpload(t *testing.T) {
 		File1 []*multipart.FileHeader `form:"-"`
 	}
 
-	var uploadFile = func(ctx *EventContext) (r EventResponse, err error) {
+	uploadFile := func(ctx *EventContext) (r EventResponse, err error) {
 		s := &mystate{}
 		ctx.MustUnmarshalForm(s)
 
@@ -91,7 +90,6 @@ func TestFileUpload(t *testing.T) {
 
 	pb := New()
 	p := pb.Page(func(ctx *EventContext) (pr PageResponse, err error) {
-
 		s := &mystate{}
 		if ctx.Flash != nil {
 			s = ctx.Flash.(*mystate)
@@ -134,8 +132,7 @@ func TestFileUpload(t *testing.T) {
 	}
 }
 
-type DummyComp struct {
-}
+type DummyComp struct{}
 
 func (dc *DummyComp) MarshalHTML(ctx context.Context) (r []byte, err error) {
 	r = []byte("<div>hello</div>")
@@ -238,7 +235,6 @@ var eventCases = []struct {
 func TestEvents(t *testing.T) {
 	for _, c := range eventCases {
 		t.Run(c.name, func(t *testing.T) {
-
 			indexResp, eventResp := runEvent(c.eventFunc, c.renderChanger, c.eventFormChanger)
 			var diff string
 			if len(c.expectedIndexResp) > 0 {
@@ -273,8 +269,8 @@ var mountCases = []struct {
 		bodyFunc: nil,
 		expected: `
 <div>
-	<a href="#" v-on:click='$plaid().vars(vars).form(plaidForm).eventFunc("bookmark").go()'>xgb123</a>
-	<a href="#" v-on:blur='alert(1); $plaid().vars(vars).form(plaidForm).fieldValue("Text1", $event).eventFunc("doIt").go()'>hello</a>
+	<a href="#" v-on:click='plaid().vars(vars).locals(locals).form(form).eventFunc("bookmark").go()'>xgb123</a>
+	<a href="#" v-on:blur='alert(1); plaid().vars(vars).locals(locals).form(form).fieldValue("Text1", $event).eventFunc("doIt").go()'>hello</a>
 </div>
 `,
 	},
@@ -290,18 +286,18 @@ var mountCases = []struct {
 }
 
 func TestMultiplePagesAndEvents(t *testing.T) {
-	var topicIndex = func(ctx *EventContext) (r PageResponse, err error) {
+	topicIndex := func(ctx *EventContext) (r PageResponse, err error) {
 		r.Body = h.H1("Hello Topic List")
 		return
 	}
 
-	var bookmark = func(ctx *EventContext) (r EventResponse, err error) {
+	bookmark := func(ctx *EventContext) (r EventResponse, err error) {
 		topicId := pat.Param(ctx.R, "topicID")
 		r.Body = h.H1(topicId + " bookmarked")
 		return
 	}
 
-	var topicDetail = func(ctx *EventContext) (r PageResponse, err error) {
+	topicDetail := func(ctx *EventContext) (r PageResponse, err error) {
 		// remove to test global event func with web.New().RegisterEventFunc
 		// ctx.Hub.RegisterEventFunc("bookmark", bookmark)
 
@@ -329,7 +325,6 @@ func TestMultiplePagesAndEvents(t *testing.T) {
 
 	for _, c := range mountCases {
 		t.Run(c.name, func(t *testing.T) {
-
 			r := httptest.NewRequest(c.method, c.path, nil)
 			if c.bodyFunc != nil {
 				b := multipartestutils.NewMultipartBuilder().
@@ -350,7 +345,6 @@ func TestMultiplePagesAndEvents(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestEventFuncsOnPageAndBuilder(t *testing.T) {
@@ -384,5 +378,45 @@ func TestEmbed(t *testing.T) {
 	pack := JSComponentsPack()
 	if len(pack) == 0 {
 		t.Fatal("No embed string")
+	}
+}
+
+func PageFunc1(ctx *EventContext) (r PageResponse, err error) {
+	r.Body = h.H1("Page1")
+	ctx.WithContextValue("afterTitle", h.H2("abc")).
+		WithContextValue("customizeHeader", h.Components())
+
+	ctx.R = ctx.R.WithContext(context.WithValue(ctx.R.Context(), "abc", h.H2("abc")))
+	return
+}
+
+func Layout1(pf PageFunc) (r PageFunc) {
+	return func(ctx *EventContext) (r PageResponse, err error) {
+		pr, err := pf(ctx)
+		if err != nil {
+			panic(err)
+		}
+
+		var header h.HTMLComponent = h.Header()
+		if ctx.ContextValue("customizeHeader") != nil {
+			header = ctx.ContextValue("customizeHeader").(h.HTMLComponent)
+		}
+		r.Body = h.Div(
+			header,
+			ctx.ContextValue("afterTitle").(h.HTMLComponent),
+			ctx.ContextValue("abc").(h.HTMLComponent),
+			pr.Body,
+		)
+		return
+	}
+}
+
+func TestLayoutWithExtra(t *testing.T) {
+	pf := Layout1(PageFunc1)
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("GET", "/", nil)
+	Page(pf).ServeHTTP(w, r)
+	if !strings.Contains(w.Body.String(), "abc") {
+		t.Errorf("wrong response %s", w.Body.String())
 	}
 }

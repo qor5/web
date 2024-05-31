@@ -78,10 +78,14 @@ func (p *PageBuilder) render(
 	r *http.Request,
 	c context.Context,
 	head *PageInjector,
+	event bool,
 ) (pager *PageResponse, body string) {
-
 	if p.pageRenderFunc == nil {
 		return
+	}
+	rf := p.pageRenderFunc
+	if !event {
+		rf = p.b.layoutFunc(p.pageRenderFunc)
 	}
 
 	ctx := MustGetEventContext(c)
@@ -90,7 +94,7 @@ func (p *PageBuilder) render(
 	ctx.W = w
 	ctx.Injector = head
 
-	pr, err := p.pageRenderFunc(ctx)
+	pr, err := rf(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -113,20 +117,14 @@ func (p *PageBuilder) render(
 func (p *PageBuilder) index(w http.ResponseWriter, r *http.Request) {
 	var err error
 
-	var head = &PageInjector{}
+	inj := &PageInjector{}
 
 	ctx := new(EventContext)
 	c := WrapEventContext(r.Context(), ctx)
-	pr, body := p.render(w, r, c, head)
+	_, body := p.render(w, r, c, inj, false)
 
-	head.setDefault(pr.PageTitle)
-
-	var resp string
-	resp, err = p.b.layoutFunc(r, head, body)
-	if err != nil {
-		panic(err)
-	}
-	_, err = fmt.Fprintln(w, resp)
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	_, err = fmt.Fprintln(w, body)
 	if err != nil {
 		panic(err)
 	}
@@ -149,7 +147,6 @@ func (p *PageBuilder) parseForm(r *http.Request) *multipart.Form {
 const EventFuncIDName = "__execute_event__"
 
 func (p *PageBuilder) executeEvent(w http.ResponseWriter, r *http.Request) {
-
 	ctx := new(EventContext)
 	ctx.R = r
 	ctx.W = w
@@ -166,8 +163,7 @@ func (p *PageBuilder) executeEvent(w http.ResponseWriter, r *http.Request) {
 		p.eventFuncById(eventFuncID) == nil &&
 		p.b.eventFuncById(eventFuncID) == nil {
 		log.Println("Re-render because event funcs gone, might server restarted")
-		head := &PageInjector{}
-		p.render(w, r, c, head)
+		p.render(w, r, c, &PageInjector{}, true)
 	}
 
 	ef := p.eventFuncById(eventFuncID)
@@ -176,7 +172,7 @@ func (p *PageBuilder) executeEvent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if ef == nil {
-		log.Printf("event %s not found\n", eventFuncID)
+		log.Printf("event %s not found in %s\n", eventFuncID, p.EventsHub.String())
 		http.NotFound(w, r)
 		return
 	}
@@ -187,8 +183,7 @@ func (p *PageBuilder) executeEvent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if er.Reload {
-		head := &PageInjector{}
-		pr, body := p.render(w, r, c, head)
+		pr, body := p.render(w, r, c, &PageInjector{}, true)
 		er.Body = h.RawHTML(body)
 		if len(er.PageTitle) == 0 {
 			er.PageTitle = pr.PageTitle
@@ -201,6 +196,7 @@ func (p *PageBuilder) executeEvent(w http.ResponseWriter, r *http.Request) {
 		up.Body = h.RawHTML(h.MustString(up.Body, c))
 	}
 
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	err = json.NewEncoder(w).Encode(er)
 	if err != nil {
 		panic(err)

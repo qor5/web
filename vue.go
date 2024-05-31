@@ -27,12 +27,13 @@ func Plaid() (r *VueEventTagBuilder) {
 	r = &VueEventTagBuilder{
 		calls: []jsCall{
 			{
-				method: "$plaid",
+				method: "plaid",
 			},
 		},
 	}
 	r.Vars(Var("vars")).
-		Form(Var("plaidForm"))
+		Locals(Var("locals")).
+		Form(Var("form"))
 	return
 }
 
@@ -79,6 +80,14 @@ func (b *VueEventTagBuilder) Reload() (r *VueEventTagBuilder) {
 func (b *VueEventTagBuilder) Vars(v interface{}) (r *VueEventTagBuilder) {
 	b.calls = append(b.calls, jsCall{
 		method: "vars",
+		args:   []interface{}{v},
+	})
+	return b
+}
+
+func (b *VueEventTagBuilder) Locals(v interface{}) (r *VueEventTagBuilder) {
+	b.calls = append(b.calls, jsCall{
+		method: "locals",
 		args:   []interface{}{v},
 	})
 	return b
@@ -169,13 +178,6 @@ func (b *VueEventTagBuilder) Form(v interface{}) (r *VueEventTagBuilder) {
 	return b
 }
 
-func (b *VueEventTagBuilder) FormClear() (r *VueEventTagBuilder) {
-	b.calls = append(b.calls, jsCall{
-		method: "formClear",
-	})
-	return b
-}
-
 func (b *VueEventTagBuilder) FieldValue(name interface{}, v interface{}) (r *VueEventTagBuilder) {
 	b.calls = append(b.calls, jsCall{
 		method: "fieldValue",
@@ -218,6 +220,7 @@ func (b *VueEventTagBuilder) AfterScript(script string) (r *VueEventTagBuilder) 
 	b.afterScript = script
 	return b
 }
+
 func (b *VueEventTagBuilder) ThenScript(script string) (r *VueEventTagBuilder) {
 	b.thenScript = script
 	return b
@@ -276,31 +279,29 @@ func (b *VueEventTagBuilder) MarshalJSON() ([]byte, error) {
 	panic(fmt.Sprintf("call .Go() at the end, value: %s", b.String()))
 }
 
-const InitContextVars = "v-init-context:vars"
-const InitContextLocals = "v-init-context:locals"
-
-type VFieldNameOption interface {
-	private()
+func VAssign(varName string, v interface{}) []interface{} {
+	varVal, ok := v.(string)
+	if !ok {
+		varVal = h.JSONString(v)
+	}
+	return []interface{}{
+		"v-assign",
+		fmt.Sprintf("[%s, %s]", varName, varVal),
+	}
 }
 
-type UseForm string
-
-func (UseForm) private() {}
-
-func VFieldName(v string, opts ...VFieldNameOption) []interface{} {
-	formVar := "plaidForm"
-	for _, op := range opts {
-		if vf, ok := op.(UseForm); ok {
-			formVar = string(vf)
-		}
-	}
-
-	return []interface{}{
-		"v-field-name",
-		fmt.Sprintf("[%s, %s]", formVar, h.JSONString(v)),
-	}
+func VField(name string, value interface{}) []interface{} {
+	objValue := map[string]interface{}{name: value}
+	return append([]interface{}{
+		"v-model",
+		fmt.Sprintf("form[%s]", h.JSONString(name)),
+	}, VAssign("form", objValue)...)
 }
 
 func GlobalEvents() *h.HTMLTagBuilder {
 	return h.Tag("global-events")
+}
+
+func RunScript(s string) *h.HTMLTagBuilder {
+	return h.Tag("go-plaid-run-script").Attr(":script", s)
 }

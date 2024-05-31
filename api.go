@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/go-playground/form"
+	"github.com/go-playground/form/v4"
 	"github.com/sunfmin/reflectutils"
 	h "github.com/theplant/htmlgo"
 )
@@ -31,19 +31,21 @@ type EventResponse struct {
 	RedirectURL   string           `json:"redirectURL,omitempty"` // change window url without push state
 	ReloadPortals []string         `json:"reloadPortals,omitempty"`
 	UpdatePortals []*PortalUpdate  `json:"updatePortals,omitempty"`
-	Data          interface{}      `json:"data,omitempty"`       // used for return collection data like TagsInput data source
-	VarsScript    string           `json:"varsScript,omitempty"` // used with InitContextVars to set values for example vars.show to used by v-model
+	Data          interface{}      `json:"data,omitempty"`      // used for return collection data like TagsInput data source
+	RunScript     string           `json:"runScript,omitempty"` // used with InitContextVars to set values for example vars.show to used by v-model
 }
 
 // @snippet_end
 
 // @snippet_begin(PageFuncAndEventFuncDefinition)
-type PageFunc func(ctx *EventContext) (r PageResponse, err error)
-type EventFunc func(ctx *EventContext) (r EventResponse, err error)
+type (
+	PageFunc  func(ctx *EventContext) (r PageResponse, err error)
+	EventFunc func(ctx *EventContext) (r EventResponse, err error)
+)
 
 // @snippet_end
 
-type LayoutFunc func(r *http.Request, injector *PageInjector, body string) (output string, err error)
+type LayoutFunc func(in PageFunc) PageFunc
 
 // @snippet_begin(EventFuncHubDefinition)
 type EventFuncHub interface {
@@ -52,11 +54,11 @@ type EventFuncHub interface {
 
 // @snippet_end
 
-func AppendVarsScripts(er *EventResponse, scripts ...string) {
-	if er.VarsScript != "" {
-		scripts = append([]string{er.VarsScript}, scripts...)
+func AppendRunScripts(er *EventResponse, scripts ...string) {
+	if er.RunScript != "" {
+		scripts = append([]string{er.RunScript}, scripts...)
 	}
-	er.VarsScript = strings.Join(scripts, "; ")
+	er.RunScript = strings.Join(scripts, "; ")
 }
 
 type EventFuncID struct {
@@ -70,8 +72,25 @@ type EventContext struct {
 	Flash    interface{} // pass value from actions to index
 }
 
-func (e *EventContext) QueryAsInt(key string) (r int) {
-	strVal := e.R.FormValue(key)
+func (e *EventContext) WithContextValue(key any, value any) (r *EventContext) {
+	e.R = e.R.WithContext(context.WithValue(e.R.Context(), key, value))
+	return e
+}
+
+func (e *EventContext) ContextValue(key any) any {
+	return e.R.Context().Value(key)
+}
+
+func (e *EventContext) Param(key string) (r string) {
+	r = e.R.PathValue(key)
+	if len(r) == 0 {
+		r = e.R.FormValue(key)
+	}
+	return
+}
+
+func (e *EventContext) ParamAsInt(key string) (r int) {
+	strVal := e.Param(key)
 	if len(strVal) == 0 {
 		return
 	}
