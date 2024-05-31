@@ -274,25 +274,20 @@ describe('portal', () => {
     // after reload the portal, check if the input value is still 123
     expect((document.getElementById('companyInput') as HTMLInputElement).value).toEqual('123')
   })
-  it('reload portal  keep height', async () => {
+  it('reload portal keep height', async () => {
     const template = `
         <div>
-        <go-plaid-portal  portal-name='content' :visible="true">
+            <go-plaid-portal  portal-name='content' :visible="true" :loader='plaid().vars(vars).locals(locals).form(form).method("POST").eventFunc("loadIframe")'>
             </go-plaid-portal>
         </div>
       `
+    const form = ref(new FormData())
+    mockFetchWithReturnTemplate(form, { body: `<iframe ref="test" style="height: 400px;width: 100px" id="content" src="https://www.google.com/"></iframe>` })
 
     const wrapper = mountTemplate(template)
     await nextTick()
     await flushPromises()
-    window.__goplaid = window.__goplaid ?? {}
-    window.__goplaid.portals = window.__goplaid.portals ?? {}
-    const { updatePortalTemplate } = window.__goplaid.portals['content']
-    updatePortalTemplate(
-      `<iframe ref="test" style="height: 400px;width: 100px" id="content" src="https://www.google.com/"></iframe>`
-    )
-    await nextTick()
-    await flushPromises()
-    expect(wrapper.find('.go-plaid-portal').attributes().style.concat('height: 400px;'))
+
+    expect(wrapper.find('.go-plaid-portal').attributes().style).toEqual('height: 400px;')
   })
 })
