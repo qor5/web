@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import { inject, nextTick, onMounted, reactive, watch } from 'vue'
+import { inject, onMounted, reactive, watch } from 'vue'
 import debounce from 'lodash/debounce'
 
 const props = defineProps<{
@@ -28,7 +28,7 @@ if (Array.isArray(initForm)) {
 }
 const form = reactive({ ...initForm })
 onMounted(() => {
-  nextTick(() => {
+  setTimeout(() => {
     if (props.useDebounce) {
       const debounceWait = props.useDebounce
       const _watch = debounce((obj: any) => {
@@ -41,7 +41,7 @@ onMounted(() => {
         _watch({ locals: locals, form: value, oldLocals: locals, oldForm: oldValue })
       })
     }
-  })
+  }, 0)
 })
 
 const vars = inject('vars')

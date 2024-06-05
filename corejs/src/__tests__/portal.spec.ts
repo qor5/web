@@ -282,7 +282,9 @@ describe('portal', () => {
         </div>
       `
     const form = ref(new FormData())
-    mockFetchWithReturnTemplate(form, { body: `<iframe ref="test" style="height: 400px;width: 100px" id="content" src="https://www.google.com/"></iframe>` })
+    mockFetchWithReturnTemplate(form, {
+      body: `<iframe ref="test" style="height: 400px;width: 100px" id="content" src="https://www.google.com/"></iframe>`
+    })
 
     const wrapper = mountTemplate(template)
     await nextTick()
