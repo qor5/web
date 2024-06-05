@@ -35,7 +35,9 @@ export const Root = defineComponent({
     }
 
     provide('updateRootTemplate', updateRootTemplate)
-    const vars = reactive({})
+    const vars = reactive({
+      __notification: {}
+    })
     const _plaid = (): Builder => {
       return plaid().updateRootTemplate(updateRootTemplate).vars(vars)
     }
