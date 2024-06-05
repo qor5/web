@@ -374,6 +374,15 @@ func TestEventFuncsOnPageAndBuilder(t *testing.T) {
 	}
 }
 
+func TestPageFuncReturnEmptyBody(t *testing.T) {
+	pfWithEmptyBody := func(ctx *EventContext) (r PageResponse, err error) {
+		return
+	}
+	b := New()
+	r, w := httptest.NewRequest("get", "/", nil), httptest.NewRecorder()
+	b.Page(pfWithEmptyBody).ServeHTTP(w, r)
+}
+
 func TestEmbed(t *testing.T) {
 	pack := JSComponentsPack()
 	if len(pack) == 0 {
