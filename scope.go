@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/rs/xid"
 	h "github.com/theplant/htmlgo"
 )
 
 type ScopeBuilder struct {
-	tag *h.HTMLTagBuilder
+	tag       *h.HTMLTagBuilder
+	observers []Observer
 }
 
 func Scope(children ...h.HTMLComponent) (r *ScopeBuilder) {
@@ -72,5 +74,37 @@ func (b *ScopeBuilder) Children(comps ...h.HTMLComponent) (r *ScopeBuilder) {
 }
 
 func (b *ScopeBuilder) MarshalHTML(ctx context.Context) (r []byte, err error) {
+	if len(b.observers) > 0 {
+		b.tag.Attr(":observers", h.JSONString(b.observers))
+	}
 	return b.tag.MarshalHTML(ctx)
+}
+
+type Observer struct {
+	Name   string `json:"name"`
+	Script string `json:"script"` // available parameters: name payload vars locals form plaid
+}
+
+func (b *ScopeBuilder) Observer(name string, script string) (r *ScopeBuilder) {
+	b.observers = append(b.observers, Observer{name, script})
+	return b
+}
+
+func (b *ScopeBuilder) Observers(vs ...Observer) (r *ScopeBuilder) {
+	b.observers = append(b.observers, vs...)
+	return b
+}
+
+type notification struct {
+	ID      string `json:"id"`
+	Name    string `json:"name"`
+	Payload any    `json:"payload"`
+}
+
+func NotifyScript(name string, payload any) string {
+	return fmt.Sprintf(`vars.__notification = %s`, h.JSONString(notification{
+		ID:      xid.New().String(),
+		Name:    name,
+		Payload: payload,
+	}))
 }

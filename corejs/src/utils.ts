@@ -206,7 +206,7 @@ export function componentByTemplate(
     },
     mounted() {
       this.$nextTick(() => /**/ {
-        if (this.$el.style && this.$el.style.height) {
+        if (this.$el && this.$el.style && this.$el.style.height) {
           portal.value.style.height = this.$el.style.height
         }
       })
