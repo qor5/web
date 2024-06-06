@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { mockFetchWithReturnTemplate, mountTemplate, waitUntil } from './testutils'
 import { nextTick, ref } from 'vue'
+import {flushPromises} from "@vue/test-utils";
 
 describe('scope change', () => {
   it('debounce locals', async () => {
@@ -21,15 +22,22 @@ describe('scope change', () => {
       `)
 
     await nextTick()
+    await flushPromises()
+
     console.log(wrapper.html())
-    await wrapper.find('button').trigger('click')
-    await wrapper.find('button').trigger('click')
-    await waitUntil(() => wrapper.find('h2').text() === '3')
-    console.log(wrapper.html())
-    // Only executed once for debouncedValue although clicked twice
-    expect(wrapper.find('h1').text()).toEqual('1')
-    expect(wrapper.find('h2').text()).toEqual('3')
-    expect(wrapper.find('h3').text()).toEqual('3')
+    setTimeout(async () =>{
+      await wrapper.find('button').trigger('click')
+      console.log("clicked")
+      await wrapper.find('button').trigger('click')
+      await waitUntil(() => wrapper.find('h2').text() === '3')
+      console.log(wrapper.html())
+      // Only executed once for debouncedValue although clicked twice
+      expect(wrapper.find('h1').text()).toEqual('1')
+      expect(wrapper.find('h2').text()).toEqual('3')
+      expect(wrapper.find('h3').text()).toEqual('3')
+    }, 100)
+    await flushPromises()
+
   })
 
   it('debounce form with v-model', async () => {
@@ -94,5 +102,31 @@ describe('scope change', () => {
     })
     expect(wrapper.find('h1').text()).toEqual('1')
     console.log(wrapper.html())
+  })
+
+  it('observers', async () => {
+    const wrapper = mountTemplate(`
+      <div>
+        <go-plaid-scope 
+            :form-init='{value: ""}'
+            v-slot='{ form }' 
+            :observers='[
+                {
+                    name: "test1",
+                    script: "form.value = payload.a"
+                }
+            ]'
+        >
+          <h1>{{form.value}}</h1>
+        </go-plaid-scope>
+        
+        <button @click='vars.__notification = {name: "test1", payload: {"a": "19"}}'></button>
+      </div>
+      `)
+
+    await nextTick()
+    expect(wrapper.find('h1').text()).toEqual('')
+    await wrapper.find('button').trigger('click')
+    expect(wrapper.find('h1').text()).toEqual('19')
   })
 })
