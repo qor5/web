@@ -126,7 +126,7 @@ describe('scope change', () => {
           <h1>{{form.value}}</h1>
         </go-plaid-scope>
         
-        <button @click='vars.__notification = {name: "test1", payload: {"a": "19"}}'></button>
+        <button @click='vars.__sendNotification("test1", {"a": "19"})'></button>
       </div>
       `)
 

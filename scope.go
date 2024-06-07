@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/rs/xid"
 	h "github.com/theplant/htmlgo"
 )
 
@@ -102,9 +101,5 @@ type notification struct {
 }
 
 func NotifyScript(name string, payload any) string {
-	return fmt.Sprintf(`vars.__notification = %s`, h.JSONString(notification{
-		ID:      xid.New().String(),
-		Name:    name,
-		Payload: payload,
-	}))
+	return fmt.Sprintf(`vars.__sendNotification(%q, %s)`, name, h.JSONString(payload))
 }
