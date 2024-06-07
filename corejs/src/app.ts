@@ -36,7 +36,14 @@ export const Root = defineComponent({
 
     provide('updateRootTemplate', updateRootTemplate)
     const vars = reactive({
-      __notification: {}
+      __notification: {},
+      __sendNotification: function (name: string, payload: any) {
+        vars.__notification = {
+          id: `notification-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
+          name: name,
+          payload: payload
+        }
+      }
     })
     const _plaid = (): Builder => {
       return plaid().updateRootTemplate(updateRootTemplate).vars(vars)
