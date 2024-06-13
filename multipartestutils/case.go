@@ -72,25 +72,27 @@ func RunCase(t *testing.T, c TestCase, handler http.Handler) {
 		c.ResponseMatch(t, w)
 	}
 
+	var body string = w.Body.String()
 	var er TestEventResponse
 	if strings.Contains(w.Header().Get("Content-Type"), "application/json") {
 		err := json.NewDecoder(w.Body).Decode(&er)
 		if err != nil {
 			t.Errorf("%s for: %s", err, w.Body.String())
 		}
+		body = er.Body
 	}
 
 	if c.PageMatch != nil {
 		c.PageMatch(t, w.Body)
 	}
 	if len(c.ExpectPageBodyContainsInOrder) > 0 {
-		if !containsInOrder(w.Body.String(), c.ExpectPageBodyContainsInOrder) {
+		if !containsInOrder(body, c.ExpectPageBodyContainsInOrder) {
 			t.Errorf("page body %s should contains in correct order: %#+v", w.Body.String(), c.ExpectPageBodyContainsInOrder)
 		}
 	}
 	if len(c.ExpectPageBodyNotContains) > 0 {
 		for _, v := range c.ExpectPageBodyNotContains {
-			if strings.Contains(w.Body.String(), v) {
+			if strings.Contains(body, v) {
 				t.Errorf("page body %s should not contains: %s", w.Body.String(), v)
 			}
 		}
