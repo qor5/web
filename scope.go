@@ -94,12 +94,6 @@ func (b *ScopeBuilder) Observers(vs ...Observer) (r *ScopeBuilder) {
 	return b
 }
 
-type notification struct {
-	ID      string `json:"id"`
-	Name    string `json:"name"`
-	Payload any    `json:"payload"`
-}
-
 func NotifyScript(name string, payload any) string {
 	return fmt.Sprintf(`vars.__sendNotification(%q, %s)`, name, h.JSONString(payload))
 }

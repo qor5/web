@@ -137,6 +137,11 @@ type contextKey int
 
 const eventKey contextKey = iota
 
+func (e *EventContext) WithSelf() (r *EventContext) {
+	e.R = e.R.WithContext(context.WithValue(e.R.Context(), eventKey, e))
+	return e
+}
+
 func WrapEventContext(parent context.Context, ctx *EventContext) (r context.Context) {
 	r = context.WithValue(parent, eventKey, ctx)
 	return
