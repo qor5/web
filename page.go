@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"mime/multipart"
 	"net/http"
 
 	h "github.com/theplant/htmlgo"
@@ -121,7 +122,8 @@ func (p *PageBuilder) index(w http.ResponseWriter, r *http.Request) {
 	ctx.R = r
 	ctx.W = w
 	ctx.Injector = &PageInjector{}
-	ctx.WithSelf()
+	ctx.withSelf()
+	ctx.withPageBuilder(p)
 	_, body := p.render(ctx, false)
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -131,6 +133,20 @@ func (p *PageBuilder) index(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (p *PageBuilder) parseForm(r *http.Request) *multipart.Form {
+	maxSize := p.maxFormSize
+	if maxSize == 0 {
+		maxSize = 128 << 20 // 128MB
+	}
+
+	err := r.ParseMultipartForm(maxSize)
+	if err != nil {
+		panic(err)
+	}
+
+	return r.MultipartForm
+}
+
 const EventFuncIDName = "__execute_event__"
 
 func (p *PageBuilder) executeEvent(w http.ResponseWriter, r *http.Request) {
@@ -138,7 +154,8 @@ func (p *PageBuilder) executeEvent(w http.ResponseWriter, r *http.Request) {
 	ctx.R = r
 	ctx.W = w
 	ctx.Injector = &PageInjector{}
-	ctx.WithSelf()
+	ctx.withSelf()
+	ctx.withPageBuilder(p)
 
 	eventFuncID := ctx.R.FormValue(EventFuncIDName)
 
