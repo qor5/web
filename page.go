@@ -123,7 +123,6 @@ func (p *PageBuilder) index(w http.ResponseWriter, r *http.Request) {
 	ctx.W = w
 	ctx.Injector = &PageInjector{}
 	ctx.withSelf()
-	ctx.withPageBuilder(p)
 	_, body := p.render(ctx, false)
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -155,7 +154,6 @@ func (p *PageBuilder) executeEvent(w http.ResponseWriter, r *http.Request) {
 	ctx.W = w
 	ctx.Injector = &PageInjector{}
 	ctx.withSelf()
-	ctx.withPageBuilder(p)
 
 	eventFuncID := ctx.R.FormValue(EventFuncIDName)
 

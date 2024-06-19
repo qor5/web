@@ -135,27 +135,11 @@ func (ctx *EventContext) UnmarshalForm(v interface{}) (err error) {
 
 type contextKey int
 
-const (
-	eventKey       contextKey = iota
-	pageBuilderKey contextKey = iota
-)
+const eventKey contextKey = iota
 
 func (e *EventContext) withSelf() (r *EventContext) {
 	e.R = e.R.WithContext(context.WithValue(e.R.Context(), eventKey, e))
 	return e
-}
-
-func (e *EventContext) withPageBuilder(pb *PageBuilder) (r *EventContext) {
-	e.R = e.R.WithContext(context.WithValue(e.R.Context(), pageBuilderKey, pb))
-	return e
-}
-
-func MustGetPageBuilder(c context.Context) (r *PageBuilder) {
-	r, _ = c.Value(pageBuilderKey).(*PageBuilder)
-	if r == nil {
-		panic("PageBuilder required")
-	}
-	return
 }
 
 func WrapEventContext(parent context.Context, ctx *EventContext) (r context.Context) {
