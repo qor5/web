@@ -46,7 +46,7 @@ func ReloadAction[T Named](ctx context.Context, c T, f func(cloned T)) *web.VueE
 	if f != nil {
 		f(cloned)
 	}
-	return PlaidAction(ctx, cloned, actionMethodReload, struct{}{})
+	return PostAction(ctx, cloned, actionMethodReload, struct{}{})
 }
 
 func AppendReloadToResponse(r *web.EventResponse, c Named) {

@@ -36,7 +36,7 @@ const (
 	fieldKeyAction = "__action__"
 )
 
-func PlaidAction(ctx context.Context, c any, method any, request any) *web.VueEventTagBuilder {
+func PostAction(ctx context.Context, c any, method any, request any) *web.VueEventTagBuilder {
 	var methodName string
 	switch m := method.(type) {
 	case string:
@@ -45,7 +45,7 @@ func PlaidAction(ctx context.Context, c any, method any, request any) *web.VueEv
 		methodName = GetFuncName(method)
 	}
 
-	b := web.Plaid().
+	b := web.POST().
 		EventFunc(eventDispatchAction).
 		Queries(url.Values{}) // force clear queries first
 

@@ -58,7 +58,7 @@ func TestTodoMVCExamplePB(t *testing.T) {
 }`).BuildEventFuncRequest()
 			},
 			EventResponseMatch: func(t *testing.T, er *multipartestutils.TestEventResponse) {
-				require.Equal(t, `vars.__sendNotification("NotifTodosChanged", null)`, er.RunScript)
+				require.Equal(t, `vars.__sendNotification("NotifyTodosChanged", null)`, er.RunScript)
 			},
 		},
 		{
