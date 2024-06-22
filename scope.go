@@ -84,7 +84,7 @@ type Observer struct {
 	Script string `json:"script"` // available parameters: name payload vars locals form plaid
 }
 
-func (b *ScopeBuilder) Observer(name string, script string) (r *ScopeBuilder) {
+func (b *ScopeBuilder) Observe(name string, script string) (r *ScopeBuilder) {
 	b.observers = append(b.observers, Observer{name, script})
 	return b
 }

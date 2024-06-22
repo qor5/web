@@ -57,13 +57,15 @@ func (c *TodoApp) MarshalHTML(ctx context.Context) ([]byte, error) {
 	}
 
 	checkBoxID := fmt.Sprintf("%s-toggle-all", c.ID)
-	return stateful.Reloadify(c,
-		web.Scope().Observer(NotifyTodosChanged, stateful.ReloadAction(ctx, c, nil).Go()),
+	return stateful.Reloadable(c,
+		web.Scope().Observe(NotifyTodosChanged, stateful.ReloadAction(ctx, c, nil).Go()),
 		Section().Class("todoapp").Children(
 			Header().Class("header").Children(
 				H1("Todos"),
-				Input("").Attr("v-run", "(el) => el.focus()").Class("new-todo").Attr("id", fmt.Sprintf("%s-creator",
-					c.ID)).
+				Input("").
+					Attr("v-run", "(el) => el.focus()").
+					Class("new-todo").
+					Attr("id", fmt.Sprintf("%s-creator", c.ID)).
 					Attr("placeholder", "What needs to be done?").
 					Attr("@keyup.enter", strings.Replace(
 						stateful.PostAction(ctx, c, c.CreateTodo, &CreateTodoRequest{Title: "_placeholder_"}).Go(),

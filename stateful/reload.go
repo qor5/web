@@ -30,7 +30,7 @@ func (p *portalize) MarshalHTML(ctx context.Context) ([]byte, error) {
 	return web.Portal(p.children...).Name(compoName).MarshalHTML(ctx)
 }
 
-func Reloadify[T Named](c T, children ...h.HTMLComponent) h.HTMLComponent {
+func Reloadable[T Named](c T, children ...h.HTMLComponent) h.HTMLComponent {
 	return &portalize{
 		c:        c,
 		children: children,
