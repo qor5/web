@@ -1,6 +1,7 @@
 package todomvc
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/qor5/web/v3/stateful"
@@ -29,6 +30,7 @@ func (m *MemoryStorage) List() ([]*Todo, error) {
 func (m *MemoryStorage) Create(todo *Todo) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	todo.ID = fmt.Sprint(len(m.todos))
 	m.todos = append(m.todos, todo)
 	return nil
 }

@@ -7,7 +7,6 @@ import (
 
 	"github.com/qor5/web/v3"
 	"github.com/qor5/web/v3/stateful"
-	"github.com/rs/xid"
 	. "github.com/theplant/htmlgo"
 )
 
@@ -176,7 +175,6 @@ func (c *TodoApp) CreateTodo(ctx context.Context, req *CreateTodoRequest) (r web
 	}
 
 	if err := c.dep.db.Create(&Todo{
-		ID:        xid.New().String(),
 		Title:     req.Title,
 		Completed: false,
 	}); err != nil {

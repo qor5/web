@@ -37,6 +37,32 @@ func TestTodoMVCExamplePB(t *testing.T) {
 			},
 		},
 		{
+			Name: "add todo with empty title",
+			ReqFunc: func() *http.Request {
+				return multipartestutils.NewMultipartBuilder().
+					PageURL("/").
+					EventFunc("__dispatch_actionable_action__").
+					AddField("__action__", `
+{
+	"actionable_type": "*todomvc.TodoApp",
+	"actionable": {
+		"id": "TodoApp0",
+		"visibility": "all"
+	},
+	"injector": "top",
+	"sync_query": true,
+	"method": "CreateTodo",
+	"request": {
+		"title": ""
+	}
+}`,
+					).BuildEventFuncRequest()
+			},
+			EventResponseMatch: func(t *testing.T, er *multipartestutils.TestEventResponse) {
+				require.Equal(t, `alert('title can not be empty')`, er.RunScript)
+			},
+		},
+		{
 			Name: "add todo",
 			ReqFunc: func() *http.Request {
 				return multipartestutils.NewMultipartBuilder().
@@ -55,7 +81,8 @@ func TestTodoMVCExamplePB(t *testing.T) {
 	"request": {
 		"title": "123"
 	}
-}`).BuildEventFuncRequest()
+}`,
+					).BuildEventFuncRequest()
 			},
 			EventResponseMatch: func(t *testing.T, er *multipartestutils.TestEventResponse) {
 				require.Equal(t, `vars.__sendNotification("NotifyTodosChanged", null)`, er.RunScript)
@@ -78,7 +105,8 @@ func TestTodoMVCExamplePB(t *testing.T) {
 	"sync_query": false,
 	"method": "OnReload",
 	"request": {}
-}`).BuildEventFuncRequest()
+}`,
+					).BuildEventFuncRequest()
 			},
 			ExpectPortalUpdate0NotContains: []string{"123"},
 		},
@@ -99,9 +127,168 @@ func TestTodoMVCExamplePB(t *testing.T) {
 	"sync_query": false,
 	"method": "OnReload",
 	"request": {}
-}`).BuildEventFuncRequest()
+}`,
+					).BuildEventFuncRequest()
 			},
 			ExpectPortalUpdate0ContainsInOrder: []string{"123"},
+		},
+		{
+			Name: "toggle",
+			ReqFunc: func() *http.Request {
+				return multipartestutils.NewMultipartBuilder().
+					PageURL("/").
+					EventFunc("__dispatch_actionable_action__").
+					AddField("__action__", `
+{
+	"actionable_type": "*todomvc.TodoItem",
+	"actionable": {
+		"id": "0"
+	},
+	"injector": "top",
+	"sync_query": true,
+	"method": "Toggle",
+	"request": null
+}`,
+					).BuildEventFuncRequest()
+			},
+			EventResponseMatch: func(t *testing.T, er *multipartestutils.TestEventResponse) {
+				require.Equal(t, `vars.__sendNotification("NotifyTodosChanged", null)`, er.RunScript)
+			},
+		},
+		{
+			Name: "reload TodoApp1",
+			ReqFunc: func() *http.Request {
+				return multipartestutils.NewMultipartBuilder().
+					PageURL("/").
+					EventFunc("__dispatch_actionable_action__").
+					AddField("__action__", `
+{
+	"actionable_type": "*todomvc.TodoApp",
+	"actionable": {
+		"id": "TodoApp1",
+		"visibility": "completed"
+	},
+	"injector": "top/sub",
+	"sync_query": false,
+	"method": "OnReload",
+	"request": {}
+}`,
+					).BuildEventFuncRequest()
+			},
+			ExpectPortalUpdate0ContainsInOrder: []string{"123"},
+		},
+		{
+			Name: "reload TodoApp0",
+			ReqFunc: func() *http.Request {
+				return multipartestutils.NewMultipartBuilder().
+					PageURL("/").
+					EventFunc("__dispatch_actionable_action__").
+					AddField("__action__", `
+{
+	"actionable_type": "*todomvc.TodoApp",
+	"actionable": {
+		"id": "TodoApp0",
+		"visibility": "all"
+	},
+	"injector": "top",
+	"sync_query": true,
+	"method": "OnReload",
+	"request": {}
+}`,
+					).BuildEventFuncRequest()
+			},
+			ExpectPortalUpdate0ContainsInOrder: []string{"123"},
+		},
+		{
+			Name: "toggle all",
+			ReqFunc: func() *http.Request {
+				return multipartestutils.NewMultipartBuilder().
+					PageURL("/").
+					EventFunc("__dispatch_actionable_action__").
+					AddField("__action__", `
+{
+	"actionable_type": "*todomvc.TodoApp",
+	"actionable": {
+		"id": "TodoApp0",
+		"visibility": "all"
+	},
+	"injector": "top",
+	"sync_query": true,
+	"method": "ToggleAll",
+	"request": null
+}`,
+					).BuildEventFuncRequest()
+			},
+			EventResponseMatch: func(t *testing.T, er *multipartestutils.TestEventResponse) {
+				require.Equal(t, `vars.__sendNotification("NotifyTodosChanged", null)`, er.RunScript)
+			},
+		},
+		{
+			Name: "reload TodoApp0",
+			ReqFunc: func() *http.Request {
+				return multipartestutils.NewMultipartBuilder().
+					PageURL("/").
+					EventFunc("__dispatch_actionable_action__").
+					AddField("__action__", `
+{
+	"actionable_type": "*todomvc.TodoApp",
+	"actionable": {
+		"id": "TodoApp0",
+		"visibility": "active"
+	},
+	"injector": "top",
+	"sync_query": true,
+	"method": "OnReload",
+	"request": {}
+}`,
+					).BuildEventFuncRequest()
+			},
+			ExpectPortalUpdate0ContainsInOrder: []string{"123"},
+		},
+		{
+			Name: "remove todo",
+			ReqFunc: func() *http.Request {
+				return multipartestutils.NewMultipartBuilder().
+					PageURL("/").
+					EventFunc("__dispatch_actionable_action__").
+					AddField("__action__", `
+{
+	"actionable_type": "*todomvc.TodoItem",
+	"actionable": {
+		"id": "0"
+	},
+	"injector": "top",
+	"sync_query": true,
+	"method": "Remove",
+	"request": null
+}`,
+					).BuildEventFuncRequest()
+			},
+			EventResponseMatch: func(t *testing.T, er *multipartestutils.TestEventResponse) {
+				require.Equal(t, `vars.__sendNotification("NotifyTodosChanged", null)`, er.RunScript)
+			},
+		},
+		{
+			Name: "reload TodoApp0",
+			ReqFunc: func() *http.Request {
+				return multipartestutils.NewMultipartBuilder().
+					PageURL("/").
+					EventFunc("__dispatch_actionable_action__").
+					AddField("__action__", `
+{
+	"actionable_type": "*todomvc.TodoApp",
+	"actionable": {
+		"id": "TodoApp0",
+		"visibility": "active"
+	},
+	"injector": "top",
+	"sync_query": true,
+	"method": "OnReload",
+	"request": {}
+}`,
+					).BuildEventFuncRequest()
+			},
+			ExpectPortalUpdate0NotContains: []string{"123"},
 		},
 	}
 
