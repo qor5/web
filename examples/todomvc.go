@@ -1,4 +1,4 @@
-package todomvc
+package examples
 
 import (
 	"context"
@@ -318,3 +318,4 @@ func TodoMVCExample(ctx *web.EventContext) (r web.PageResponse, err error) {
 }
 
 var TodoMVCExamplePB = web.Page(TodoMVCExample)
+var TodoMVCExamplePath = URLPathByFunc(TodoMVCExample)

@@ -1,12 +1,14 @@
-package todomvc
+package examples
 
 import (
 	"fmt"
 	"sync"
 
+	"github.com/pkg/errors"
 	"github.com/qor5/web/v3/stateful"
-	"gorm.io/gorm"
 )
+
+var ErrRecordNotFound = errors.New("record not found")
 
 type Storage interface {
 	List() ([]*Todo, error)
@@ -43,7 +45,7 @@ func (m *MemoryStorage) Read(id string) (*Todo, error) {
 			return stateful.MustClone(todo), nil
 		}
 	}
-	return nil, gorm.ErrRecordNotFound
+	return nil, ErrRecordNotFound
 }
 
 func (m *MemoryStorage) Update(todo *Todo) error {

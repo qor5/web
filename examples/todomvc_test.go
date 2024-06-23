@@ -1,12 +1,12 @@
-package todomvc_test
+package examples_test
 
 import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/qor5/web/v3/examples"
 	"github.com/qor5/web/v3/multipartestutils"
-	"github.com/qor5/web/v3/stateful/example/todomvc"
 	"github.com/stretchr/testify/require"
 )
 
@@ -44,7 +44,7 @@ func TestTodoMVCExamplePB(t *testing.T) {
 					EventFunc("__dispatch_actionable_action__").
 					AddField("__action__", `
 {
-	"actionable_type": "*todomvc.TodoApp",
+	"actionable_type": "*examples.TodoApp",
 	"actionable": {
 		"id": "TodoApp0",
 		"visibility": "all"
@@ -70,7 +70,7 @@ func TestTodoMVCExamplePB(t *testing.T) {
 					EventFunc("__dispatch_actionable_action__").
 					AddField("__action__", `
 {
-	"actionable_type": "*todomvc.TodoApp",
+	"actionable_type": "*examples.TodoApp",
 	"actionable": {
 		"id": "TodoApp0",
 		"visibility": "all"
@@ -96,7 +96,7 @@ func TestTodoMVCExamplePB(t *testing.T) {
 					EventFunc("__dispatch_actionable_action__").
 					AddField("__action__", `
 {
-	"actionable_type": "*todomvc.TodoApp",
+	"actionable_type": "*examples.TodoApp",
 	"actionable": {
 		"id": "TodoApp1",
 		"visibility": "completed"
@@ -118,7 +118,7 @@ func TestTodoMVCExamplePB(t *testing.T) {
 					EventFunc("__dispatch_actionable_action__").
 					AddField("__action__", `
 {
-	"actionable_type": "*todomvc.TodoApp",
+	"actionable_type": "*examples.TodoApp",
 	"actionable": {
 		"id": "TodoApp1",
 		"visibility": "active"
@@ -140,7 +140,7 @@ func TestTodoMVCExamplePB(t *testing.T) {
 					EventFunc("__dispatch_actionable_action__").
 					AddField("__action__", `
 {
-	"actionable_type": "*todomvc.TodoItem",
+	"actionable_type": "*examples.TodoItem",
 	"actionable": {
 		"id": "0"
 	},
@@ -163,7 +163,7 @@ func TestTodoMVCExamplePB(t *testing.T) {
 					EventFunc("__dispatch_actionable_action__").
 					AddField("__action__", `
 {
-	"actionable_type": "*todomvc.TodoApp",
+	"actionable_type": "*examples.TodoApp",
 	"actionable": {
 		"id": "TodoApp1",
 		"visibility": "completed"
@@ -185,7 +185,7 @@ func TestTodoMVCExamplePB(t *testing.T) {
 					EventFunc("__dispatch_actionable_action__").
 					AddField("__action__", `
 {
-	"actionable_type": "*todomvc.TodoApp",
+	"actionable_type": "*examples.TodoApp",
 	"actionable": {
 		"id": "TodoApp0",
 		"visibility": "all"
@@ -207,7 +207,7 @@ func TestTodoMVCExamplePB(t *testing.T) {
 					EventFunc("__dispatch_actionable_action__").
 					AddField("__action__", `
 {
-	"actionable_type": "*todomvc.TodoApp",
+	"actionable_type": "*examples.TodoApp",
 	"actionable": {
 		"id": "TodoApp0",
 		"visibility": "all"
@@ -231,7 +231,7 @@ func TestTodoMVCExamplePB(t *testing.T) {
 					EventFunc("__dispatch_actionable_action__").
 					AddField("__action__", `
 {
-	"actionable_type": "*todomvc.TodoApp",
+	"actionable_type": "*examples.TodoApp",
 	"actionable": {
 		"id": "TodoApp0",
 		"visibility": "active"
@@ -253,7 +253,7 @@ func TestTodoMVCExamplePB(t *testing.T) {
 					EventFunc("__dispatch_actionable_action__").
 					AddField("__action__", `
 {
-	"actionable_type": "*todomvc.TodoItem",
+	"actionable_type": "*examples.TodoItem",
 	"actionable": {
 		"id": "0"
 	},
@@ -276,7 +276,7 @@ func TestTodoMVCExamplePB(t *testing.T) {
 					EventFunc("__dispatch_actionable_action__").
 					AddField("__action__", `
 {
-	"actionable_type": "*todomvc.TodoApp",
+	"actionable_type": "*examples.TodoApp",
 	"actionable": {
 		"id": "TodoApp0",
 		"visibility": "active"
@@ -293,6 +293,6 @@ func TestTodoMVCExamplePB(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		multipartestutils.RunCase(t, c, todomvc.TodoMVCExamplePB)
+		multipartestutils.RunCase(t, c, examples.TodoMVCExamplePB)
 	}
 }
