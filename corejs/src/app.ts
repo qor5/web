@@ -16,7 +16,7 @@ import GoPlaidRunScript from '@/go-plaid-run-script.vue'
 import { componentByTemplate } from '@/utils'
 import { Builder, plaid } from '@/builder'
 import { keepScroll } from '@/keepScroll'
-import { assignOnMounted } from '@/assign'
+import { assignOnMounted, runOnMounted } from '@/assign'
 
 export const Root = defineComponent({
   props: {
@@ -87,6 +87,7 @@ export const plaidPlugin = {
     app.component('GoPlaidRunScript', GoPlaidRunScript)
     app.directive('keep-scroll', keepScroll)
     app.directive('assign', assignOnMounted)
+    app.directive('run', runOnMounted)
     app.component('GlobalEvents', GlobalEvents)
   }
 }

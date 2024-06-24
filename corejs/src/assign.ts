@@ -6,3 +6,9 @@ export const assignOnMounted: Directive = {
     Object.assign(form, obj)
   }
 }
+
+export const runOnMounted: Directive = {
+  mounted: (el, binding, vnode) => {
+    binding.value(el, binding, vnode)
+  }
+}

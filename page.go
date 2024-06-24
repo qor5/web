@@ -1,13 +1,11 @@
 package web
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"mime/multipart"
 	"net/http"
-	"strings"
 
 	h "github.com/theplant/htmlgo"
 )
@@ -26,9 +24,10 @@ func Page(pf PageFunc, efs ...interface{}) (p *PageBuilder) {
 
 type PageBuilder struct {
 	EventsHub
-	b              *Builder
-	pageRenderFunc PageFunc
-	maxFormSize    int64
+	b                *Builder
+	pageRenderFunc   PageFunc
+	maxFormSize      int64
+	eventFuncWrapper func(in EventFunc) EventFunc
 }
 
 func (b *Builder) Page(pf PageFunc) (p *PageBuilder) {
@@ -68,16 +67,24 @@ func (p *PageBuilder) EventFunc(name string, ef EventFunc) (r *PageBuilder) {
 	return p
 }
 
+func (p *PageBuilder) WrapEventFunc(w func(in EventFunc) EventFunc) (r *PageBuilder) {
+	eventFuncWrapper := p.eventFuncWrapper
+	p.eventFuncWrapper = func(in EventFunc) EventFunc {
+		if eventFuncWrapper != nil {
+			in = eventFuncWrapper(in)
+		}
+		return w(in)
+	}
+	return p
+}
+
 func (p *PageBuilder) MergeHub(hub *EventsHub) (r *PageBuilder) {
 	p.EventsHub.eventFuncs = append(hub.eventFuncs, p.EventsHub.eventFuncs...)
 	return p
 }
 
 func (p *PageBuilder) render(
-	w http.ResponseWriter,
-	r *http.Request,
-	c context.Context,
-	head *PageInjector,
+	ctx *EventContext,
 	event bool,
 ) (pager *PageResponse, body string) {
 	if p.pageRenderFunc == nil {
@@ -87,12 +94,6 @@ func (p *PageBuilder) render(
 	if !event {
 		rf = p.b.layoutFunc(p.pageRenderFunc)
 	}
-
-	ctx := MustGetEventContext(c)
-
-	ctx.R = r
-	ctx.W = w
-	ctx.Injector = head
 
 	pr, err := rf(ctx)
 	if err != nil {
@@ -105,7 +106,7 @@ func (p *PageBuilder) render(
 	}
 
 	// fmt.Println("eventFuncs count: ", len(p.eventFuncs))
-	b, err := pager.Body.MarshalHTML(c)
+	b, err := pager.Body.MarshalHTML(ctx.R.Context())
 	if err != nil {
 		panic(err)
 	}
@@ -117,14 +118,15 @@ func (p *PageBuilder) render(
 func (p *PageBuilder) index(w http.ResponseWriter, r *http.Request) {
 	var err error
 
-	inj := &PageInjector{}
-
 	ctx := new(EventContext)
-	c := WrapEventContext(r.Context(), ctx)
-	_, body := p.render(w, r, c, inj, false)
+	ctx.R = r
+	ctx.W = w
+	ctx.Injector = &PageInjector{}
+	ctx.withSelf()
+	_, body := p.render(ctx, false)
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	_, err = fmt.Fprintln(w, body)
+	_, err = fmt.Fprintln(ctx.W, body)
 	if err != nil {
 		panic(err)
 	}
@@ -151,10 +153,9 @@ func (p *PageBuilder) executeEvent(w http.ResponseWriter, r *http.Request) {
 	ctx.R = r
 	ctx.W = w
 	ctx.Injector = &PageInjector{}
+	ctx.withSelf()
 
-	c := WrapEventContext(r.Context(), ctx)
-
-	eventFuncID := r.FormValue(EventFuncIDName)
+	eventFuncID := ctx.R.FormValue(EventFuncIDName)
 
 	// for server side restart and lost all the eventFuncs,
 	// but user keep clicking page without refresh page to call p.render to fill up eventFuncs
@@ -163,7 +164,7 @@ func (p *PageBuilder) executeEvent(w http.ResponseWriter, r *http.Request) {
 		p.eventFuncById(eventFuncID) == nil &&
 		p.b.eventFuncById(eventFuncID) == nil {
 		log.Println("Re-render because event funcs gone, might server restarted")
-		p.render(w, r, c, &PageInjector{}, true)
+		p.render(ctx, true)
 	}
 
 	ef := p.eventFuncById(eventFuncID)
@@ -173,31 +174,34 @@ func (p *PageBuilder) executeEvent(w http.ResponseWriter, r *http.Request) {
 
 	if ef == nil {
 		log.Printf("event %s not found in %s\n", eventFuncID, p.EventsHub.String())
-		http.NotFound(w, r)
+		http.NotFound(ctx.W, ctx.R)
 		return
 	}
 
+	if p.eventFuncWrapper != nil {
+		ef = p.eventFuncWrapper(ef)
+	}
 	er, err := ef(ctx)
 	if err != nil {
 		panic(err)
 	}
 
 	if er.Reload {
-		pr, body := p.render(w, r, c, &PageInjector{}, true)
+		pr, body := p.render(ctx, true)
 		er.Body = h.RawHTML(body)
 		if len(er.PageTitle) == 0 {
 			er.PageTitle = pr.PageTitle
 		}
 	}
 
-	er.Body = h.RawHTML(h.MustString(er.Body, c))
+	er.Body = h.RawHTML(h.MustString(er.Body, ctx.R.Context()))
 
 	for _, up := range er.UpdatePortals {
-		up.Body = h.RawHTML(h.MustString(up.Body, c))
+		up.Body = h.RawHTML(h.MustString(up.Body, ctx.R.Context()))
 	}
 
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	err = json.NewEncoder(w).Encode(er)
+	ctx.W.Header().Set("Content-Type", "application/json; charset=utf-8")
+	err = json.NewEncoder(ctx.W).Encode(er)
 	if err != nil {
 		panic(err)
 	}
@@ -209,7 +213,7 @@ func reload(ctx *EventContext) (r EventResponse, err error) {
 }
 
 func (p *PageBuilder) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if strings.Index(r.URL.String(), EventFuncIDName) >= 0 {
+	if r.URL.Query().Has(EventFuncIDName) {
 		p.executeEvent(w, r)
 		return
 	}
