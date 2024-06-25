@@ -61,7 +61,9 @@ const reload = () => {
     .form(props.form)
     .go()
     .then((r: EventResponse) => {
-      updatePortalTemplate(r.body)
+      if (r) {
+        updatePortalTemplate(r.body)
+      }
     })
 }
 

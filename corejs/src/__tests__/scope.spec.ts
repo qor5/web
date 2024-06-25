@@ -15,25 +15,34 @@ describe('scope', () => {
   it('vars and form', async () => {
     const wrapper = mountTemplate(`
       <div>
-      <go-plaid-scope :init='{hello: "123"}' v-slot="{locals}">
+      <go-plaid-scope :init='{hello: "123",world:"888"}' v-slot="{locals}">
         <div id="l1">{{ locals.hello }}</div>
+        <div id="l1-world">{{ locals.world }}</div>
         <button id="l1Btn" @click='locals.hello = "456"'></button>
-        <go-plaid-scope :init='{hello: "789"}' v-slot="{locals}">
-          <div id="l2">{{ locals.hello }}</div>
-          <button id="l2Btn" @click='locals.hello = "999"'></button>
+        <go-plaid-scope :init='{hello: "789"}' v-slot="{locals:childLocals}">
+          <div id="l2">{{ childLocals.hello }}</div>
+          <button id="l2Btn" @click='childLocals.hello = "999"'></button>
 
           <go-plaid-scope v-slot="{form}">
             <div id="l3">{{ form.Name }}</div>
             <input type="text"
                  :value='form.Name = "AAA"'>
             <button id="l3Btn"
-                @click='locals.hello = form.Name'></button>
+                @click='childLocals.hello = form.Name'></button>
 
             <go-plaid-scope v-slot="{ form }">
               <div id="l4">{{ form.Name }}</div>
               <input id="input4" type="text"
                    :value='form.Name = "BBB"'>
+              <go-plaid-scope>
+                <div id="l5">{{ locals.world }}</div>
+                <button id="l5Btn" @click='locals.world = "l5-888"'></button>
 
+                <go-plaid-scope :init='{top: locals}' v-slot="{locals}">
+                  <div id="l6">{{ locals.top.world }}</div>
+                  <button id="l6Btn" @click='locals.top.world = "l6-888"'></button>
+                </go-plaid-scope>
+              </go-plaid-scope>
             </go-plaid-scope>
 
           </go-plaid-scope>
@@ -67,6 +76,23 @@ describe('scope', () => {
     expect(l3.text()).toEqual(`AAA`)
     const l4: any = wrapper.find('#l4')
     expect(l4.text()).toEqual(`BBB`)
+
+    const l1_world: any = wrapper.find('#l1-world')
+    expect(l1_world.text()).toEqual(`888`)
+
+    const l5: any = wrapper.find('#l5')
+    expect(l5.text()).toEqual(`888`)
+    const btn5: any = wrapper.find('#l5Btn')
+    await btn5.trigger('click')
+    expect(l5.text()).toEqual(`l5-888`)
+    expect(l1_world.text()).toEqual(`l5-888`)
+
+    const l6: any = wrapper.find('#l6')
+    expect(l6.text()).toEqual(`l5-888`)
+    const btn6: any = wrapper.find('#l6Btn')
+    await btn6.trigger('click')
+    expect(l6.text()).toEqual(`l6-888`)
+    expect(l1_world.text()).toEqual(`l6-888`)
   })
 
   it('scope init can be array or object', async () => {
