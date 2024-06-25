@@ -79,7 +79,7 @@ describe('scope', () => {
 
     const l1_world: any = wrapper.find('#l1-world')
     expect(l1_world.text()).toEqual(`888`)
-    
+
     const l5: any = wrapper.find('#l5')
     expect(l5.text()).toEqual(`888`)
     const btn5: any = wrapper.find('#l5Btn')
