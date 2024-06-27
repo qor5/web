@@ -52,7 +52,7 @@ func PostAction(ctx context.Context, c any, method any, request any) *web.VueEve
 	action := Action{
 		ActionableType: fmt.Sprintf("%T", c),
 		Actionable:     json.RawMessage(h.JSONString(c)),
-		Injector:       injectorNameFromContext(ctx),
+		Injector:       InjectorNameFromContext(ctx),
 		Method:         methodName,
 		Request:        json.RawMessage(h.JSONString(request)),
 	}
@@ -95,7 +95,7 @@ func eventDispatchActionHandler(evCtx *web.EventContext) (r web.EventResponse, e
 	}
 
 	if action.Injector != "" {
-		evCtx.R = evCtx.R.WithContext(withInjectorName(evCtx.R.Context(), action.Injector))
+		evCtx.R = evCtx.R.WithContext(WithInjectorName(evCtx.R.Context(), action.Injector))
 		if err := Apply(evCtx.R.Context(), v); err != nil {
 			return r, err
 		}

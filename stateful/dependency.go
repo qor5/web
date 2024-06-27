@@ -105,11 +105,11 @@ func MustInjector(name string) *inject.Injector {
 
 type injectorNameCtxKey struct{}
 
-func withInjectorName(ctx context.Context, name string) context.Context {
+func WithInjectorName(ctx context.Context, name string) context.Context {
 	return context.WithValue(ctx, injectorNameCtxKey{}, name)
 }
 
-func injectorNameFromContext(ctx context.Context) string {
+func InjectorNameFromContext(ctx context.Context) string {
 	name, _ := ctx.Value(injectorNameCtxKey{}).(string)
 	return name
 }
@@ -138,7 +138,7 @@ func Inject(injectorName string, c HTMLComponent) (HTMLComponent, error) {
 		return nil, err
 	}
 	return ComponentFunc(func(ctx context.Context) ([]byte, error) {
-		ctx = withInjectorName(ctx, injectorName)
+		ctx = WithInjectorName(ctx, injectorName)
 		return c.MarshalHTML(ctx)
 	}), nil
 }
@@ -152,7 +152,7 @@ func MustInject(injectorName string, c HTMLComponent) HTMLComponent {
 }
 
 func Apply(ctx context.Context, target any) error {
-	name := injectorNameFromContext(ctx)
+	name := InjectorNameFromContext(ctx)
 	if name == "" {
 		return nil
 	}

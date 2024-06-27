@@ -31,7 +31,7 @@ func MustClone[T any](src T) T {
 	return dst
 }
 
-func PrettyJSONString(v interface{}) (r string) {
+func PrettyJSONString(v any) (r string) {
 	b, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
 		panic(err)
