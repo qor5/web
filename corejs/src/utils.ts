@@ -245,3 +245,44 @@ export function objectToFormData(obj: any, form: FormData, parentKey = '') {
 
   return form
 }
+
+export function encodeObjectToQuery(obj: any, queryTags: { name: string; json_name: string }[]) {
+  const processObject = (obj: any) => {
+    return Object.keys(obj)
+      .sort()
+      .map((key) => `${encodeURIComponent(obj[key])}`)
+      .join('|')
+  }
+
+  const processArray = (arr: []) => {
+    return arr
+      .map((item) => {
+        if (typeof item === 'object' && !Array.isArray(item)) {
+          return processObject(item)
+        } else {
+          return encodeURIComponent(item)
+        }
+      })
+      .join(',')
+  }
+
+  const queryParams: string[] = []
+
+  queryTags.forEach((tag) => {
+    const value: any = obj[tag.json_name]
+    if (value === undefined) {
+      return
+    }
+
+    const key = encodeURIComponent(tag.name)
+    if (Array.isArray(value)) {
+      queryParams.push(`${key}=${processArray(obj[tag.json_name])}`)
+    } else if (typeof value === 'object') {
+      queryParams.push(`${key}=${processObject(value)}`)
+    } else {
+      queryParams.push(`${key}=${encodeURIComponent(value)}`)
+    }
+  })
+
+  return queryParams.join('&')
+}

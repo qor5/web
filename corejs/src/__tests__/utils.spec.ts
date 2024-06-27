@@ -1,4 +1,4 @@
-import { objectToFormData, setFormValue } from '../utils'
+import { objectToFormData, setFormValue, encodeObjectToQuery } from '../utils'
 import { describe, it, expect } from 'vitest'
 
 describe('utils', () => {
@@ -50,5 +50,62 @@ describe('utils', () => {
       expect(formData.getAll('Photos')[0]).toBeInstanceOf(File)
       expect(formData.getAll('Photos')[1]).toBeInstanceOf(File)
     })
+  })
+
+  it('encodeObjectToQuery', () => {
+    const exampleObject = {
+      compo_id: 'customers',
+      long_style_search_box: false,
+      selected_ids: ['x,', 'y', 'z'],
+      keyword: '',
+      order_bys: [
+        {
+          FieldName: 'Name|',
+          'Order,By': 'ASC'
+        },
+        {
+          'Fiel|dName': 'Age',
+          OrderBy: 'DES,C'
+        }
+      ],
+      page: 0,
+      per_page: 0,
+      'chi,ld': {
+        a: 'aa_',
+        b: 100
+      },
+      active_filter_tab: 'tab2',
+      filter_query: 'f_approved.gte=0001-01-01+00%3A00'
+    }
+    const queryTags = [
+      {
+        name: 'xpage',
+        json_name: 'page'
+      },
+      {
+        name: 'per_page',
+        json_name: 'per_page'
+      },
+      {
+        name: 'chi,ld',
+        json_name: 'chi,ld'
+      },
+      {
+        name: 'xselected_ids',
+        json_name: 'selected_ids'
+      },
+      {
+        name: 'order_bys',
+        json_name: 'order_bys'
+      },
+      {
+        name: 'order_bys',
+        json_name: 'testUndefined'
+      }
+    ]
+    const queryString = encodeObjectToQuery(exampleObject, queryTags)
+    expect(queryString).toEqual(
+      'xpage=0&per_page=0&chi%2Cld=aa_|100&xselected_ids=x%2C,y,z&order_bys=Name%7C|ASC,Age|DES%2CC'
+    )
   })
 })

@@ -60,8 +60,10 @@ func Actionable[T h.HTMLComponent](ctx context.Context, c T, children ...h.HTMLC
 		Method:         "",
 		Request:        json.RawMessage("{}"),
 	})
-	tags := []string{"visibility"} // TODO: 需要从 strcut field 里取出来
-	// TODO: 这个 transform 貌似没成功
+	queryTags, err := GetQueryTags(c)
+	if err != nil {
+		panic(err)
+	}
 	return web.Scope(children...).
 		VSlot(fmt.Sprintf("{ locals: %s }", DefaultVarActionableLocals(c))).
 		Init(fmt.Sprintf(`{
@@ -70,16 +72,9 @@ func Actionable[T h.HTMLComponent](ctx context.Context, c T, children ...h.HTMLC
 		if (!v.sync_query) {
 			return "";
 		}
-		return vars.__qsStringify(v.actionable, {
-			transform: (key, value) => {
-				if (%s.includes(key)) {
-					return value;
-				}
-				return undefined;
-			}
-		});
+		return vars.__encodeObjectToQuery(v.actionable, %s);
 	},
-}`, LocalsKeyActionBase, actionBase, LocalsKeyEncodeQuery, h.JSONString(tags)))
+}`, LocalsKeyActionBase, actionBase, LocalsKeyEncodeQuery, h.JSONString(queryTags)))
 }
 
 const eventDispatchAction = "__dispatch_actionable_action__"

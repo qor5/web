@@ -14,13 +14,12 @@ import GoPlaidScope from '@/go-plaid-scope.vue'
 import GoPlaidPortal from '@/go-plaid-portal.vue'
 import GoPlaidRunScript from '@/go-plaid-run-script.vue'
 import GoPlaidObserver from '@/go-plaid-observer.vue'
-import { componentByTemplate } from '@/utils'
+import { componentByTemplate, encodeObjectToQuery } from '@/utils'
 import { Builder, plaid } from '@/builder'
 import { keepScroll } from '@/keepScroll'
 import { assignOnMounted, runOnMounted } from '@/assign'
 import clonedeep from 'lodash/clonedeep'
 import jsonpatch from 'fast-json-patch'
-import * as qs from 'qs'
 
 export const Root = defineComponent({
   props: {
@@ -51,8 +50,7 @@ export const Root = defineComponent({
       },
       __clonedeep: clonedeep,
       __applyJsonPatch: jsonpatch.applyPatch,
-      __qsStringify: qs.stringify,
-      __qsParse: qs.parse,
+      __encodeObjectToQuery: encodeObjectToQuery
     })
     const _plaid = (): Builder => {
       return plaid().updateRootTemplate(updateRootTemplate).vars(vars)
