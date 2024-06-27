@@ -18,6 +18,8 @@ import { componentByTemplate } from '@/utils'
 import { Builder, plaid } from '@/builder'
 import { keepScroll } from '@/keepScroll'
 import { assignOnMounted, runOnMounted } from '@/assign'
+import clonedeep from 'lodash/clonedeep'
+import jsonpatch from 'fast-json-patch'
 
 export const Root = defineComponent({
   props: {
@@ -44,7 +46,9 @@ export const Root = defineComponent({
           name: name,
           payload: payload
         }
-      }
+      },
+      __clonedeep: clonedeep,
+      __applyJsonPatch: jsonpatch.applyPatch,
     })
     const _plaid = (): Builder => {
       return plaid().updateRootTemplate(updateRootTemplate).vars(vars)

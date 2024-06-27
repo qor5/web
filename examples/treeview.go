@@ -49,7 +49,7 @@ func (t *TreeItem) MarshalHTML(ctx context.Context) ([]byte, error) {
 			cloned.ChangeType()
 		}).Go())
 	}
-	return stateful.Reloadable(t,
+	return stateful.Actionable(ctx, t,
 		h.Li(
 			div,
 			h.Iff(t.IsOpen && isFolder, func() h.HTMLComponent {

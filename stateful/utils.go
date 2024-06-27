@@ -2,9 +2,12 @@ package stateful
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"runtime"
 	"strings"
+
+	"github.com/spaolacci/murmur3"
 )
 
 func Copy(dst, src any) error {
@@ -52,4 +55,9 @@ func GetFuncName(f any) string {
 	}
 	funcName = strings.Split(funcName, "-")[0]
 	return funcName
+}
+
+func MurmurHash3(input string) string {
+	hash := murmur3.Sum32([]byte(input))
+	return fmt.Sprintf("%x", hash)
 }

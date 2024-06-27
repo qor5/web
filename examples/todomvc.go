@@ -51,13 +51,13 @@ func (c *TodoApp) MarshalHTML(ctx context.Context) ([]byte, error) {
 		filteredTodoItems[i] = stateful.MustApply(ctx, &TodoItem{
 			ID:   todo.ID,
 			todo: todo,
-			// OnChanged: stateful.ReloadAction(ctx,a, nil).Go(),
+			// OnChanged: stateful.ReloadActionX(ctx,a, nil).Go(),
 		})
 	}
 
 	checkBoxID := fmt.Sprintf("%s-toggle-all", c.ID)
-	return stateful.Reloadable(c,
-		web.Observe(NotifyTodosChanged, stateful.ReloadAction(ctx, c, nil).Go()),
+	return stateful.Actionable(ctx, c,
+		web.Observe(NotifyTodosChanged, stateful.ReloadActionX(ctx, c, nil).Go()),
 		Section().Class("todoapp").Children(
 			Header().Class("header").Children(
 				H1("Todos"),
@@ -66,17 +66,16 @@ func (c *TodoApp) MarshalHTML(ctx context.Context) ([]byte, error) {
 					Class("new-todo").
 					Attr("id", fmt.Sprintf("%s-creator", c.ID)).
 					Attr("placeholder", "What needs to be done?").
-					Attr("@keyup.enter", strings.Replace(
-						stateful.PostAction(ctx, c, c.CreateTodo, &CreateTodoRequest{Title: "_placeholder_"}).Go(),
-						`"_placeholder_"`,
-						"$event.target.value",
-						1,
-					)),
+					Attr("@keyup.enter", stateful.PostActionX(ctx,
+						c,
+						c.CreateTodo, &CreateTodoRequest{},
+						stateful.WithAppendFix(`v.request.title = $event.target.value`),
+					).Go()),
 			),
 			Section().Class("main").Attr("v-show", JSONString(len(todos) > 0)).Children(
 				Input("").Type("checkbox").Attr("id", checkBoxID).Class("toggle-all").
 					Attr("checked", remaining == 0).
-					Attr("@change", stateful.PostAction(ctx, c, c.ToggleAll, nil).Go()),
+					Attr("@change", stateful.PostActionX(ctx, c, c.ToggleAll, nil).Go()),
 				Label("Mark all as complete").Attr("for", checkBoxID),
 				Ul().Class("todo-list").Children(filteredTodoItems...),
 			),
@@ -88,19 +87,19 @@ func (c *TodoApp) MarshalHTML(ctx context.Context) ([]byte, error) {
 				Ul().Class("filters").Children(
 					Li(
 						A(Text("All")).ClassIf("selected", c.Visibility == VisibilityAll).
-							Attr("@click", stateful.ReloadAction(ctx, c, func(cloned *TodoApp) {
+							Attr("@click", stateful.ReloadActionX(ctx, c, func(cloned *TodoApp) {
 								cloned.Visibility = VisibilityAll
 							}).Go()),
 					),
 					Li(
 						A(Text("Active")).ClassIf("selected", c.Visibility == VisibilityActive).
-							Attr("@click", stateful.ReloadAction(ctx, c, func(cloned *TodoApp) {
+							Attr("@click", stateful.ReloadActionX(ctx, c, func(cloned *TodoApp) {
 								cloned.Visibility = VisibilityActive
 							}).Go()),
 					),
 					Li(
 						A(Text("Completed")).ClassIf("selected", c.Visibility == VisibilityCompleted).
-							Attr("@click", stateful.ReloadAction(ctx, c, func(cloned *TodoApp) {
+							Attr("@click", stateful.ReloadActionX(ctx, c, func(cloned *TodoApp) {
 								cloned.Visibility = VisibilityCompleted
 							}).Go()),
 					),
@@ -210,13 +209,15 @@ func (c *TodoItem) MarshalHTML(ctx context.Context) ([]byte, error) {
 	} else {
 		itemTitleCompo = Label(todo.Title)
 	}
-	return Li().ClassIf("completed", todo.Completed).Children(
-		Div().Class("view").Children(
-			Input("").Type("checkbox").Class("toggle").Attr("checked", todo.Completed).
-				Attr("@change", stateful.PostAction(ctx, c, c.Toggle, nil).Go()),
-			itemTitleCompo,
-			Button("").Class("destroy").
-				Attr("@click", stateful.PostAction(ctx, c, c.Remove, nil).Go()),
+	return stateful.Actionable(ctx, c,
+		Li().ClassIf("completed", todo.Completed).Children(
+			Div().Class("view").Children(
+				Input("").Type("checkbox").Class("toggle").Attr("checked", todo.Completed).
+					Attr("@change", stateful.PostActionX(ctx, c, c.Toggle, nil).Go()),
+				itemTitleCompo,
+				Button("").Class("destroy").
+					Attr("@click", stateful.PostActionX(ctx, c, c.Remove, nil).Go()),
+			),
 		),
 	).MarshalHTML(ctx)
 }

@@ -2,9 +2,11 @@ package stateful
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/qor5/web/v3"
 	h "github.com/theplant/htmlgo"
+	"github.com/wI2L/jsondiff"
 )
 
 type portalize struct {
@@ -30,7 +32,7 @@ func (p *portalize) MarshalHTML(ctx context.Context) ([]byte, error) {
 	return web.Portal(p.children...).Name(compoName).MarshalHTML(ctx)
 }
 
-func Reloadable[T Named](c T, children ...h.HTMLComponent) h.HTMLComponent {
+func reloadable[T Named](c T, children ...h.HTMLComponent) h.HTMLComponent {
 	return &portalize{
 		c:        c,
 		children: children,
@@ -47,6 +49,27 @@ func ReloadAction[T Named](ctx context.Context, c T, f func(cloned T)) *web.VueE
 		f(cloned)
 	}
 	return PostAction(ctx, cloned, actionMethodReload, struct{}{})
+}
+
+func ReloadActionX[T Named](ctx context.Context, c T, f func(cloned T), opts ...PostActionOption) *web.VueEventTagBuilder {
+	if f == nil {
+		return PostActionX(ctx, c, actionMethodReload, struct{}{}, opts...)
+	}
+
+	cloned := MustClone(c)
+	f(cloned)
+	patch, err := jsondiff.Compare(c, cloned)
+	if err != nil {
+		panic(err)
+	}
+	if patch == nil {
+		return PostActionX(ctx, c, actionMethodReload, struct{}{}, opts...)
+	}
+
+	opts = append([]PostActionOption{WithAppendFix(
+		fmt.Sprintf(`vars.__applyJsonPatch(v.actionable, %s);`, h.JSONString(patch)),
+	)}, opts...)
+	return PostActionX(ctx, c, actionMethodReload, struct{}{}, opts...)
 }
 
 func AppendReloadToResponse(r *web.EventResponse, c Named) {

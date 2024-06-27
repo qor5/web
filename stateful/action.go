@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/url"
 	"reflect"
+	"strings"
 
 	cmap "github.com/orcaman/concurrent-map/v2"
 	"github.com/pkg/errors"
@@ -28,6 +29,40 @@ type Action struct {
 	SyncQuery      bool            `json:"sync_query"`
 	Method         string          `json:"method"`
 	Request        json.RawMessage `json:"request"`
+}
+
+const localsKeyActionBase = "actionBase"
+
+func DefaultVarActionableLocals(c any) string {
+	hash := ""
+	if named, ok := any(c).(Named); ok {
+		hash = MurmurHash3(fmt.Sprintf("%T:%s", c, named.CompoName()))
+	} else {
+		hash = MurmurHash3(fmt.Sprintf("%T", c))
+	}
+	return fmt.Sprintf(`_stateful_%s_`, hash)
+}
+
+func DefaultVarActionBase(c any) string {
+	return DefaultVarActionableLocals(c) + "." + localsKeyActionBase
+}
+
+func Actionable[T h.HTMLComponent](ctx context.Context, c T, children ...h.HTMLComponent) (r h.HTMLComponent) {
+	defer func() {
+		if named, ok := any(c).(Named); ok {
+			r = reloadable(named, r)
+		}
+	}()
+	return web.Scope(children...).
+		VSlot(fmt.Sprintf("{ locals: %s }", DefaultVarActionableLocals(c))).
+		Init(fmt.Sprintf(`{%s: %s}`, localsKeyActionBase, PrettyJSONString(Action{
+			ActionableType: fmt.Sprintf("%T", c),
+			Actionable:     json.RawMessage(PrettyJSONString(c)),
+			Injector:       InjectorNameFromContext(ctx),
+			SyncQuery:      IsSyncQuery(ctx),
+			Method:         "",
+			Request:        json.RawMessage("{}"),
+		})))
 }
 
 const eventDispatchAction = "__dispatch_actionable_action__"
@@ -70,6 +105,65 @@ func PostAction(ctx context.Context, c any, method any, request any) *web.VueEve
 	return b.FieldValue(fieldKeyAction, web.Var(
 		fmt.Sprintf(`JSON.stringify(%s, null, "\t")`, PrettyJSONString(action)),
 	))
+}
+
+type postActionOptions struct {
+	varActionBase string
+	fixes         []string
+}
+
+type PostActionOption func(*postActionOptions)
+
+func WithVarActionBase(v string) PostActionOption {
+	return func(o *postActionOptions) {
+		o.varActionBase = v
+	}
+}
+
+func WithAppendFix(v string) PostActionOption {
+	return func(o *postActionOptions) {
+		o.fixes = append(o.fixes, v)
+	}
+}
+
+func PostActionX(ctx context.Context, c any, method any, request any, opts ...PostActionOption) *web.VueEventTagBuilder {
+	o := new(postActionOptions)
+	for _, opt := range opts {
+		opt(o)
+	}
+	if o.varActionBase == "" {
+		o.varActionBase = DefaultVarActionBase(c)
+	}
+
+	var methodName string
+	switch m := method.(type) {
+	case string:
+		methodName = m
+	default:
+		methodName = GetFuncName(method)
+	}
+
+	b := web.POST().
+		EventFunc(eventDispatchAction).
+		Queries(url.Values{}) // force clear queries first
+
+	fix := ""
+	if len(o.fixes) > 0 {
+		fix = "\n" + strings.Join(o.fixes, "\n")
+	}
+	return b.FieldValue(fieldKeyAction,
+		web.Var(fmt.Sprintf(`JSON.stringify(function(){
+	let v = vars.__clonedeep(%s);
+	v.method = %q;
+	v.request = %s;%s
+	return v
+}(), null, "\t")`,
+			o.varActionBase,
+			methodName,
+			PrettyJSONString(request),
+			fix,
+		)),
+	)
 }
 
 var (
@@ -150,7 +244,7 @@ func eventDispatchActionHandler(evCtx *web.EventContext) (r web.EventResponse, e
 	case actionMethodReload:
 		rc, ok := v.(Named)
 		if !ok {
-			return r, errors.Errorf("actionable %T does not implement Reloadable", v)
+			return r, errors.Errorf("actionable %T does not implement Named", v)
 		}
 		return OnReload(rc)
 	default:
