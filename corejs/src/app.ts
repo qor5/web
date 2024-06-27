@@ -20,6 +20,7 @@ import { keepScroll } from '@/keepScroll'
 import { assignOnMounted, runOnMounted } from '@/assign'
 import clonedeep from 'lodash/clonedeep'
 import jsonpatch from 'fast-json-patch'
+import * as qs from 'qs'
 
 export const Root = defineComponent({
   props: {
@@ -38,6 +39,7 @@ export const Root = defineComponent({
     }
 
     provide('updateRootTemplate', updateRootTemplate)
+
     const vars = reactive({
       __notification: {},
       __sendNotification: function (name: string, payload: any) {
@@ -49,6 +51,8 @@ export const Root = defineComponent({
       },
       __clonedeep: clonedeep,
       __applyJsonPatch: jsonpatch.applyPatch,
+      __qsStringify: qs.stringify,
+      __qsParse: qs.parse,
     })
     const _plaid = (): Builder => {
       return plaid().updateRootTemplate(updateRootTemplate).vars(vars)

@@ -31,7 +31,10 @@ type Action struct {
 	Request        json.RawMessage `json:"request"`
 }
 
-const localsKeyActionBase = "actionBase"
+const (
+	LocalsKeyActionBase  = "actionBase"
+	LocalsKeyEncodeQuery = "encodeQuery"
+)
 
 func DefaultVarActionableLocals(c any) string {
 	hash := ""
@@ -43,26 +46,40 @@ func DefaultVarActionableLocals(c any) string {
 	return fmt.Sprintf(`_stateful_%s_`, hash)
 }
 
-func DefaultVarActionBase(c any) string {
-	return DefaultVarActionableLocals(c) + "." + localsKeyActionBase
-}
-
 func Actionable[T h.HTMLComponent](ctx context.Context, c T, children ...h.HTMLComponent) (r h.HTMLComponent) {
 	defer func() {
 		if named, ok := any(c).(Named); ok {
 			r = reloadable(named, r)
 		}
 	}()
+	actionBase := PrettyJSONString(Action{
+		ActionableType: fmt.Sprintf("%T", c),
+		Actionable:     json.RawMessage(PrettyJSONString(c)),
+		Injector:       InjectorNameFromContext(ctx),
+		SyncQuery:      IsSyncQuery(ctx),
+		Method:         "",
+		Request:        json.RawMessage("{}"),
+	})
+	tags := []string{"visibility"} // TODO: 需要从 strcut field 里取出来
+	// TODO: 这个 transform 貌似没成功
 	return web.Scope(children...).
 		VSlot(fmt.Sprintf("{ locals: %s }", DefaultVarActionableLocals(c))).
-		Init(fmt.Sprintf(`{%s: %s}`, localsKeyActionBase, PrettyJSONString(Action{
-			ActionableType: fmt.Sprintf("%T", c),
-			Actionable:     json.RawMessage(PrettyJSONString(c)),
-			Injector:       InjectorNameFromContext(ctx),
-			SyncQuery:      IsSyncQuery(ctx),
-			Method:         "",
-			Request:        json.RawMessage("{}"),
-		})))
+		Init(fmt.Sprintf(`{
+	%s: %s,
+	%s: function(v) {
+		if (!v.sync_query) {
+			return "";
+		}
+		return vars.__qsStringify(v.actionable, {
+			transform: (key, value) => {
+				if (%s.includes(key)) {
+					return value;
+				}
+				return undefined;
+			}
+		});
+	},
+}`, LocalsKeyActionBase, actionBase, LocalsKeyEncodeQuery, h.JSONString(tags)))
 }
 
 const eventDispatchAction = "__dispatch_actionable_action__"
@@ -108,17 +125,10 @@ func PostAction(ctx context.Context, c any, method any, request any) *web.VueEve
 }
 
 type postActionOptions struct {
-	varActionBase string
-	fixes         []string
+	fixes []string
 }
 
 type PostActionOption func(*postActionOptions)
-
-func WithVarActionBase(v string) PostActionOption {
-	return func(o *postActionOptions) {
-		o.varActionBase = v
-	}
-}
 
 func WithAppendFix(v string) PostActionOption {
 	return func(o *postActionOptions) {
@@ -130,9 +140,6 @@ func PostActionX(ctx context.Context, c any, method any, request any, opts ...Po
 	o := new(postActionOptions)
 	for _, opt := range opts {
 		opt(o)
-	}
-	if o.varActionBase == "" {
-		o.varActionBase = DefaultVarActionBase(c)
 	}
 
 	var methodName string
@@ -150,18 +157,36 @@ func PostActionX(ctx context.Context, c any, method any, request any, opts ...Po
 	fix := ""
 	if len(o.fixes) > 0 {
 		fix = "\n" + strings.Join(o.fixes, "\n")
+		// TODO: 这个需要优化成，先只移除最小的空格数，然后再统一添加 prefix
+		lines := strings.Split(fix, "\n")
+		for i, line := range lines {
+			line := strings.TrimSpace(line)
+			if line == "" {
+				lines[i] = line
+				continue
+			}
+			lines[i] = "\t" + line
+		}
+		fix = strings.Join(lines, "\n")
 	}
+
+	locals := DefaultVarActionableLocals(c)
+
+	// TODO: 可能不该是 vars.__clonedeep 过来，而是 _stateful_xxx_ 里提供 new func
+	// TODO: 怎么才能让下面的 function 里构造 qs 构造的 query 体现出来呢？
 	return b.FieldValue(fieldKeyAction,
 		web.Var(fmt.Sprintf(`JSON.stringify(function(){
-	let v = vars.__clonedeep(%s);
+	let v = vars.__clonedeep(%s); // %T
 	v.method = %q;
 	v.request = %s;%s
+	v.query = %s(v);
 	return v
 }(), null, "\t")`,
-			o.varActionBase,
+			locals+"."+LocalsKeyActionBase, c,
 			methodName,
 			PrettyJSONString(request),
 			fix,
+			locals+"."+LocalsKeyEncodeQuery,
 		)),
 	)
 }
