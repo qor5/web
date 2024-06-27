@@ -34,6 +34,7 @@ func MustClone[T any](src T) T {
 	return dst
 }
 
+// TODO: 可能需要忽略掉 omitempty
 func PrettyJSONString(v any) (r string) {
 	b, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {

@@ -52,18 +52,22 @@ func TestGetQueryTags(t *testing.T) {
 				{
 					Name:     "id",
 					JsonName: "id",
+					path:     "ID",
 				},
 				{
 					Name:     "name",
 					JsonName: "name",
+					path:     "Name",
 				},
 				{
 					Name:     "age",
 					JsonName: "age",
+					path:     "Age",
 				},
 				{
 					Name:     "NoJsonTag",
 					JsonName: "NoJsonTag",
+					path:     "NoJsonTag",
 				},
 			},
 			errMsg: "",
@@ -75,18 +79,22 @@ func TestGetQueryTags(t *testing.T) {
 				{
 					Name:     "id",
 					JsonName: "id",
+					path:     "ID",
 				},
 				{
 					Name:     "name",
 					JsonName: "name",
+					path:     "Name",
 				},
 				{
 					Name:     "age",
 					JsonName: "age",
+					path:     "Age",
 				},
 				{
 					Name:     "NoJsonTag",
 					JsonName: "NoJsonTag",
+					path:     "NoJsonTag",
 				},
 			},
 			errMsg: "",
@@ -113,6 +121,7 @@ func TestGetQueryTags(t *testing.T) {
 			expected: []QueryTag{{
 				Name:     " ",
 				JsonName: " ",
+				path:     "A",
 			}},
 			errMsg: "",
 		},
@@ -124,6 +133,7 @@ func TestGetQueryTags(t *testing.T) {
 			expected: []QueryTag{{
 				Name:     "A",
 				JsonName: "A",
+				path:     "A",
 			}},
 			errMsg: "",
 		},
@@ -134,22 +144,27 @@ func TestGetQueryTags(t *testing.T) {
 				{
 					Name:     "id",
 					JsonName: "id",
+					path:     "ID",
 				},
 				{
 					Name:     "xname",
 					JsonName: "name",
+					path:     "Name",
 				},
 				{
 					Name:     "age",
 					JsonName: "age",
+					path:     "Age",
 				},
 				{
 					Name:     "NoJsonTag",
 					JsonName: "NoJsonTag",
+					path:     "NoJsonTag",
 				},
 				{
 					Name:     "embedded",
 					JsonName: "embedded",
+					path:     "Embedded",
 				},
 			},
 			errMsg: "",
@@ -185,4 +200,62 @@ func TestGetQueryTags(t *testing.T) {
 			assert.NoError(t, err)
 		})
 	}
+}
+
+func TestQueryUnmarshal(t *testing.T) {
+	q := `id=1&name=John&Age=30&emails=a%2C,b,c&addresses=Shanghai|China|descA|1000,Hangzhou%7C|China|descB|12300&company_address=Suzhou|China|descC|8888`
+
+	type Embbeded struct {
+		Description string `json:"description"`
+	}
+
+	type Address struct {
+		Embbeded
+		Country  string `json:"country"`
+		City     string `json:"city"`
+		Distance int    `json:"distance"`
+	}
+
+	type User struct {
+		ID             int       `query:"id"`
+		Name           string    `query:"name"`
+		Age            int       `query:""`
+		Emails         []string  `query:"emails"`
+		Addresses      []Address `query:"addresses"`
+		CompanyAddress *Address  `query:"company_address"`
+	}
+
+	user := User{}
+	err := QueryUnmarshal(q, &user)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, user.ID)
+	assert.Equal(t, "John", user.Name)
+	assert.Equal(t, 30, user.Age)
+	assert.Equal(t, []string{"a,", "b", "c"}, user.Emails)
+	assert.Equal(t, []Address{
+		{
+			Embbeded: Embbeded{
+				Description: "descA",
+			},
+			City:     "Shanghai",
+			Country:  "China",
+			Distance: 1000,
+		},
+		{
+			Embbeded: Embbeded{
+				Description: "descB",
+			},
+			City:     "Hangzhou|",
+			Country:  "China",
+			Distance: 12300,
+		},
+	}, user.Addresses)
+	assert.Equal(t, &Address{
+		Embbeded: Embbeded{
+			Description: "descC",
+		},
+		City:     "Suzhou",
+		Country:  "China",
+		Distance: 8888,
+	}, user.CompanyAddress)
 }
