@@ -57,7 +57,7 @@ func (c *TodoApp) MarshalHTML(ctx context.Context) ([]byte, error) {
 
 	checkBoxID := fmt.Sprintf("%s-toggle-all", c.ID)
 	return stateful.Reloadable(c,
-		web.Scope().Observe(NotifyTodosChanged, stateful.ReloadAction(ctx, c, nil).Go()),
+		web.Observe(NotifyTodosChanged, stateful.ReloadAction(ctx, c, nil).Go()),
 		Section().Class("todoapp").Children(
 			Header().Class("header").Children(
 				H1("Todos"),
@@ -317,5 +317,7 @@ func TodoMVCExample(ctx *web.EventContext) (r web.PageResponse, err error) {
 	return
 }
 
-var TodoMVCExamplePB = web.Page(TodoMVCExample)
-var TodoMVCExamplePath = URLPathByFunc(TodoMVCExample)
+var (
+	TodoMVCExamplePB   = web.Page(TodoMVCExample)
+	TodoMVCExamplePath = URLPathByFunc(TodoMVCExample)
+)

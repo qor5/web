@@ -305,3 +305,11 @@ func GlobalEvents() *h.HTMLTagBuilder {
 func RunScript(s string) *h.HTMLTagBuilder {
 	return h.Tag("go-plaid-run-script").Attr(":script", s)
 }
+
+func Observe(name string, handler string) *h.HTMLTagBuilder {
+	handler = strings.TrimSpace(handler)
+	if !strings.HasPrefix(handler, "function") && !strings.HasPrefix(handler, "(") {
+		handler = fmt.Sprintf("({notificationName, payload}) => { %s }", handler)
+	}
+	return h.Tag("go-plaid-observer").Attr("notification-name", name).Attr(":handler", handler)
+}
