@@ -42,7 +42,7 @@ func LocalsActionable(c any) string {
 	} else {
 		hash = MurmurHash3(fmt.Sprintf("%T", c))
 	}
-	return fmt.Sprintf(`_actionable_%s_`, hash)
+	return fmt.Sprintf(`__actionable_%s__`, hash)
 }
 
 func Actionable[T h.HTMLComponent](ctx context.Context, c T, children ...h.HTMLComponent) (r h.HTMLComponent) {
@@ -78,7 +78,7 @@ func Actionable[T h.HTMLComponent](ctx context.Context, c T, children ...h.HTMLC
 }`, LocalsKeyNewAction, actionBase, LocalsKeyEncodeQuery, h.JSONString(queryTags)))
 }
 
-const eventDispatchAction = "__dispatch_action__"
+const eventDispatchAction = "__dispatch_stateful_action__"
 
 const (
 	fieldKeyAction = "__action__"
@@ -184,7 +184,7 @@ func eventDispatchActionHandler(evCtx *web.EventContext) (r web.EventResponse, e
 		return r, fmt.Errorf("failed to unmarshal action: %w", err)
 	}
 
-	v, err := newActionable(action.CompoType)
+	v, err := newActionableCompo(action.CompoType)
 	if err != nil {
 		return r, err
 	}
@@ -273,7 +273,7 @@ func registerActionableCompoType(v any) {
 	}
 }
 
-func newActionable(typeName string) (any, error) {
+func newActionableCompo(typeName string) (any, error) {
 	if t, ok := actionableCompoTypeRegistry.Load(typeName); ok {
 		return reflect.New(t.(reflect.Type).Elem()).Interface(), nil
 	}
