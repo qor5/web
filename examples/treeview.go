@@ -41,12 +41,12 @@ func (t *TreeItem) MarshalHTML(ctx context.Context) ([]byte, error) {
 			}),
 		)
 	if isFolder {
-		div.Attr("@click", stateful.ReloadAction(ctx, t, func(cloned *TreeItem) {
-			cloned.Toggle()
+		div.Attr("@click", stateful.ReloadAction(ctx, t, func(target *TreeItem) {
+			target.Toggle()
 		}).Go())
 	} else {
-		div.Attr("@dblclick", stateful.ReloadAction(ctx, t, func(cloned *TreeItem) {
-			cloned.ChangeType()
+		div.Attr("@dblclick", stateful.ReloadAction(ctx, t, func(target *TreeItem) {
+			target.ChangeType()
 		}).Go())
 	}
 	return stateful.Actionable(ctx, t,
@@ -61,8 +61,8 @@ func (t *TreeItem) MarshalHTML(ctx context.Context) ([]byte, error) {
 					})
 				}
 				childComponents = append(childComponents,
-					h.Li(h.Text("+")).Attr("@click", stateful.ReloadAction(ctx, t, func(cloned *TreeItem) {
-						cloned.AddChild()
+					h.Li(h.Text("+")).Attr("@click", stateful.ReloadAction(ctx, t, func(target *TreeItem) {
+						target.AddChild()
 					}).Go()),
 				)
 				return h.Ul(childComponents...)

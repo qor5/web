@@ -3,17 +3,9 @@ package stateful
 import (
 	"context"
 
-	"github.com/go-playground/form/v4"
 	"github.com/qor5/web/v3"
 	h "github.com/theplant/htmlgo"
 )
-
-var queryEncoder = func() *form.Encoder {
-	encoder := form.NewEncoder()
-	encoder.SetMode(form.ModeExplicit)
-	encoder.SetTagName("query")
-	return encoder
-}()
 
 type syncQueryCtxKey struct{}
 

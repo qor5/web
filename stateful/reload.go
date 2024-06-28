@@ -43,33 +43,30 @@ const (
 	actionMethodReload = "OnReload"
 )
 
-func ReloadAction[T Named](ctx context.Context, c T, f func(cloned T)) *web.VueEventTagBuilder {
-	cloned := MustClone(c)
-	if f != nil {
-		f(cloned)
-	}
-	return PostAction(ctx, cloned, actionMethodReload, struct{}{})
-}
-
-func ReloadActionX[T Named](ctx context.Context, c T, f func(cloned T), opts ...PostActionOption) *web.VueEventTagBuilder {
+func ReloadAction[T Named](ctx context.Context, source T, f func(target T), opts ...PostActionOption) *web.VueEventTagBuilder {
 	if f == nil {
-		return PostActionX(ctx, c, actionMethodReload, struct{}{}, opts...)
+		return PostAction(ctx, source, actionMethodReload, struct{}{}, opts...)
 	}
 
-	cloned := MustClone(c)
-	f(cloned)
-	patch, err := jsondiff.Compare(c, cloned)
+	target := MustClone(source)
+	f(target)
+	o := newPostActionOptions(opts...)
+	if o.useProvidedActionable {
+		return PostAction(ctx, target, actionMethodReload, struct{}{}, opts...)
+	}
+
+	patch, err := jsondiff.Compare(source, target)
 	if err != nil {
 		panic(err)
 	}
 	if patch == nil {
-		return PostActionX(ctx, c, actionMethodReload, struct{}{}, opts...)
+		return PostAction(ctx, target, actionMethodReload, struct{}{}, opts...)
 	}
 
 	opts = append([]PostActionOption{WithAppendFix(
 		fmt.Sprintf(`vars.__applyJsonPatch(v.actionable, %s);`, h.JSONString(patch)),
 	)}, opts...)
-	return PostActionX(ctx, c, actionMethodReload, struct{}{}, opts...)
+	return PostAction(ctx, target, actionMethodReload, struct{}{}, opts...)
 }
 
 func AppendReloadToResponse(r *web.EventResponse, c Named) {

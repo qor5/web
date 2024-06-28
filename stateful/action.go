@@ -85,47 +85,18 @@ const (
 	fieldKeyAction = "__action__"
 )
 
-func PostAction(ctx context.Context, c any, method any, request any) *web.VueEventTagBuilder {
-	var methodName string
-	switch m := method.(type) {
-	case string:
-		methodName = m
-	default:
-		methodName = GetFuncName(method)
-	}
-
-	b := web.POST().
-		EventFunc(eventDispatchAction).
-		Queries(url.Values{}) // force clear queries first
-
-	action := Action{
-		ActionableType: fmt.Sprintf("%T", c),
-		Actionable:     json.RawMessage(h.JSONString(c)),
-		Injector:       InjectorNameFromContext(ctx),
-		Method:         methodName,
-		Request:        json.RawMessage(h.JSONString(request)),
-	}
-
-	if IsSyncQuery(ctx) {
-		action.SyncQuery = true
-
-		queries, err := queryEncoder.Encode(c)
-		if err != nil {
-			panic(err)
-		}
-		b.Queries(queries).MergeQuery(true).PushState(true)
-	}
-
-	return b.FieldValue(fieldKeyAction, web.Var(
-		fmt.Sprintf(`JSON.stringify(%s, null, "\t")`, PrettyJSONString(action)),
-	))
-}
-
 type postActionOptions struct {
-	fixes []string
+	useProvidedActionable bool
+	fixes                 []string
 }
 
 type PostActionOption func(*postActionOptions)
+
+func WithUseProvided() PostActionOption {
+	return func(o *postActionOptions) {
+		o.useProvidedActionable = true
+	}
+}
 
 func WithAppendFix(v string) PostActionOption {
 	return func(o *postActionOptions) {
@@ -133,12 +104,19 @@ func WithAppendFix(v string) PostActionOption {
 	}
 }
 
-func PostActionX(ctx context.Context, c any, method any, request any, opts ...PostActionOption) *web.VueEventTagBuilder {
+func PostAction(ctx context.Context, c any, method any, request any, opts ...PostActionOption) *web.VueEventTagBuilder {
+	return postAction(ctx, c, method, request, newPostActionOptions(opts...))
+}
+
+func newPostActionOptions(opts ...PostActionOption) *postActionOptions {
 	o := new(postActionOptions)
 	for _, opt := range opts {
 		opt(o)
 	}
+	return o
+}
 
+func postAction(_ context.Context, c any, method any, request any, o *postActionOptions) *web.VueEventTagBuilder {
 	var methodName string
 	switch m := method.(type) {
 	case string:
@@ -151,10 +129,14 @@ func PostActionX(ctx context.Context, c any, method any, request any, opts ...Po
 		EventFunc(eventDispatchAction).
 		Queries(url.Values{}) // force clear queries first
 
+	if o.useProvidedActionable {
+		o.fixes = append([]string{fmt.Sprintf("v.actionable = %s;", PrettyJSONString(c))}, o.fixes...)
+	}
+
 	fix := ""
 	if len(o.fixes) > 0 {
 		fix = "\n" + strings.Join(o.fixes, "\n")
-		// TODO: 这个需要优化成，先只移除最小的空格数，然后再统一添加 prefix
+		// TODO: This needs to be optimized to remove only the smallest number of spaces first, and then add the prefixes uniformly
 		lines := strings.Split(fix, "\n")
 		for i, line := range lines {
 			line := strings.TrimSpace(line)
