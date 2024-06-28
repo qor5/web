@@ -29,7 +29,7 @@ export const Root = defineComponent({
     }
   },
 
-  setup(props, { emit }) {
+  setup(props) {
     const current = shallowRef<DefineComponent | null>(null)
     const form = reactive({})
     provide('form', form)
@@ -63,10 +63,10 @@ export const Root = defineComponent({
     onMounted(() => {
       updateRootTemplate(props.initialTemplate)
 
-      window.addEventListener('fetchStart', (e: Event) => {
+      window.addEventListener('fetchStart', () => {
         isFetching.value = true
       })
-      window.addEventListener('fetchEnd', (e: Event) => {
+      window.addEventListener('fetchEnd', () => {
         isFetching.value = false
       })
       window.addEventListener('popstate', (evt) => {

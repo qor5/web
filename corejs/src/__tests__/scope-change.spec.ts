@@ -25,7 +25,7 @@ describe('scope change', () => {
     await flushPromises()
 
     console.log(wrapper.html())
-    await new Promise((resolve, reject) => {
+    await new Promise((resolve) => {
       setTimeout(async () => {
         await wrapper.find('button').trigger('click')
         console.log('clicked')
@@ -44,7 +44,7 @@ describe('scope change', () => {
   it('debounce form with v-model', async () => {
     const form = ref(new FormData())
     let fetchCount = 0
-    mockFetchWithReturnTemplate(form, (url: any, opts: any) => {
+    mockFetchWithReturnTemplate(form, () => {
       fetchCount++
       return { body: '<h6></h6>' }
     })
@@ -62,7 +62,7 @@ describe('scope change', () => {
 
     await nextTick()
     console.log(wrapper.html())
-    await new Promise((resolve, reject) => {
+    await new Promise((resolve) => {
       setTimeout(async () => {
         await wrapper.find('input').setValue('1')
         await wrapper.find('input').setValue('12')
@@ -93,7 +93,7 @@ describe('scope change', () => {
 
     await nextTick()
     await waitUntil(() => (wrapper.find('.v-field input').element as any).value === 'debounced')
-    await new Promise((resolve, reject) => {
+    await new Promise((resolve) => {
       setTimeout(() => {
         resolve('')
       }, 800)
@@ -101,7 +101,7 @@ describe('scope change', () => {
     expect(wrapper.find('h1').text()).toEqual('0')
     await wrapper.find('button').trigger('click')
     await waitUntil(() => (wrapper.find('.v-field input').element as any).value === 'change')
-    await new Promise((resolve, reject) => {
+    await new Promise((resolve) => {
       setTimeout(() => {
         resolve('')
       }, 800)

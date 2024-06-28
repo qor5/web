@@ -1,5 +1,5 @@
 import type { EventFuncID, EventResponse, Location, Queries, QueryValue } from './types'
-import { buildPushState, objectToFormData, setFormValue } from '@/utils'
+import { buildPushState, objectToFormData } from '@/utils'
 
 declare let window: any
 
