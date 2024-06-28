@@ -113,7 +113,7 @@ func GetQueryTags(v any) ([]QueryTag, error) {
 		rv = rv.Elem()
 	}
 
-	// TODO: 需要做一个简单的缓存机制
+	// TODO: A simple caching mechanism is required
 	rt := rv.Type()
 
 	var tags []QueryTag
@@ -123,7 +123,7 @@ func GetQueryTags(v any) ([]QueryTag, error) {
 	return tags, nil
 }
 
-// TODO: rt 需要是非指针吗？
+// TODO: Does rt need to be a non-pointer?
 func newStructObject(rt reflect.Type, desc string) (any, error) {
 	var err error
 
@@ -134,7 +134,7 @@ func newStructObject(rt reflect.Type, desc string) (any, error) {
 			return nil, err
 		}
 	}
-	// TODO: 这里需要一个缓存机制
+	// TODO: A caching mechanism is needed here
 	jsonTags := map[string]string{}
 	if err := collectJsonTags(rt, jsonTags); err != nil {
 		return nil, err
@@ -154,9 +154,17 @@ func newStructObject(rt reflect.Type, desc string) (any, error) {
 	return elem, nil
 }
 
-// TODO: 目前只能接受指针信息，内部逻辑还需好好优化
-func QueryUnmarshal(rawQuery string, v any) error {
-	// TODO: 需要一个 recover 机制
+// TODO: Currently it can only accept pointer information, the internal logic needs to be optimized properly
+func QueryUnmarshal(rawQuery string, v any) (rerr error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err, ok := r.(error)
+			if !ok {
+				err = fmt.Errorf("%v", r)
+			}
+			rerr = errors.Wrap(err, "Panic")
+		}
+	}()
 
 	qs := make(url.Values)
 	err := parseQuery(qs, rawQuery, url.QueryUnescape, func(s string) (string, error) {
@@ -261,7 +269,7 @@ func parseQuery(m url.Values, query string,
 	return err
 }
 
-// TODO: 这个逻辑是否可以和 collectQueryTags 复用？
+// TODO: Can this logic be reused with collectQueryTags?
 // tags: jsonName => path
 func collectJsonTags(rt reflect.Type, tags map[string]string) error {
 	rt = unwrapPtrType(rt)
@@ -307,7 +315,7 @@ func collectJsonTags(rt reflect.Type, tags map[string]string) error {
 				name = structField.Name
 			}
 		}
-		// TODO: 这里不太对，不能保证外层的优先级更高，embbeded 的优先级是低的
+		// TODO: It's not quite right here, there's no guarantee that the outer layer has a higher priority, the embedded one has a lower priority
 		tags[name] = structField.Name
 	}
 	return nil
