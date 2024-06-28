@@ -186,6 +186,14 @@ func (b *VueEventTagBuilder) FieldValue(name interface{}, v interface{}) (r *Vue
 	return b
 }
 
+func (b *VueEventTagBuilder) Run(v interface{}) (r *VueEventTagBuilder) {
+	b.calls = append(b.calls, jsCall{
+		method: "run",
+		args:   []interface{}{v},
+	})
+	return b
+}
+
 func (b *VueEventTagBuilder) PopState(v interface{}) (r *VueEventTagBuilder) {
 	b.calls = append(b.calls, jsCall{
 		method: "popstate",

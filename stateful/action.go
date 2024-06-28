@@ -32,7 +32,7 @@ type Action struct {
 }
 
 const (
-	LocalsKeyActionBase  = "actionBase"
+	LocalsKeyNewAction   = "newAction"
 	LocalsKeyEncodeQuery = "encodeQuery"
 )
 
@@ -67,14 +67,16 @@ func Actionable[T h.HTMLComponent](ctx context.Context, c T, children ...h.HTMLC
 	return web.Scope(children...).
 		VSlot(fmt.Sprintf("{ locals: %s }", DefaultVarActionableLocals(c))).
 		Init(fmt.Sprintf(`{
-	%s: %s,
+	%s: function() {
+		return %s;
+	},
 	%s: function(v) {
 		if (!v.sync_query) {
 			return "";
 		}
-		return vars.__encodeObjectToQuery(v.actionable, %s);
+		return vars.__encodeObjectToQuery(v.actionable, %s || []);
 	},
-}`, LocalsKeyActionBase, actionBase, LocalsKeyEncodeQuery, h.JSONString(queryTags)))
+}`, LocalsKeyNewAction, actionBase, LocalsKeyEncodeQuery, h.JSONString(queryTags)))
 }
 
 const eventDispatchAction = "__dispatch_actionable_action__"
@@ -166,24 +168,27 @@ func PostActionX(ctx context.Context, c any, method any, request any, opts ...Po
 	}
 
 	locals := DefaultVarActionableLocals(c)
+	b.Run(web.Var(fmt.Sprintf(`function(b){
+		const stateful = b.parent ? b.parent.__stateful__ : %s;
+		b.__stateful__ = stateful;
 
-	// TODO: 可能不该是 vars.__clonedeep 过来，而是 _stateful_xxx_ 里提供 new func
-	// TODO: 怎么才能让下面的 function 里构造 qs 构造的 query 体现出来呢？
-	return b.FieldValue(fieldKeyAction,
-		web.Var(fmt.Sprintf(`JSON.stringify(function(){
-	let v = vars.__clonedeep(%s); // %T
-	v.method = %q;
-	v.request = %s;%s
-	v.query = %s(v);
-	return v
-}(), null, "\t")`,
-			locals+"."+LocalsKeyActionBase, c,
-			methodName,
-			PrettyJSONString(request),
-			fix,
-			locals+"."+LocalsKeyEncodeQuery,
-		)),
-	)
+		let v = stateful.%s(); // %T
+		v.method = %q;
+		v.request = %s;%s
+
+		b.__action__ = v;
+		b.__stringQuery__ = stateful.%s(v);
+	}`,
+		locals,
+		LocalsKeyNewAction, c,
+		methodName,
+		PrettyJSONString(request),
+		fix,
+		LocalsKeyEncodeQuery,
+	)))
+	b.StringQuery(web.Var(`(b) => b.__stringQuery__`))
+	b.PushState(web.Var(`(b) => !!b.__stringQuery__`))
+	return b.FieldValue(fieldKeyAction, web.Var(`(b) => JSON.stringify(b.__action__, null, "\t")`))
 }
 
 var (

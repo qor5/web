@@ -124,8 +124,8 @@ export class Builder {
     return this
   }
 
-  public pushState(v: boolean): Builder {
-    this._pushState = v
+  public pushState(v: boolean | Function): Builder {
+    this._pushState = this.calcValue(v)
     return this
   }
 
