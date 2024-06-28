@@ -22,12 +22,12 @@ func Install(b *web.Builder) {
 }
 
 type Action struct {
-	ActionableType string          `json:"actionable_type"`
-	Actionable     json.RawMessage `json:"actionable"`
-	Injector       string          `json:"injector"`
-	SyncQuery      bool            `json:"sync_query"`
-	Method         string          `json:"method"`
-	Request        json.RawMessage `json:"request"`
+	CompoType string          `json:"compo_type"`
+	Compo     json.RawMessage `json:"compo"`
+	Injector  string          `json:"injector"`
+	SyncQuery bool            `json:"sync_query"`
+	Method    string          `json:"method"`
+	Request   json.RawMessage `json:"request"`
 }
 
 const (
@@ -35,14 +35,14 @@ const (
 	LocalsKeyEncodeQuery = "encodeQuery"
 )
 
-func DefaultVarActionableLocals(c any) string {
+func LocalsActionable(c any) string {
 	hash := ""
 	if named, ok := any(c).(Named); ok {
 		hash = MurmurHash3(fmt.Sprintf("%T:%s", c, named.CompoName()))
 	} else {
 		hash = MurmurHash3(fmt.Sprintf("%T", c))
 	}
-	return fmt.Sprintf(`_stateful_%s_`, hash)
+	return fmt.Sprintf(`_actionable_%s_`, hash)
 }
 
 func Actionable[T h.HTMLComponent](ctx context.Context, c T, children ...h.HTMLComponent) (r h.HTMLComponent) {
@@ -52,19 +52,19 @@ func Actionable[T h.HTMLComponent](ctx context.Context, c T, children ...h.HTMLC
 		}
 	}()
 	actionBase := PrettyJSONString(Action{
-		ActionableType: fmt.Sprintf("%T", c),
-		Actionable:     json.RawMessage(PrettyJSONString(c)),
-		Injector:       InjectorNameFromContext(ctx),
-		SyncQuery:      IsSyncQuery(ctx),
-		Method:         "",
-		Request:        json.RawMessage("{}"),
+		CompoType: fmt.Sprintf("%T", c),
+		Compo:     json.RawMessage(PrettyJSONString(c)),
+		Injector:  InjectorNameFromContext(ctx),
+		SyncQuery: IsSyncQuery(ctx),
+		Method:    "",
+		Request:   json.RawMessage("{}"),
 	})
 	queryTags, err := GetQueryTags(c)
 	if err != nil {
 		panic(err)
 	}
 	return web.Scope(children...).
-		VSlot(fmt.Sprintf("{ locals: %s }", DefaultVarActionableLocals(c))).
+		VSlot(fmt.Sprintf("{ locals: %s }", LocalsActionable(c))).
 		Init(fmt.Sprintf(`{
 	%s: function() {
 		return %s;
@@ -73,27 +73,27 @@ func Actionable[T h.HTMLComponent](ctx context.Context, c T, children ...h.HTMLC
 		if (!v.sync_query) {
 			return "";
 		}
-		return vars.__encodeObjectToQuery(v.actionable, %s || []);
+		return vars.__encodeObjectToQuery(v.compo, %s || []);
 	},
 }`, LocalsKeyNewAction, actionBase, LocalsKeyEncodeQuery, h.JSONString(queryTags)))
 }
 
-const eventDispatchAction = "__dispatch_actionable_action__"
+const eventDispatchAction = "__dispatch_action__"
 
 const (
 	fieldKeyAction = "__action__"
 )
 
 type postActionOptions struct {
-	useProvidedActionable bool
-	fixes                 []string
+	useProvidedCompo bool
+	fixes            []string
 }
 
 type PostActionOption func(*postActionOptions)
 
-func WithUseProvided() PostActionOption {
+func WithUseProvidedCompo() PostActionOption {
 	return func(o *postActionOptions) {
-		o.useProvidedActionable = true
+		o.useProvidedCompo = true
 	}
 }
 
@@ -128,8 +128,8 @@ func postAction(_ context.Context, c any, method any, request any, o *postAction
 		EventFunc(eventDispatchAction).
 		Queries(url.Values{}) // force clear queries first
 
-	if o.useProvidedActionable {
-		o.fixes = append([]string{fmt.Sprintf("v.actionable = %s;", PrettyJSONString(c))}, o.fixes...)
+	if o.useProvidedCompo {
+		o.fixes = append([]string{fmt.Sprintf("v.compo = %s;", PrettyJSONString(c))}, o.fixes...)
 	}
 
 	fix := ""
@@ -148,17 +148,17 @@ func postAction(_ context.Context, c any, method any, request any, o *postAction
 		fix = strings.Join(lines, "\n")
 	}
 
-	locals := DefaultVarActionableLocals(c)
+	locals := LocalsActionable(c)
 	b.Run(web.Var(fmt.Sprintf(`function(b){
-		const stateful = b.parent ? b.parent.__stateful__ : %s;
-		b.__stateful__ = stateful;
+		const actionable = b.parent ? b.parent.__actionable__ : %s;
+		b.__actionable__ = actionable;
 
-		let v = stateful.%s(); // %T
+		let v = actionable.%s(); // %T
 		v.method = %q;
 		v.request = %s;%s
 
 		b.__action__ = v;
-		b.__stringQuery__ = stateful.%s(v);
+		b.__stringQuery__ = actionable.%s(v);
 	}`,
 		locals,
 		LocalsKeyNewAction, c,
@@ -168,7 +168,7 @@ func postAction(_ context.Context, c any, method any, request any, o *postAction
 		LocalsKeyEncodeQuery,
 	)))
 	b.StringQuery(web.Var(`(b) => b.__stringQuery__`))
-	b.PushState(web.Var(`(b) => !!b.__stringQuery__`))
+	b.PushState(web.Var(`(b) => !!b.__stringQuery__`)) // TODO: duplicate path?query should not actually be executed
 	return b.FieldValue(fieldKeyAction, web.Var(`(b) => JSON.stringify(b.__action__, null, "\t")`))
 }
 
@@ -184,12 +184,12 @@ func eventDispatchActionHandler(evCtx *web.EventContext) (r web.EventResponse, e
 		return r, fmt.Errorf("failed to unmarshal action: %w", err)
 	}
 
-	v, err := newActionable(action.ActionableType)
+	v, err := newActionable(action.CompoType)
 	if err != nil {
 		return r, err
 	}
 
-	err = json.Unmarshal(action.Actionable, v)
+	err = json.Unmarshal(action.Compo, v)
 	if err != nil {
 		return r, err
 	}
@@ -250,7 +250,7 @@ func eventDispatchActionHandler(evCtx *web.EventContext) (r web.EventResponse, e
 	case actionMethodReload:
 		rc, ok := v.(Named)
 		if !ok {
-			return r, fmt.Errorf("actionable %T does not implement Named", v)
+			return r, fmt.Errorf("compo %T does not implement Named", v)
 		}
 		return OnReload(rc)
 	default:
@@ -258,23 +258,23 @@ func eventDispatchActionHandler(evCtx *web.EventContext) (r web.EventResponse, e
 	}
 }
 
-var actionableTypeRegistry = new(sync.Map)
+var actionableCompoTypeRegistry = new(sync.Map)
 
-func RegisterActionableType(vs ...any) {
+func RegisterActionableCompoType(vs ...any) {
 	for _, v := range vs {
-		registerActionableType(v)
+		registerActionableCompoType(v)
 	}
 }
 
-func registerActionableType(v any) {
-	_, loaded := actionableTypeRegistry.LoadOrStore(fmt.Sprintf("%T", v), reflect.TypeOf(v))
+func registerActionableCompoType(v any) {
+	_, loaded := actionableCompoTypeRegistry.LoadOrStore(fmt.Sprintf("%T", v), reflect.TypeOf(v))
 	if loaded {
-		panic(fmt.Sprintf("actionable type %T already registered", v))
+		panic(fmt.Sprintf("actionable compo type %T already registered", v))
 	}
 }
 
 func newActionable(typeName string) (any, error) {
-	if t, ok := actionableTypeRegistry.Load(typeName); ok {
+	if t, ok := actionableCompoTypeRegistry.Load(typeName); ok {
 		return reflect.New(t.(reflect.Type).Elem()).Interface(), nil
 	}
 	return nil, fmt.Errorf("type not found: %s", typeName)

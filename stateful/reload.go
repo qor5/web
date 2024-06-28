@@ -51,8 +51,8 @@ func ReloadAction[T Named](ctx context.Context, source T, f func(target T), opts
 	target := MustClone(source)
 	f(target)
 	o := newPostActionOptions(opts...)
-	if o.useProvidedActionable {
-		return PostAction(ctx, target, actionMethodReload, struct{}{}, opts...)
+	if o.useProvidedCompo {
+		return postAction(ctx, target, actionMethodReload, struct{}{}, o)
 	}
 
 	patch, err := jsondiff.Compare(source, target)
@@ -60,13 +60,13 @@ func ReloadAction[T Named](ctx context.Context, source T, f func(target T), opts
 		panic(err)
 	}
 	if patch == nil {
-		return PostAction(ctx, target, actionMethodReload, struct{}{}, opts...)
+		return postAction(ctx, target, actionMethodReload, struct{}{}, o)
 	}
 
-	opts = append([]PostActionOption{WithAppendFix(
-		fmt.Sprintf(`vars.__applyJsonPatch(v.actionable, %s);`, h.JSONString(patch)),
-	)}, opts...)
-	return PostAction(ctx, target, actionMethodReload, struct{}{}, opts...)
+	o.fixes = append([]string{
+		fmt.Sprintf(`vars.__applyJsonPatch(v.compo, %s);`, h.JSONString(patch)),
+	}, o.fixes...)
+	return postAction(ctx, target, actionMethodReload, struct{}{}, o)
 }
 
 func AppendReloadToResponse(r *web.EventResponse, c Named) {

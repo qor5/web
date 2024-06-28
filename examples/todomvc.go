@@ -91,7 +91,7 @@ func (c *TodoApp) MarshalHTML(ctx context.Context) ([]byte, error) {
 								func(target *TodoApp) {
 									target.Visibility = VisibilityAll
 								},
-								stateful.WithUseProvided(), // test use provided actionable
+								stateful.WithUseProvidedCompo(), // test use provided compo
 							).Go()),
 					),
 					Li(
@@ -216,7 +216,8 @@ func (c *TodoItem) MarshalHTML(ctx context.Context) ([]byte, error) {
 		Li().ClassIf("completed", todo.Completed).Children(
 			Div().Class("view").Children(
 				Input("").Type("checkbox").Class("toggle").Attr("checked", todo.Completed).
-					Attr("@change", stateful.PostAction(ctx, c, c.Toggle, nil, stateful.WithUseProvided()).Go()), // just for WithUseProvided
+					// test use provided compo
+					Attr("@change", stateful.PostAction(ctx, c, c.Toggle, nil, stateful.WithUseProvidedCompo()).Go()),
 				itemTitleCompo,
 				Button("").Class("destroy").
 					Attr("@click", stateful.PostAction(ctx, c, c.Remove, nil).Go()),
@@ -262,7 +263,7 @@ const (
 )
 
 func init() {
-	stateful.RegisterActionableType(
+	stateful.RegisterActionableCompoType(
 		(*TodoApp)(nil),
 		(*TodoItem)(nil),
 	)

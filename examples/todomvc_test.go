@@ -41,11 +41,11 @@ func TestTodoMVCExamplePB(t *testing.T) {
 			ReqFunc: func() *http.Request {
 				return multipartestutils.NewMultipartBuilder().
 					PageURL("/").
-					EventFunc("__dispatch_actionable_action__").
+					EventFunc("__dispatch_action__").
 					AddField("__action__", `
 {
-	"actionable_type": "*examples.TodoApp",
-	"actionable": {
+	"compo_type": "*examples.TodoApp",
+	"compo": {
 		"id": "TodoApp0",
 		"visibility": "all"
 	},
@@ -67,11 +67,11 @@ func TestTodoMVCExamplePB(t *testing.T) {
 			ReqFunc: func() *http.Request {
 				return multipartestutils.NewMultipartBuilder().
 					PageURL("/").
-					EventFunc("__dispatch_actionable_action__").
+					EventFunc("__dispatch_action__").
 					AddField("__action__", `
 {
-	"actionable_type": "*examples.TodoApp",
-	"actionable": {
+	"compo_type": "*examples.TodoApp",
+	"compo": {
 		"id": "TodoApp0",
 		"visibility": "all"
 	},
@@ -93,11 +93,11 @@ func TestTodoMVCExamplePB(t *testing.T) {
 			ReqFunc: func() *http.Request {
 				return multipartestutils.NewMultipartBuilder().
 					PageURL("/").
-					EventFunc("__dispatch_actionable_action__").
+					EventFunc("__dispatch_action__").
 					AddField("__action__", `
 {
-	"actionable_type": "*examples.TodoApp",
-	"actionable": {
+	"compo_type": "*examples.TodoApp",
+	"compo": {
 		"id": "TodoApp1",
 		"visibility": "completed"
 	},
@@ -115,11 +115,11 @@ func TestTodoMVCExamplePB(t *testing.T) {
 			ReqFunc: func() *http.Request {
 				return multipartestutils.NewMultipartBuilder().
 					PageURL("/").
-					EventFunc("__dispatch_actionable_action__").
+					EventFunc("__dispatch_action__").
 					AddField("__action__", `
 {
-	"actionable_type": "*examples.TodoApp",
-	"actionable": {
+	"compo_type": "*examples.TodoApp",
+	"compo": {
 		"id": "TodoApp1",
 		"visibility": "active"
 	},
@@ -137,11 +137,11 @@ func TestTodoMVCExamplePB(t *testing.T) {
 			ReqFunc: func() *http.Request {
 				return multipartestutils.NewMultipartBuilder().
 					PageURL("/").
-					EventFunc("__dispatch_actionable_action__").
+					EventFunc("__dispatch_action__").
 					AddField("__action__", `
 {
-	"actionable_type": "*examples.TodoItem",
-	"actionable": {
+	"compo_type": "*examples.TodoItem",
+	"compo": {
 		"id": "0"
 	},
 	"injector": "top",
@@ -160,11 +160,11 @@ func TestTodoMVCExamplePB(t *testing.T) {
 			ReqFunc: func() *http.Request {
 				return multipartestutils.NewMultipartBuilder().
 					PageURL("/").
-					EventFunc("__dispatch_actionable_action__").
+					EventFunc("__dispatch_action__").
 					AddField("__action__", `
 {
-	"actionable_type": "*examples.TodoApp",
-	"actionable": {
+	"compo_type": "*examples.TodoApp",
+	"compo": {
 		"id": "TodoApp1",
 		"visibility": "completed"
 	},
@@ -182,11 +182,11 @@ func TestTodoMVCExamplePB(t *testing.T) {
 			ReqFunc: func() *http.Request {
 				return multipartestutils.NewMultipartBuilder().
 					PageURL("/").
-					EventFunc("__dispatch_actionable_action__").
+					EventFunc("__dispatch_action__").
 					AddField("__action__", `
 {
-	"actionable_type": "*examples.TodoApp",
-	"actionable": {
+	"compo_type": "*examples.TodoApp",
+	"compo": {
 		"id": "TodoApp0",
 		"visibility": "all"
 	},
@@ -204,11 +204,11 @@ func TestTodoMVCExamplePB(t *testing.T) {
 			ReqFunc: func() *http.Request {
 				return multipartestutils.NewMultipartBuilder().
 					PageURL("/").
-					EventFunc("__dispatch_actionable_action__").
+					EventFunc("__dispatch_action__").
 					AddField("__action__", `
 {
-	"actionable_type": "*examples.TodoApp",
-	"actionable": {
+	"compo_type": "*examples.TodoApp",
+	"compo": {
 		"id": "TodoApp0",
 		"visibility": "all"
 	},
@@ -228,11 +228,11 @@ func TestTodoMVCExamplePB(t *testing.T) {
 			ReqFunc: func() *http.Request {
 				return multipartestutils.NewMultipartBuilder().
 					PageURL("/").
-					EventFunc("__dispatch_actionable_action__").
+					EventFunc("__dispatch_action__").
 					AddField("__action__", `
 {
-	"actionable_type": "*examples.TodoApp",
-	"actionable": {
+	"compo_type": "*examples.TodoApp",
+	"compo": {
 		"id": "TodoApp0",
 		"visibility": "active"
 	},
@@ -250,11 +250,11 @@ func TestTodoMVCExamplePB(t *testing.T) {
 			ReqFunc: func() *http.Request {
 				return multipartestutils.NewMultipartBuilder().
 					PageURL("/").
-					EventFunc("__dispatch_actionable_action__").
+					EventFunc("__dispatch_action__").
 					AddField("__action__", `
 {
-	"actionable_type": "*examples.TodoItem",
-	"actionable": {
+	"compo_type": "*examples.TodoItem",
+	"compo": {
 		"id": "0"
 	},
 	"injector": "top",
@@ -273,11 +273,11 @@ func TestTodoMVCExamplePB(t *testing.T) {
 			ReqFunc: func() *http.Request {
 				return multipartestutils.NewMultipartBuilder().
 					PageURL("/").
-					EventFunc("__dispatch_actionable_action__").
+					EventFunc("__dispatch_action__").
 					AddField("__action__", `
 {
-	"actionable_type": "*examples.TodoApp",
-	"actionable": {
+	"compo_type": "*examples.TodoApp",
+	"compo": {
 		"id": "TodoApp0",
 		"visibility": "active"
 	},
