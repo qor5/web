@@ -8,7 +8,6 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/pkg/errors"
 	"github.com/qor5/web/v3"
 	h "github.com/theplant/htmlgo"
 )
@@ -81,7 +80,7 @@ var (
 func eventDispatchActionHandler(evCtx *web.EventContext) (r web.EventResponse, err error) {
 	var action Action
 	if err = json.Unmarshal([]byte(evCtx.R.FormValue(fieldKeyAction)), &action); err != nil {
-		return r, errors.Wrap(err, "failed to unmarshal action")
+		return r, fmt.Errorf("failed to unmarshal action: %w", err)
 	}
 
 	v, err := newActionable(action.ActionableType)
@@ -111,15 +110,15 @@ func eventDispatchActionHandler(evCtx *web.EventContext) (r web.EventResponse, e
 		if methodType.NumOut() != 2 ||
 			methodType.Out(0) != outType0 ||
 			methodType.Out(1) != outType1 {
-			return r, errors.Errorf("action method %q has incorrect signature", action.Method)
+			return r, fmt.Errorf("action method %q has incorrect signature", action.Method)
 		}
 
 		numIn := methodType.NumIn()
 		if numIn <= 0 || numIn > 2 {
-			return r, errors.Errorf("action method %q has incorrect number of arguments", action.Method)
+			return r, fmt.Errorf("action method %q has incorrect number of arguments", action.Method)
 		}
 		if methodType.In(0) != inType0 {
-			return r, errors.Errorf("action method %q has incorrect signature", action.Method)
+			return r, fmt.Errorf("action method %q has incorrect signature", action.Method)
 		}
 		ctxValue := reflect.ValueOf(evCtx.R.Context())
 
@@ -129,32 +128,32 @@ func eventDispatchActionHandler(evCtx *web.EventContext) (r web.EventResponse, e
 			argValue := reflect.New(argType).Interface()
 			err := json.Unmarshal([]byte(action.Request), &argValue)
 			if err != nil {
-				return r, errors.Wrapf(err, "failed to unmarshal action request to %T", argValue)
+				return r, fmt.Errorf("failed to unmarshal action request to %T: %w", argValue, err)
 			}
 			params = append(params, reflect.ValueOf(argValue).Elem())
 		}
 
 		result := method.Call(params)
 		if len(result) != 2 || !result[0].CanInterface() || !result[1].CanInterface() {
-			return r, errors.Errorf("action method %q has incorrect return values", action.Method)
+			return r, fmt.Errorf("action method %q has incorrect return values", action.Method)
 		}
 		r = result[0].Interface().(web.EventResponse)
 		if result[1].IsNil() {
 			return r, nil
 		}
 		err = result[1].Interface().(error)
-		return r, errors.Wrapf(err, "failed to call action method %q", action.Method)
+		return r, fmt.Errorf("failed to call action method %q: %w", action.Method, err)
 	}
 
 	switch action.Method {
 	case actionMethodReload:
 		rc, ok := v.(Named)
 		if !ok {
-			return r, errors.Errorf("actionable %T does not implement Reloadable", v)
+			return r, fmt.Errorf("actionable %T does not implement Reloadable", v)
 		}
 		return OnReload(rc)
 	default:
-		return r, errors.Errorf("action method %q not found", action.Method)
+		return r, fmt.Errorf("action method %q not found", action.Method)
 	}
 }
 
@@ -177,5 +176,5 @@ func newActionable(typeName string) (any, error) {
 	if t, ok := actionableTypeRegistry.Load(typeName); ok {
 		return reflect.New(t.(reflect.Type).Elem()).Interface(), nil
 	}
-	return nil, errors.Errorf("type not found: %s", typeName)
+	return nil, fmt.Errorf("type not found: %s", typeName)
 }

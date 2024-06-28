@@ -2,11 +2,11 @@ package stateful
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"sync"
 
-	"github.com/pkg/errors"
 	. "github.com/theplant/htmlgo"
 	"github.com/theplant/inject"
 )
@@ -82,7 +82,7 @@ func (r *DependencyCenter) Injector(name string) (*inject.Injector, error) {
 	defer r.mu.RUnlock()
 	inj, ok := r.injectors[name]
 	if !ok {
-		return nil, errors.Wrap(ErrInjectorNotFound, name)
+		return nil, fmt.Errorf("%s: %w", name, ErrInjectorNotFound)
 	}
 	return inj, nil
 }

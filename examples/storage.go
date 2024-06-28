@@ -1,10 +1,10 @@
 package examples
 
 import (
+	"errors"
 	"fmt"
 	"sync"
 
-	"github.com/pkg/errors"
 	"github.com/qor5/web/v3/stateful"
 )
 
