@@ -16,6 +16,7 @@ export class Builder {
   _location?: Location
   _updateRootTemplate?: any
   _buildPushStateResult?: any
+  parent?: Builder
 
   readonly ignoreErrors = [
     'Failed to fetch', // Chrome
@@ -73,6 +74,14 @@ export class Builder {
     return this
   }
 
+  public calcValue(v: any) {
+    if (typeof v === 'function') {
+      return v(this)
+    } else {
+      return v
+    }
+  }
+
   public query(key: string, val: QueryValue): Builder {
     if (!this._location) {
       this._location = {}
@@ -80,7 +89,7 @@ export class Builder {
     if (!this._location.query) {
       this._location.query = {}
     }
-    this._location.query[key] = val
+    this._location.query[key] = this.calcValue(val)
     return this
   }
 
@@ -106,12 +115,12 @@ export class Builder {
     return this
   }
 
-  public stringQuery(v: string): Builder {
+  public stringQuery(v: string | Function): Builder {
     if (!this._location) {
       this._location = {}
     }
 
-    this._location.stringQuery = v
+    this._location.stringQuery = this.calcValue(v)
     return this
   }
 
@@ -128,11 +137,11 @@ export class Builder {
     return this
   }
 
-  public pushStateURL(v: string): Builder {
+  public pushStateURL(v: string | Function): Builder {
     if (!this._location) {
       this._location = {}
     }
-    this._location.url = v
+    this._location.url = this.calcValue(v)
     this.pushState(true)
     return this
   }
@@ -146,7 +155,7 @@ export class Builder {
     if (!this._form) {
       throw new Error('form not exist')
     }
-    this._form[name] = v
+    this._form[name] = this.calcValue(v)
     return this
   }
 
@@ -155,9 +164,12 @@ export class Builder {
     return this
   }
 
-  public run(script: string): Builder {
-    const f = new Function(script)
-    f.apply(this)
+  public run(script: string | Function): Builder {
+    if (typeof script === 'function') {
+      script(this)
+    } else {
+      new Function(script).apply(this)
+    }
     return this
   }
 
@@ -236,11 +248,13 @@ export class Builder {
             this._locals,
             this._form,
             (): Builder => {
-              return plaid()
+              const b = plaid()
                 .vars(this._vars)
                 .locals(this._locals)
                 .form(this._form)
                 .updateRootTemplate(this._updateRootTemplate)
+              b.parent = this
+              return b
             }
           ])
         }

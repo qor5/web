@@ -4,7 +4,7 @@ export interface ValueOp {
   remove?: boolean
 }
 
-export type QueryValue = null | undefined | string | string[] | ValueOp
+export type QueryValue = null | undefined | string | string[] | ValueOp| Function
 
 export interface Queries {
   [key: string]: QueryValue
