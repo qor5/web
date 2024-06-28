@@ -18,7 +18,6 @@ import { componentByTemplate, encodeObjectToQuery } from '@/utils'
 import { Builder, plaid } from '@/builder'
 import { keepScroll } from '@/keepScroll'
 import { assignOnMounted, runOnMounted } from '@/assign'
-import clonedeep from 'lodash/clonedeep'
 import jsonpatch from 'fast-json-patch'
 
 export const Root = defineComponent({
@@ -48,7 +47,6 @@ export const Root = defineComponent({
           payload: payload
         }
       },
-      __clonedeep: clonedeep,
       __applyJsonPatch: jsonpatch.applyPatch,
       __encodeObjectToQuery: encodeObjectToQuery
     })

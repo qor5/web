@@ -10,7 +10,7 @@ describe('builder', () => {
       .url('/page1?hello=1&page=2#scroll=123_0')
 
     expect(b.buildFetchURL()).toEqual('/page1?__execute_event__=hello&hello=1&name=felix&page=2')
-    const [pushedData,, url] = b.buildPushStateArgs()
+    const [pushedData, , url] = b.buildPushStateArgs()
     expect(url).toEqual('/page1?hello=1&name=felix&page=2#scroll=123_0')
     expect(pushedData).toEqual({
       query: { hello: '1', name: 'felix', page: '2' },
@@ -22,7 +22,7 @@ describe('builder', () => {
     const b = plaid().eventFunc('hello').query('name', 'felix').url('/page1?hello=1&page=2')
 
     expect(b.buildFetchURL()).toEqual('/page1?__execute_event__=hello&name=felix')
-    const [pushedData,, url] = b.buildPushStateArgs()
+    const [pushedData, , url] = b.buildPushStateArgs()
     expect(url).toEqual('/page1?name=felix')
     expect(pushedData).toEqual({ query: { name: 'felix' }, url: '/page1?name=felix' })
   })
@@ -36,7 +36,7 @@ describe('builder', () => {
       .query('name', 'felix')
       .clearMergeQuery(['missing_value', 'channel', 'approved'])
 
-    const [pushedData,, url] = b.buildPushStateArgs()
+    const [pushedData, , url] = b.buildPushStateArgs()
     expect(url).toEqual(
       '/page1?active_filter_tab=missing_value&channel=2&missing_value=2&name=felix&order_by=CreatedAt_ASC'
     )
@@ -59,7 +59,7 @@ describe('builder', () => {
       )
       .clearMergeQuery(['missing_value', 'channel', 'approved'])
 
-    const [,, url] = b.buildPushStateArgs()
+    const [, , url] = b.buildPushStateArgs()
     expect(url).toEqual('/page1?active_filter_tab=missing_value&order_by=CreatedAt_ASC')
   })
 
@@ -71,7 +71,7 @@ describe('builder', () => {
       .url('/page1?selectedIds=1,2,3&page=2')
 
     expect(b.buildFetchURL()).toEqual('/page1?__execute_event__=hello&page=2&selectedIds=1,2,3,5')
-    const [pushedData,, url] = b.buildPushStateArgs()
+    const [pushedData, , url] = b.buildPushStateArgs()
     expect(url).toEqual('/page1?page=2&selectedIds=1,2,3,5')
     expect(pushedData).toEqual({
       query: { page: '2', selectedIds: ['1', '2', '3', '5'] },
@@ -87,7 +87,7 @@ describe('builder', () => {
       .url('/page1?selectedIds=1,2,3,5&page=2')
 
     expect(b.buildFetchURL()).toEqual('/page1?__execute_event__=hello&page=2&selectedIds=1,2,3')
-    const [pushedData,, url] = b.buildPushStateArgs()
+    const [pushedData, , url] = b.buildPushStateArgs()
     expect(url).toEqual('/page1?page=2&selectedIds=1,2,3')
     expect(pushedData).toEqual({
       query: { page: '2', selectedIds: ['1', '2', '3'] },
@@ -105,7 +105,7 @@ describe('builder', () => {
     expect(b.buildFetchURL()).toEqual(
       '/page1?__execute_event__=hello&names=Hello%2C%20Felix,How%20are%20you&page=2&selectedIds=1,2,3,5'
     )
-    const [pushedData,, url] = b.buildPushStateArgs()
+    const [pushedData, , url] = b.buildPushStateArgs()
     expect(url).toEqual('/page1?names=Hello%2C%20Felix,How%20are%20you&page=2&selectedIds=1,2,3,5')
     expect(pushedData).toEqual({
       query: {
@@ -125,7 +125,7 @@ describe('builder', () => {
       .url('/page1')
 
     expect(b.buildFetchURL()).toEqual('/page1?__execute_event__=hello&name=1')
-    const [pushedData,, url] = b.buildPushStateArgs()
+    const [pushedData, , url] = b.buildPushStateArgs()
     expect(url).toEqual('/page1?name=1')
     expect(pushedData).toEqual({ query: { name: ['1'] }, url: '/page1?name=1' })
   })
@@ -138,7 +138,7 @@ describe('builder', () => {
       .url('/page1')
 
     expect(b.buildFetchURL()).toEqual('/page1?__execute_event__=hello&name=1,2')
-    const [pushedData,, url] = b.buildPushStateArgs()
+    const [pushedData, , url] = b.buildPushStateArgs()
     expect(url).toEqual('/page1?name=1,2')
     expect(pushedData).toEqual({ query: { name: ['1', '2'] }, url: '/page1?name=1,2' })
   })
@@ -151,7 +151,7 @@ describe('builder', () => {
       .url('/page1?name=1,2,3,4,5,6,7,8,9')
 
     expect(b.buildFetchURL()).toEqual('/page1?__execute_event__=hello&name=3,4,6,7,9')
-    const [pushedData,, url] = b.buildPushStateArgs()
+    const [pushedData, , url] = b.buildPushStateArgs()
     expect(url).toEqual('/page1?name=3,4,6,7,9')
     expect(pushedData).toEqual({
       query: { name: ['3', '4', '6', '7', '9'] },
@@ -170,7 +170,7 @@ describe('builder', () => {
       .url('/page1?name=1,2,3,4,5,6,7,8,9')
 
     expect(b.buildFetchURL()).toEqual('/page2?__execute_event__=hello&name=3,4,6,7,9')
-    const [pushedData,, url] = b.buildPushStateArgs()
+    const [pushedData, , url] = b.buildPushStateArgs()
     expect(url).toEqual('/page2?name=3,4,6,7,9')
     expect(pushedData).toEqual({
       query: { name: ['3', '4', '6', '7', '9'] },
@@ -182,7 +182,7 @@ describe('builder', () => {
     const b = plaid().eventFunc('hello').location({ url: '/page2?name=2,3' }).url('/page1?name=1,2')
 
     expect(b.buildFetchURL()).toEqual('/page2?__execute_event__=hello&name=2,3')
-    const [pushedData,, url] = b.buildPushStateArgs()
+    const [pushedData, , url] = b.buildPushStateArgs()
     expect(url).toEqual('/page2?name=2,3')
     expect(pushedData).toEqual({ query: { name: ['2', '3'] }, url: '/page2?name=2,3' })
   })
@@ -209,13 +209,16 @@ describe('builder', () => {
     const b = plaid()
       .eventFunc('hello')
       .fieldValue('name', 'felix')
-      .fieldValue('age', function(){
-        return 10
-      }())
-      .run(function(b: any){
-        b.storedAvatar = "_storedAvatar_"
+      .fieldValue(
+        'age',
+        (function () {
+          return 10
+        })()
+      )
+      .run(function (b: any) {
+        b.storedAvatar = '_storedAvatar_'
       })
-      .fieldValue('avatar', function(b: any ){
+      .fieldValue('avatar', function (b: any) {
         return b.storedAvatar
       })
       .url('/page1')
@@ -228,9 +231,9 @@ describe('builder', () => {
       url: '/page1'
     })
     expect(b._form).toEqual({
-      "age": 10,
-      "avatar": "_storedAvatar_",
-      "name": "felix",
+      age: 10,
+      avatar: '_storedAvatar_',
+      name: 'felix'
     })
   })
 })
