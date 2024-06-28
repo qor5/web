@@ -108,8 +108,14 @@ func collectQueryTags(rt reflect.Type, tags *[]QueryTag) error {
 }
 
 func GetQueryTags(v any) ([]QueryTag, error) {
+	rv := reflect.ValueOf(v)
+	for rv.Kind() == reflect.Ptr || rv.Kind() == reflect.Interface {
+		rv = rv.Elem()
+	}
+
 	// TODO: 需要做一个简单的缓存机制
-	rt := reflect.TypeOf(v)
+	rt := rv.Type()
+
 	var tags []QueryTag
 	if err := collectQueryTags(rt, &tags); err != nil {
 		return nil, err
@@ -148,6 +154,7 @@ func newStructObject(rt reflect.Type, desc string) (any, error) {
 	return elem, nil
 }
 
+// TODO: 目前只能接受指针信息，内部逻辑还需好好优化
 func QueryUnmarshal(rawQuery string, v any) error {
 	// TODO: 需要一个 recover 机制
 

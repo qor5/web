@@ -8,13 +8,6 @@ import (
 	h "github.com/theplant/htmlgo"
 )
 
-var queryDecoder = func() *form.Decoder {
-	decoder := form.NewDecoder()
-	decoder.SetMode(form.ModeExplicit)
-	decoder.SetTagName("query")
-	return decoder
-}()
-
 var queryEncoder = func() *form.Encoder {
 	encoder := form.NewEncoder()
 	encoder.SetMode(form.ModeExplicit)
@@ -37,25 +30,13 @@ type querySyncer struct {
 	h.HTMLComponent
 }
 
-func (c *querySyncer) MarshalHTML(ctx context.Context) ([]byte, error) {
+func (s *querySyncer) MarshalHTML(ctx context.Context) ([]byte, error) {
 	evCtx := web.MustGetEventContext(ctx)
-	query := evCtx.R.URL.Query()
-
-	// TODO: support prefix ?
-	// const prefix = "main_"
-	// r := url.Values{}
-	// for k, v := range query {
-	// 	if strings.HasPrefix(k, prefix) {
-	// 		r[strings.TrimPrefix(k, prefix)] = v
-	// 	}
-	// }
-	// query = r
-
-	if err := queryDecoder.Decode(&c.HTMLComponent, query); err != nil {
+	if err := QueryUnmarshal(evCtx.R.URL.RawQuery, s.HTMLComponent); err != nil {
 		return nil, err
 	}
 	ctx = withSyncQuery(ctx)
-	return c.HTMLComponent.MarshalHTML(ctx)
+	return s.HTMLComponent.MarshalHTML(ctx)
 }
 
 func (c *querySyncer) Unwrap() h.HTMLComponent {
