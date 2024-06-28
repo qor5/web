@@ -7,7 +7,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/pkg/errors"
 	"github.com/samber/lo"
 	"github.com/sunfmin/reflectutils"
 )
@@ -33,7 +32,7 @@ func unwrapPtrType(rt reflect.Type) reflect.Type {
 func collectQueryTags(rt reflect.Type, tags *[]QueryTag) error {
 	rt = unwrapPtrType(rt)
 	if rt.Kind() != reflect.Struct {
-		return errors.Errorf("%q expected struct, got %v", rt.String(), rt.Kind())
+		return fmt.Errorf("%q expected struct, got %v", rt.String(), rt.Kind())
 	}
 
 	for i := 0; i < rt.NumField(); i++ {
@@ -51,7 +50,7 @@ func collectQueryTags(rt reflect.Type, tags *[]QueryTag) error {
 		}
 		if embedded {
 			if _, ok := structField.Tag.Lookup(tagQuery); ok {
-				return errors.Errorf("%q embedded field %q has query tag", rt.String(), structField.Name)
+				return fmt.Errorf("%q embedded field %q has query tag", rt.String(), structField.Name)
 			}
 
 			rtStructField := unwrapPtrType(structField.Type)
@@ -73,7 +72,7 @@ func collectQueryTags(rt reflect.Type, tags *[]QueryTag) error {
 		}
 
 		if !structField.IsExported() {
-			return errors.Errorf("%q field %q is not exported", rt.String(), structField.Name)
+			return fmt.Errorf("%q field %q is not exported", rt.String(), structField.Name)
 		}
 
 		name := structField.Name
@@ -81,7 +80,7 @@ func collectQueryTags(rt reflect.Type, tags *[]QueryTag) error {
 		if ok {
 			name = strings.Split(jsonTag, ",")[0]
 			if name == "-" {
-				return errors.Errorf("%q field %q is ignored by json", rt.String(), structField.Name)
+				return fmt.Errorf("%q field %q is ignored by json", rt.String(), structField.Name)
 			}
 			if name == "" {
 				name = structField.Name
@@ -148,7 +147,7 @@ func newStructObject(rt reflect.Type, desc string) (any, error) {
 		}
 		path := jsonTags[jsonKeys[i]]
 		if err := reflectutils.Set(elem, path, field); err != nil {
-			return nil, errors.Wrapf(err, "failed to set %q to %v", path, elem)
+			return nil, fmt.Errorf("failed to set %q to %v: %w", path, elem, err)
 		}
 	}
 	return elem, nil
@@ -162,7 +161,7 @@ func QueryUnmarshal(rawQuery string, v any) (rerr error) {
 			if !ok {
 				err = fmt.Errorf("%v", r)
 			}
-			rerr = errors.Wrap(err, "Panic")
+			rerr = fmt.Errorf("panic: %w", err)
 		}
 	}()
 
@@ -176,7 +175,7 @@ func QueryUnmarshal(rawQuery string, v any) (rerr error) {
 
 	tags, err := GetQueryTags(v)
 	if err != nil {
-		return errors.Wrap(err, "failed to get query tags")
+		return fmt.Errorf("failed to get query tags: %w", err)
 	}
 
 	for _, tag := range tags {
@@ -202,18 +201,18 @@ func QueryUnmarshal(rawQuery string, v any) (rerr error) {
 
 					path := fmt.Sprintf("%s[%d]", tag.path, i)
 					if err := reflectutils.Set(v, path, elem); err != nil {
-						return errors.Wrapf(err, "failed to set %q to %v", path, v)
+						return fmt.Errorf("failed to set %q to %v: %w", path, v, err)
 					}
 				}
 			default:
 				for i, element := range elements {
 					unescape, err := url.QueryUnescape(element)
 					if err != nil {
-						return errors.Wrapf(err, "failed to unescape %q", element)
+						return fmt.Errorf("failed to unescape %q: %w", element, err)
 					}
 					path := fmt.Sprintf("%s[%d]", tag.path, i)
 					if err := reflectutils.Set(v, path, unescape); err != nil {
-						return errors.Wrapf(err, "failed to set %q to %v", path, v)
+						return fmt.Errorf("failed to set %q to %v: %w", path, v, err)
 					}
 				}
 			}
@@ -223,11 +222,11 @@ func QueryUnmarshal(rawQuery string, v any) (rerr error) {
 				return err
 			}
 			if err := reflectutils.Set(v, tag.path, obj); err != nil {
-				return errors.Wrapf(err, "failed to set %q to %v", tag.path, v)
+				return fmt.Errorf("failed to set %q to %v: %w", tag.path, v, err)
 			}
 		default:
 			if err := reflectutils.Set(v, tag.path, qv); err != nil {
-				return errors.Wrapf(err, "failed to set %q to %v", tag.path, v)
+				return fmt.Errorf("failed to set %q to %v: %w", tag.path, v, err)
 			}
 		}
 	}
@@ -274,7 +273,7 @@ func parseQuery(m url.Values, query string,
 func collectJsonTags(rt reflect.Type, tags map[string]string) error {
 	rt = unwrapPtrType(rt)
 	if rt.Kind() != reflect.Struct {
-		return errors.Errorf("%q expected struct, got %v", rt.String(), rt.Kind())
+		return fmt.Errorf("%q expected struct, got %v", rt.String(), rt.Kind())
 	}
 
 	for i := 0; i < rt.NumField(); i++ {
@@ -301,7 +300,7 @@ func collectJsonTags(rt reflect.Type, tags map[string]string) error {
 		}
 
 		if !structField.IsExported() {
-			return errors.Errorf("%q field %q is not exported", rt.String(), structField.Name)
+			return fmt.Errorf("%q field %q is not exported", rt.String(), structField.Name)
 		}
 
 		name := structField.Name
@@ -309,7 +308,7 @@ func collectJsonTags(rt reflect.Type, tags map[string]string) error {
 		if ok {
 			name = strings.Split(jsonTag, ",")[0]
 			if name == "-" {
-				return errors.Errorf("%q field %q is ignored by json", rt.String(), structField.Name)
+				return fmt.Errorf("%q field %q is ignored by json", rt.String(), structField.Name)
 			}
 			if name == "" {
 				name = structField.Name
