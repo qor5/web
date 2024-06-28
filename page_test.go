@@ -5,6 +5,7 @@ import (
 	"context"
 	"io/ioutil"
 	"mime/multipart"
+	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
@@ -14,8 +15,6 @@ import (
 	h "github.com/theplant/htmlgo"
 	"github.com/theplant/htmltestingutils"
 	"github.com/theplant/testingutils"
-	"goji.io/v3"
-	"goji.io/v3/pat"
 )
 
 type User struct {
@@ -292,7 +291,7 @@ func TestMultiplePagesAndEvents(t *testing.T) {
 	}
 
 	bookmark := func(ctx *EventContext) (r EventResponse, err error) {
-		topicId := pat.Param(ctx.R, "topicID")
+		topicId := ctx.R.PathValue("topicID")
 		r.Body = h.H1(topicId + " bookmarked")
 		return
 	}
@@ -301,7 +300,7 @@ func TestMultiplePagesAndEvents(t *testing.T) {
 		// remove to test global event func with web.New().RegisterEventFunc
 		// ctx.Hub.RegisterEventFunc("bookmark", bookmark)
 
-		topicId := pat.Param(ctx.R, "topicID")
+		topicId := ctx.R.PathValue("topicID")
 		r.Body = h.Div(
 			h.A().Href("#").Text(topicId).
 				Attr("v-on:click", Plaid().EventFunc("bookmark").Go()),
@@ -319,9 +318,9 @@ func TestMultiplePagesAndEvents(t *testing.T) {
 	pb := New()
 	pb.RegisterEventFunc("bookmark", bookmark)
 
-	mux := goji.NewMux()
-	mux.Handle(pat.New("/home/topics/:topicID"), pb.Page(topicDetail))
-	mux.Handle(pat.New("/home/topics"), pb.Page(topicIndex))
+	mux := http.NewServeMux()
+	mux.Handle("/home/topics/{topicID}", pb.Page(topicDetail))
+	mux.Handle("/home/topics", pb.Page(topicIndex))
 
 	for _, c := range mountCases {
 		t.Run(c.name, func(t *testing.T) {
