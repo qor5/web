@@ -6,7 +6,6 @@ require (
 	github.com/NYTimes/gziphandler v1.1.1
 	github.com/go-playground/form/v4 v4.2.1
 	github.com/iancoleman/strcase v0.3.0
-	github.com/orcaman/concurrent-map/v2 v2.0.1
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.9.0
 	github.com/sunfmin/reflectutils v1.0.5
@@ -15,7 +14,6 @@ require (
 	github.com/theplant/inject v0.0.1
 	github.com/theplant/osenv v0.0.2
 	github.com/theplant/testingutils v0.0.2
-	goji.io/v3 v3.0.0
 )
 
 require (

@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"net/url"
 	"reflect"
+	"sync"
 
-	cmap "github.com/orcaman/concurrent-map/v2"
 	"github.com/pkg/errors"
 	"github.com/qor5/web/v3"
 	h "github.com/theplant/htmlgo"
@@ -158,7 +158,7 @@ func eventDispatchActionHandler(evCtx *web.EventContext) (r web.EventResponse, e
 	}
 }
 
-var actionableTypeRegistry = cmap.New[reflect.Type]()
+var actionableTypeRegistry = new(sync.Map)
 
 func RegisterActionableType(vs ...any) {
 	for _, v := range vs {
@@ -167,14 +167,15 @@ func RegisterActionableType(vs ...any) {
 }
 
 func registerActionableType(v any) {
-	if !actionableTypeRegistry.SetIfAbsent(fmt.Sprintf("%T", v), reflect.TypeOf(v)) {
+	_, loaded := actionableTypeRegistry.LoadOrStore(fmt.Sprintf("%T", v), reflect.TypeOf(v))
+	if loaded {
 		panic(fmt.Sprintf("actionable type %T already registered", v))
 	}
 }
 
 func newActionable(typeName string) (any, error) {
-	if t, ok := actionableTypeRegistry.Get(typeName); ok {
-		return reflect.New(t.Elem()).Interface(), nil
+	if t, ok := actionableTypeRegistry.Load(typeName); ok {
+		return reflect.New(t.(reflect.Type).Elem()).Interface(), nil
 	}
 	return nil, errors.Errorf("type not found: %s", typeName)
 }
