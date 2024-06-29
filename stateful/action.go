@@ -48,7 +48,7 @@ func LocalsActionable(c any) string {
 func Actionable[T h.HTMLComponent](ctx context.Context, c T, children ...h.HTMLComponent) (r h.HTMLComponent) {
 	defer func() {
 		if named, ok := any(c).(Named); ok {
-			r = Reloadable(named, r)
+			r = reloadable(named, r)
 		}
 	}()
 	actionBase := PrettyJSONString(Action{

@@ -171,4 +171,34 @@ describe('scope', () => {
     await btn.trigger('click')
     expect(txt.text()).toEqual(`345`)
   })
+
+  it('simulate computed via locals and runscript', async () => {
+    const wrapper = mountTemplate(`
+            <go-plaid-scope :init="{
+              hello:'123',
+              computedFunc: function() {
+                return '234'
+              }
+            }" v-slot="{ locals }">
+              <go-plaid-run-script :script="function() {
+                locals.hello = '666'
+                locals.computedFunc = function() {
+                  return this.hello
+                }
+              }"></go-plaid-run-script>
+              <button id="btn"
+                  @click='locals.hello = "888";'>
+              </button>
+              <div id="txt">{{ locals.computedFunc() }}</div>
+            </go-plaid-scope>
+          `)
+    await nextTick()
+    console.log(wrapper.html())
+
+    const txt: any = wrapper.find('#txt')
+    expect(txt.text()).toEqual(`666`)
+    const btn: any = wrapper.find('#btn')
+    await btn.trigger('click')
+    expect(txt.text()).toEqual(`888`)
+  })
 })
