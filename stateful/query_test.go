@@ -226,7 +226,7 @@ func TestQueryUnmarshal(t *testing.T) {
 	}
 
 	user := User{}
-	err := QueryUnmarshal(q, &user)
+	err := QueryDecode(q, &user)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, user.ID)
 	assert.Equal(t, "John", user.Name)

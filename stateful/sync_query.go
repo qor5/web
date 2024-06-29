@@ -24,7 +24,7 @@ type querySyncer struct {
 
 func (s *querySyncer) MarshalHTML(ctx context.Context) ([]byte, error) {
 	evCtx := web.MustGetEventContext(ctx)
-	if err := QueryUnmarshal(evCtx.R.URL.RawQuery, s.HTMLComponent); err != nil {
+	if err := QueryDecode(evCtx.R.URL.RawQuery, s.HTMLComponent); err != nil {
 		return nil, err
 	}
 	ctx = withSyncQuery(ctx)

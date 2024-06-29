@@ -12,9 +12,13 @@ import (
 )
 
 type QueryTag struct {
-	Name     string `json:"name"`
-	JsonName string `json:"json_name"`
-	path     string
+	Name      string   `json:"name"`
+	JsonName  string   `json:"json_name"`
+	Omitempty bool     `json:"omitempty"`
+	Method    string   `json:"method,omitempty"`
+	Args      []string `json:"args,omitempty"`
+
+	path string
 }
 
 const (
@@ -63,11 +67,7 @@ func collectQueryTags(rt reflect.Type, tags *[]QueryTag) error {
 		}
 
 		queryTag, ok := structField.Tag.Lookup(tagQuery)
-		if !ok {
-			continue
-		}
-		queryName := strings.Split(queryTag, ",")[0]
-		if queryName == "-" {
+		if !ok || queryTag == "-" {
 			continue
 		}
 
@@ -75,28 +75,55 @@ func collectQueryTags(rt reflect.Type, tags *[]QueryTag) error {
 			return fmt.Errorf("%q field %q is not exported", rt.String(), structField.Name)
 		}
 
-		name := structField.Name
-		jsonTag, ok := structField.Tag.Lookup(tagJson)
-		if ok {
-			name = strings.Split(jsonTag, ",")[0]
-			if name == "-" {
-				return fmt.Errorf("%q field %q is ignored by json", rt.String(), structField.Name)
+		tag := QueryTag{
+			path: structField.Name,
+		}
+
+		semicolons := strings.Split(queryTag, ";")
+		for i := 0; i < len(semicolons); i++ {
+			if i == 0 {
+				vs := strings.Split(semicolons[0], ",")
+				tag.Name = vs[0]
+				if len(vs) > 1 && vs[1] == "omitempty" {
+					tag.Omitempty = true
+				}
+				continue
 			}
-			if name == "" {
-				name = structField.Name
+			colons := strings.Split(semicolons[i], ":")
+			switch colons[0] {
+			case "method":
+				if len(colons) != 2 {
+					return fmt.Errorf("%q field %q query tag method is invalid", rt.String(), structField.Name)
+				}
+				vs := strings.Split(colons[1], ",")
+				vs[0] = strings.TrimSpace(vs[0])
+				if vs[0] == "" {
+					return fmt.Errorf("%q field %q query tag method name is empty", rt.String(), structField.Name)
+				}
+				tag.Method = vs[0]
+				if len(vs) > 1 {
+					tag.Args = vs[1:]
+				}
 			}
 		}
 
-		tag := QueryTag{
-			Name:     queryName,
-			JsonName: name,
-			path:     structField.Name,
+		jsonName := structField.Name
+		jsonTag, ok := structField.Tag.Lookup(tagJson)
+		if ok {
+			jsonName = strings.Split(jsonTag, ",")[0]
+			if jsonName == "-" {
+				return fmt.Errorf("%q field %q is ignored by json", rt.String(), structField.Name)
+			}
+			if jsonName == "" {
+				jsonName = structField.Name
+			}
 		}
+		tag.JsonName = jsonName
 		if tag.Name == "" {
 			tag.Name = tag.JsonName
 		}
 
-		_, index, exists := lo.FindIndexOf(*tags, func(v QueryTag) bool { return v.JsonName == name })
+		_, index, exists := lo.FindIndexOf(*tags, func(v QueryTag) bool { return v.JsonName == jsonName })
 		if exists {
 			(*tags)[index] = tag
 			continue
@@ -154,7 +181,7 @@ func newStructObject(rt reflect.Type, desc string) (any, error) {
 }
 
 // TODO: Currently it can only accept pointer information, the internal logic needs to be optimized properly
-func QueryUnmarshal(rawQuery string, v any) (rerr error) {
+func QueryDecode(rawQuery string, v any) (rerr error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err, ok := r.(error)
@@ -179,11 +206,26 @@ func QueryUnmarshal(rawQuery string, v any) (rerr error) {
 	}
 
 	for _, tag := range tags {
+		if tag.Method != "" {
+			method, ok := QueryTagMethodsMap[tag.Method]
+			if !ok {
+				return fmt.Errorf("query tag method %q not found", tag.Method)
+			}
+			if err := method.Decoder(qs, tag, v); err != nil {
+				return fmt.Errorf("failed to decode %q: %w", tag.Name, err)
+			}
+			continue
+		}
+
 		qvs, ok := qs[tag.Name]
 		if !ok {
 			continue
 		}
 		qv := qvs[0]
+		// TODO: should set zero value if empty?
+		if qv == "" {
+			continue
+		}
 
 		rt := reflectutils.GetType(v, tag.path)
 		switch unwrapPtrType(rt).Kind() {
@@ -319,3 +361,57 @@ func collectJsonTags(rt reflect.Type, tags map[string]string) error {
 	}
 	return nil
 }
+
+type QueryTagMethod struct {
+	Name    string                                         `json:"name"`
+	Encoder string                                         `json:"encoder"` // js
+	Decoder func(qs url.Values, tag QueryTag, v any) error `json:"-"`       // go
+}
+
+// tag example: `query:";method=bare,f_"`
+// arg0: the prefix of the query key
+var QueryTagMethodBare = &QueryTagMethod{
+	Name: "bare",
+	Encoder: `({ value, queries, tag }) => {
+		if (value) {
+			value.split('&').forEach((query) => {
+				queries.push(query)
+			})
+		}
+	}`,
+	Decoder: func(qs url.Values, tag QueryTag, v any) error {
+		if len(tag.Args) < 1 {
+			return fmt.Errorf("bare query tag method requires at least one argument")
+		}
+		bareQuery := make(url.Values)
+		prefix := tag.Args[0]
+		for k, vs := range qs {
+			if strings.HasPrefix(k, prefix) {
+				for _, v := range vs {
+					unescaped, err := url.QueryUnescape(v)
+					if err != nil {
+						return fmt.Errorf("failed to unescape %q: %w", v, err)
+					}
+					bareQuery.Add(k, unescaped)
+				}
+			}
+		}
+		reflectutils.Set(v, tag.path, bareQuery.Encode())
+		return nil
+	},
+}
+
+var QueryTagMethods = []*QueryTagMethod{
+	QueryTagMethodBare,
+}
+
+var QueryTagMethodsMap = func() map[string]*QueryTagMethod {
+	m := map[string]*QueryTagMethod{}
+	for _, v := range QueryTagMethods {
+		if _, ok := m[v.Name]; ok {
+			panic(fmt.Sprintf("duplicate query tag method %q", v.Name))
+		}
+		m[v.Name] = v
+	}
+	return m
+}()

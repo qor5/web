@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/qor5/web/v3"
+	"github.com/samber/lo"
 	h "github.com/theplant/htmlgo"
 )
 
@@ -32,6 +33,7 @@ type Action struct {
 
 const (
 	LocalsKeyNewAction   = "newAction"
+	LocalsKeyQueryTags   = "queryTags"
 	LocalsKeyEncodeQuery = "encodeQuery"
 )
 
@@ -63,19 +65,41 @@ func Actionable[T h.HTMLComponent](ctx context.Context, c T, children ...h.HTMLC
 	if err != nil {
 		panic(err)
 	}
+
+	queryEncoders := lo.Map(QueryTagMethods, func(method *QueryTagMethod, _ int) string {
+		return fmt.Sprintf(`__queryEncoder_%s__: %s`, method.Name, method.Encoder)
+	})
+	queryEncodersJs := ""
+	if len(queryEncoders) > 0 {
+		queryEncodersJs = strings.Join(queryEncoders, ",\n") + ",\n"
+	}
 	return web.Scope(children...).
 		VSlot(fmt.Sprintf("{ locals: %s }", LocalsActionable(c))).
 		Init(fmt.Sprintf(`{
+	%s
 	%s: function() {
 		return %s;
+	},
+	%s: function(v) {
+		let tags = %s || [];
+		tags.forEach(tag => {
+			if (tag.method) {
+				tag.encoder = this["__queryEncoder_" + tag.method + "__"] || tag.method;
+			}
+		});
+		return tags;
 	},
 	%s: function(v) {
 		if (!v.sync_query) {
 			return "";
 		}
-		return vars.__encodeObjectToQuery(v.compo, %s || []);
+		return vars.__encodeObjectToQuery(v.compo, this.%s());
 	},
-}`, LocalsKeyNewAction, actionBase, LocalsKeyEncodeQuery, h.JSONString(queryTags)))
+}`,
+			queryEncodersJs, // TODO: 最好是放到一个全局的位置
+			LocalsKeyNewAction, actionBase,
+			LocalsKeyQueryTags, PrettyJSONString(queryTags),
+			LocalsKeyEncodeQuery, LocalsKeyQueryTags))
 }
 
 const eventDispatchAction = "__dispatch_stateful_action__"
@@ -168,7 +192,7 @@ func postAction(_ context.Context, c any, method any, request any, o *postAction
 		LocalsKeyEncodeQuery,
 	)))
 	b.StringQuery(web.Var(`(b) => b.__stringQuery__`))
-	b.PushState(web.Var(`(b) => !!b.__stringQuery__`)) // TODO: duplicate path?query should not actually be executed
+	b.PushState(web.Var(`(b) => b.__action__.sync_query`)) // TODO: duplicate path?query should not actually be executed
 	return b.FieldValue(fieldKeyAction, web.Var(`(b) => JSON.stringify(b.__action__, null, "\t")`))
 }
 

@@ -246,7 +246,14 @@ export function objectToFormData(obj: any, form: FormData, parentKey = '') {
   return form
 }
 
-export function encodeObjectToQuery(obj: any, queryTags: { name: string; json_name: string }[]) {
+export function encodeObjectToQuery(
+  obj: any,
+  queryTags: { name: string; json_name: string; omitempty: boolean; encoder?: Function }[]
+) {
+  if (queryTags.length === 0) {
+    return ''
+  }
+
   const processObject = (obj: any) => {
     return Object.keys(obj)
       .sort()
@@ -266,7 +273,7 @@ export function encodeObjectToQuery(obj: any, queryTags: { name: string; json_na
       .join(',')
   }
 
-  const queryParams: string[] = []
+  const queries: string[] = []
 
   queryTags.forEach((tag) => {
     const value: any = obj[tag.json_name]
@@ -274,15 +281,28 @@ export function encodeObjectToQuery(obj: any, queryTags: { name: string; json_na
       return
     }
 
+    if (tag.encoder) {
+      tag.encoder({ value, queries, tag })
+      return
+    }
+
     const key = encodeURIComponent(tag.name)
-    if (Array.isArray(value)) {
-      queryParams.push(`${key}=${processArray(obj[tag.json_name])}`)
+    if (!value && tag.omitempty) {
+      return
+    }
+    if (value === null) {
+      queries.push(`${key}=`)
+    } else if (Array.isArray(value)) {
+      if (tag.omitempty && obj[tag.json_name].length === 0) {
+        return
+      }
+      queries.push(`${key}=${processArray(obj[tag.json_name])}`)
     } else if (typeof value === 'object') {
-      queryParams.push(`${key}=${processObject(value)}`)
+      queries.push(`${key}=${processObject(value)}`)
     } else {
-      queryParams.push(`${key}=${encodeURIComponent(value)}`)
+      queries.push(`${key}=${encodeURIComponent(value)}`)
     }
   })
 
-  return queryParams.join('&')
+  return queries.join('&')
 }
