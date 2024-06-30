@@ -153,7 +153,7 @@ func GetQueryTags(v any) ([]QueryTag, error) {
 func newStructObject(rt reflect.Type, desc string) (any, error) {
 	var err error
 
-	fields := strings.Split(desc, "|")
+	fields := strings.Split(desc, "_")
 	for i := range fields {
 		fields[i], err = url.QueryUnescape(fields[i])
 		if err != nil {

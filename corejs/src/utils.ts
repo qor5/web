@@ -259,8 +259,14 @@ export function encodeObjectToQuery(
   const processObject = (obj: any) => {
     return Object.keys(obj)
       .sort()
-      .map((key) => `${encodeURIComponent(obj[key])}`)
-      .join('|')
+      .map((key) => {
+        const encodedValue = encodeURIComponent(obj[key])
+        if (encodedValue.includes('_')) {
+          throw new Error(`Value contains underscore (_) which is not allowed: ${encodedValue}`)
+        }
+        return encodedValue
+      })
+      .join('_')
   }
 
   const processArray = (arr: []) => {

@@ -192,7 +192,6 @@ func postAction(_ context.Context, c any, method any, request any, o *postAction
 		LocalsKeyEncodeQuery,
 	)))
 	b.StringQuery(web.Var(`(b) => b.__stringQuery__`))
-	b.StringifyOptions(web.Var(`{ arrayFormat: "comma", encode: false }`))
 	b.PushState(web.Var(`(b) => b.__action__.sync_query`)) // TODO: duplicate path?query should not actually be executed
 	return b.FieldValue(fieldKeyAction, web.Var(`(b) => JSON.stringify(b.__action__, null, "\t")`))
 }

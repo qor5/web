@@ -1,4 +1,3 @@
-import { omit } from 'lodash'
 import { objectToFormData, setFormValue, encodeObjectToQuery } from '../utils'
 import { describe, it, expect } from 'vitest'
 
@@ -72,7 +71,7 @@ describe('utils', () => {
       page: 0,
       per_page: 0,
       'chi,ld': {
-        a: 'aa_',
+        a: 'aa',
         b: 100
       },
       active_filter_tab: 'tab2',
@@ -130,7 +129,7 @@ describe('utils', () => {
     ]
     const queryString = encodeObjectToQuery(exampleObject, queryTags)
     expect(queryString).toEqual(
-      'xpage=0&chi%2Cld=aa_|100&xselected_ids=x%2C,y,z&display_columns=&order_bys=Name%7C|ASC,Age|DES%2CC&f_approved.gte=0001-01-01+00%3A00&f_name.ilike=felix'
+      'xpage=0&chi%2Cld=aa_100&xselected_ids=x%2C,y,z&display_columns=&order_bys=Name%7C_ASC,Age_DES%2CC&f_approved.gte=0001-01-01+00%3A00&f_name.ilike=felix'
     )
   })
 })
