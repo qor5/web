@@ -30,7 +30,7 @@ type TodoApp struct {
 	dep *TodoAppDep `inject:""`
 
 	ID         string     `json:"id"`
-	Visibility Visibility `json:"visibility" query:""`
+	Visibility Visibility `json:"visibility" query:";cookie"`
 }
 
 func (c *TodoApp) CompoName() string {

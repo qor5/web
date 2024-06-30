@@ -12,14 +12,19 @@ import (
 )
 
 type QueryTag struct {
-	Name      string   `json:"name"`
-	JsonName  string   `json:"json_name"`
-	Omitempty bool     `json:"omitempty"`
-	Method    string   `json:"method,omitempty"`
-	Args      []string `json:"args,omitempty"`
+	Name      string `json:"name"`
+	JsonName  string `json:"json_name"`
+	Omitempty bool   `json:"omitempty"`
+
+	Method string   `json:"method,omitempty"`
+	Args   []string `json:"args,omitempty"`
+
+	Cookie bool `json:"cookie,omitempty"`
 
 	path string
 }
+
+type QueryTags []QueryTag
 
 const (
 	tagQuery = "query"
@@ -33,7 +38,7 @@ func unwrapPtrType(rt reflect.Type) reflect.Type {
 	return rt
 }
 
-func collectQueryTags(rt reflect.Type, tags *[]QueryTag) error {
+func collectQueryTags(rt reflect.Type, tags *QueryTags) error {
 	rt = unwrapPtrType(rt)
 	if rt.Kind() != reflect.Struct {
 		return fmt.Errorf("%q expected struct, got %v", rt.String(), rt.Kind())
@@ -104,6 +109,8 @@ func collectQueryTags(rt reflect.Type, tags *[]QueryTag) error {
 				if len(vs) > 1 {
 					tag.Args = vs[1:]
 				}
+			case "cookie":
+				tag.Cookie = true
 			}
 		}
 
@@ -133,7 +140,7 @@ func collectQueryTags(rt reflect.Type, tags *[]QueryTag) error {
 	return nil
 }
 
-func GetQueryTags(v any) ([]QueryTag, error) {
+func GetQueryTags(v any) (QueryTags, error) {
 	rv := reflect.ValueOf(v)
 	for rv.Kind() == reflect.Ptr || rv.Kind() == reflect.Interface {
 		rv = rv.Elem()
@@ -142,7 +149,7 @@ func GetQueryTags(v any) ([]QueryTag, error) {
 	// TODO: A simple caching mechanism is required
 	rt := rv.Type()
 
-	var tags []QueryTag
+	var tags QueryTags
 	if err := collectQueryTags(rt, &tags); err != nil {
 		return nil, err
 	}
@@ -181,7 +188,7 @@ func newStructObject(rt reflect.Type, desc string) (any, error) {
 }
 
 // TODO: Currently it can only accept pointer information, the internal logic needs to be optimized properly
-func QueryDecode(rawQuery string, v any) (rerr error) {
+func (tags QueryTags) Decode(rawQuery string, v any) (rerr error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err, ok := r.(error)
@@ -198,11 +205,6 @@ func QueryDecode(rawQuery string, v any) (rerr error) {
 	})
 	if err != nil {
 		return err
-	}
-
-	tags, err := GetQueryTags(v)
-	if err != nil {
-		return fmt.Errorf("failed to get query tags: %w", err)
 	}
 
 	for _, tag := range tags {

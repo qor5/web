@@ -34,6 +34,7 @@ type Action struct {
 const (
 	LocalsKeyNewAction   = "newAction"
 	LocalsKeyQueryTags   = "queryTags"
+	LocalsKeySetCookies  = "setCookies"
 	LocalsKeyEncodeQuery = "encodeQuery"
 )
 
@@ -73,6 +74,28 @@ func Actionable[T h.HTMLComponent](ctx context.Context, c T, children ...h.HTMLC
 	if len(queryEncoders) > 0 {
 		queryEncodersJs = strings.Join(queryEncoders, ",\n") + ",\n"
 	}
+
+	locals := LocalsActionable(c)
+
+	named, ok := any(c).(Named)
+	if ok {
+		children = append([]h.HTMLComponent{
+			// borrow to get the document
+			h.Div().Attr("v-run", fmt.Sprintf(`(el) => {
+	const cookieTags = %s.%s().filter(tag => tag.cookie)
+	%s.%s = function(v) {
+		if (!v.sync_query || !el.ownerDocument) {
+			return;
+		}
+		el.ownerDocument.cookie = "%s=" + vars.__encodeObjectToQuery(v.compo, cookieTags);
+	}
+}`,
+				locals, LocalsKeyQueryTags,
+				locals, LocalsKeySetCookies, NamedCookieKey(named),
+			)),
+		}, children...)
+	}
+
 	return web.Scope(children...).
 		VSlot(fmt.Sprintf("{ locals: %s }", LocalsActionable(c))).
 		Init(fmt.Sprintf(`{
@@ -89,6 +112,7 @@ func Actionable[T h.HTMLComponent](ctx context.Context, c T, children ...h.HTMLC
 		});
 		return tags;
 	},
+	%s: function(v) {}, // a placeholder
 	%s: function(v) {
 		if (!v.sync_query) {
 			return "";
@@ -99,6 +123,7 @@ func Actionable[T h.HTMLComponent](ctx context.Context, c T, children ...h.HTMLC
 			queryEncodersJs, // TODO: 最好是放到一个全局的位置
 			LocalsKeyNewAction, actionBase,
 			LocalsKeyQueryTags, PrettyJSONString(queryTags),
+			LocalsKeySetCookies,
 			LocalsKeyEncodeQuery, LocalsKeyQueryTags))
 }
 
@@ -174,22 +199,24 @@ func postAction(_ context.Context, c any, method any, request any, o *postAction
 
 	locals := LocalsActionable(c)
 	b.Run(web.Var(fmt.Sprintf(`function(b){
-		const actionable = b.parent ? b.parent.__actionable__ : %s;
-		b.__actionable__ = actionable;
+	const actionable = b.parent ? b.parent.__actionable__ : %s;
+	b.__actionable__ = actionable;
 
-		let v = actionable.%s(); // %T
-		v.method = %q;
-		v.request = %s;%s
+	let v = actionable.%s(); // %T
+	v.method = %q;
+	v.request = %s;%s
 
-		b.__action__ = v;
-		b.__stringQuery__ = actionable.%s(v);
-	}`,
+	b.__action__ = v;
+	b.__stringQuery__ = actionable.%s(v);
+	actionable.%s(v);
+}`,
 		locals,
 		LocalsKeyNewAction, c,
 		methodName,
 		PrettyJSONString(request),
 		fix,
 		LocalsKeyEncodeQuery,
+		LocalsKeySetCookies,
 	)))
 	b.StringQuery(web.Var(`(b) => b.__stringQuery__`))
 	b.PushState(web.Var(`(b) => b.__action__.sync_query`)) // TODO: duplicate path?query should not actually be executed

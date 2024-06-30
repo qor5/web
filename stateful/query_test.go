@@ -36,7 +36,7 @@ func TestGetQueryTags(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    any
-		expected []QueryTag
+		expected QueryTags
 		errMsg   string
 	}{
 		{
@@ -48,7 +48,7 @@ func TestGetQueryTags(t *testing.T) {
 		{
 			name:  "ValidStructWithJsonTags",
 			input: User{},
-			expected: []QueryTag{
+			expected: QueryTags{
 				{
 					Name:     "id",
 					JsonName: "id",
@@ -75,7 +75,7 @@ func TestGetQueryTags(t *testing.T) {
 		{
 			name:  "PointerToStruct",
 			input: &User{},
-			expected: []QueryTag{
+			expected: QueryTags{
 				{
 					Name:     "id",
 					JsonName: "id",
@@ -118,7 +118,7 @@ func TestGetQueryTags(t *testing.T) {
 			input: struct {
 				A int `query:"" json:" "`
 			}{},
-			expected: []QueryTag{{
+			expected: QueryTags{{
 				Name:     " ",
 				JsonName: " ",
 				path:     "A",
@@ -130,7 +130,7 @@ func TestGetQueryTags(t *testing.T) {
 			input: struct {
 				A int `query:"" json:""`
 			}{},
-			expected: []QueryTag{{
+			expected: QueryTags{{
 				Name:     "A",
 				JsonName: "A",
 				path:     "A",
@@ -140,7 +140,7 @@ func TestGetQueryTags(t *testing.T) {
 		{
 			name:  "StructWithEmbed",
 			input: UserWithEmbed{},
-			expected: []QueryTag{
+			expected: QueryTags{
 				{
 					Name:     "id",
 					JsonName: "id",
@@ -226,7 +226,11 @@ func TestQueryUnmarshal(t *testing.T) {
 	}
 
 	user := User{}
-	err := QueryDecode(q, &user)
+
+	tags, err := GetQueryTags(user)
+	assert.NoError(t, err)
+
+	err = tags.Decode(q, &user)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, user.ID)
 	assert.Equal(t, "John", user.Name)
