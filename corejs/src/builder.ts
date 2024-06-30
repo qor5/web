@@ -1,5 +1,6 @@
 import type { EventFuncID, EventResponse, Location, Queries, QueryValue } from './types'
 import { buildPushState, objectToFormData } from '@/utils'
+import querystring from 'query-string'
 
 declare let window: any
 
@@ -121,6 +122,15 @@ export class Builder {
     }
 
     this._location.stringQuery = this.calcValue(v)
+    return this
+  }
+
+  public stringifyOptions(v: querystring.StringifyOptions | Function): Builder {
+    if (!this._location) {
+      this._location = {}
+    }
+
+    this._location.stringifyOptions = this.calcValue(v)
     return this
   }
 

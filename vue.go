@@ -138,6 +138,14 @@ func (b *VueEventTagBuilder) StringQuery(v interface{}) (r *VueEventTagBuilder) 
 	return b
 }
 
+func (b *VueEventTagBuilder) StringifyOptions(v interface{}) (r *VueEventTagBuilder) {
+	b.calls = append(b.calls, jsCall{
+		method: "stringifyOptions",
+		args:   []interface{}{v},
+	})
+	return b
+}
+
 func (b *VueEventTagBuilder) PushState(v interface{}) (r *VueEventTagBuilder) {
 	b.calls = append(b.calls, jsCall{
 		method: "pushState",

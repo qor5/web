@@ -54,7 +54,9 @@ export function buildPushState(eventFuncId: EventFuncID, url: string): any {
 
   const requestQuery = { ...resultQuery, ...{ __execute_event__: eventFuncId.id } }
 
-  addressBarQuery = querystring.stringify(resultQuery, { arrayFormat: 'comma' })
+  const stringifyOpts = loc?.stringifyOptions || { arrayFormat: 'comma' }
+
+  addressBarQuery = querystring.stringify(resultQuery, stringifyOpts)
   if (addressBarQuery.length > 0) {
     addressBarQuery = `?${addressBarQuery}`
   }
@@ -67,7 +69,7 @@ export function buildPushState(eventFuncId: EventFuncID, url: string): any {
 
   return {
     pushStateArgs: [pushedState, '', newUrl],
-    eventURL: `${orig.url}?${querystring.stringify(requestQuery, { arrayFormat: 'comma' })}`
+    eventURL: `${orig.url}?${querystring.stringify(requestQuery, stringifyOpts)}`
   }
 }
 

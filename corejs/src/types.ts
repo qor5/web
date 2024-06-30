@@ -1,3 +1,5 @@
+import querystring from 'query-string'
+
 export interface ValueOp {
   value: string | string[]
   add?: boolean
@@ -17,6 +19,7 @@ export interface Location {
   stringQuery?: string
   query?: Queries
   clearMergeQueryKeys?: string[]
+  stringifyOptions?: querystring.StringifyOptions
 }
 
 export interface EventFuncID {

@@ -236,4 +236,22 @@ describe('builder', () => {
       name: 'felix'
     })
   })
+
+  it('stringifyOptions with encode true', () => {
+    const b = plaid()
+      .url('/page1?')
+      .stringQuery('order_bys=Name|ASC,Age|DESC')
+      .stringifyOptions({ arrayFormat: 'comma', encode: true })
+    const [, , url] = b.buildPushStateArgs()
+    expect(url).toEqual('/page1?order_bys=Name%7CASC,Age%7CDESC')
+  })
+
+  it('stringifyOptions with encode false', () => {
+    const b = plaid()
+      .url('/page1?')
+      .stringQuery('order_bys=Name|ASC,Age|DESC')
+      .stringifyOptions({ arrayFormat: 'comma', encode: false })
+    const [, , url] = b.buildPushStateArgs()
+    expect(url).toEqual('/page1?order_bys=Name|ASC,Age|DESC')
+  })
 })
