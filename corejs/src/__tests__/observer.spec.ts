@@ -10,7 +10,7 @@ describe('observer', () => {
             :form-init='{value: "", name:""}'
             v-slot='{ form: xform }' 
         >
-          <go-plaid-observer notificationName="test1" :handler='({notificationName, payload: xpayload}) => {
+          <go-plaid-observer notification-name="test1" :handler='({notificationName, payload: xpayload}) => {
             xform.value = xpayload.a;
             xform.name = notificationName;
           }' />

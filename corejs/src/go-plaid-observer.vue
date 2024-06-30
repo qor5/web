@@ -1,3 +1,7 @@
+<template>
+  <slot></slot>
+</template>
+
 <script setup lang="ts">
 import { onMounted, watch, inject } from 'vue'
 
@@ -13,39 +17,29 @@ const props = defineProps({
 })
 
 const vars = inject<{ __notification?: { id: string; name: string; payload: any } }>('vars')
-
-onMounted(() => {
-  watch(
-    () => vars?.__notification,
-    (newNotification) => {
-      if (!newNotification) {
-        return
-      }
-
-      if (newNotification?.name !== props.notificationName) {
-        return
-      }
-
-      let payload
-      try {
-        payload =
-          typeof newNotification.payload === 'string'
-            ? JSON.parse(newNotification.payload)
-            : newNotification.payload
-      } catch (e) {
-        payload = newNotification.payload
-      }
-
-      try {
-        props.handler({ notificationName: props.notificationName, payload })
-      } catch (error) {
-        console.error('Error executing observer script:', error)
-      }
+watch(
+  () => vars?.__notification,
+  (notifi) => {
+    if (!notifi) {
+      return
     }
-  )
-})
-</script>
 
-<template>
-  <slot></slot>
-</template>
+    if (notifi?.name !== props.notificationName) {
+      return
+    }
+
+    let payload
+    try {
+      payload = typeof notifi.payload === 'string' ? JSON.parse(notifi.payload) : notifi.payload
+    } catch (e) {
+      payload = notifi.payload
+    }
+
+    try {
+      props.handler({ notificationName: props.notificationName, payload })
+    } catch (error) {
+      console.error('Error executing observer script:', error)
+    }
+  }
+)
+</script>

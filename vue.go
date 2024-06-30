@@ -329,3 +329,7 @@ func Observe(name string, handler string) *h.HTMLTagBuilder {
 	}
 	return h.Tag("go-plaid-observer").Attr("notification-name", name).Attr(":handler", handler)
 }
+
+func DataSync(model string, uniqueId string) *h.HTMLTagBuilder {
+	return h.Tag("go-plaid-syncer").Attr(":model", model).Attr("unique-id", uniqueId)
+}

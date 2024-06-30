@@ -14,22 +14,35 @@ type portalize struct {
 	children []h.HTMLComponent
 }
 
+type portalNameCtxKey struct{}
+
+func WithPortalName(ctx context.Context, name string) context.Context {
+	return context.WithValue(ctx, portalNameCtxKey{}, name)
+}
+
 type skipPortalNameCtxKey struct{}
 
-func skipPortalize(c Named) h.HTMLComponent {
+func SkipPortalize(c Named) h.HTMLComponent {
 	return h.ComponentFunc(func(ctx context.Context) (r []byte, err error) {
-		ctx = context.WithValue(ctx, skipPortalNameCtxKey{}, c.CompoName())
+		portalName, _ := ctx.Value(portalNameCtxKey{}).(string)
+		if portalName == "" {
+			portalName = c.CompoName()
+		}
+		ctx = context.WithValue(ctx, skipPortalNameCtxKey{}, portalName)
 		return c.MarshalHTML(ctx)
 	})
 }
 
 func (p *portalize) MarshalHTML(ctx context.Context) ([]byte, error) {
-	compoName := p.c.CompoName()
+	portalName, _ := ctx.Value(portalNameCtxKey{}).(string)
+	if portalName == "" {
+		portalName = p.c.CompoName()
+	}
 	skipName, _ := ctx.Value(skipPortalNameCtxKey{}).(string)
-	if skipName == compoName {
+	if skipName == portalName {
 		return h.Components(p.children...).MarshalHTML(ctx)
 	}
-	return web.Portal(p.children...).Name(compoName).MarshalHTML(ctx)
+	return web.Portal(p.children...).Name(portalName).MarshalHTML(ctx)
 }
 
 func reloadable[T Named](c T, children ...h.HTMLComponent) h.HTMLComponent {
@@ -72,14 +85,14 @@ func ReloadAction[T Named](ctx context.Context, source T, f func(target T), opts
 func AppendReloadToResponse(r *web.EventResponse, c Named) {
 	r.UpdatePortals = append(r.UpdatePortals, &web.PortalUpdate{
 		Name: c.CompoName(),
-		Body: skipPortalize(c),
+		Body: SkipPortalize(c),
 	})
 }
 
 func OnReload(c Named) (r web.EventResponse, err error) {
 	r.UpdatePortals = append(r.UpdatePortals, &web.PortalUpdate{
 		Name: c.CompoName(),
-		Body: skipPortalize(c),
+		Body: SkipPortalize(c),
 	})
 	return
 }

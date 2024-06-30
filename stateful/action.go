@@ -97,7 +97,7 @@ func Actionable[T h.HTMLComponent](ctx context.Context, c T, children ...h.HTMLC
 	}
 
 	return web.Scope(children...).
-		VSlot(fmt.Sprintf("{ locals: %s }", LocalsActionable(c))).
+		VSlot(fmt.Sprintf("{ locals: %s }", locals)).
 		Init(fmt.Sprintf(`{
 	%s
 	%s: function() {
