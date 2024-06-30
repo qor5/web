@@ -203,7 +203,7 @@ func TestGetQueryTags(t *testing.T) {
 }
 
 func TestQueryUnmarshal(t *testing.T) {
-	q := `id=1&name=John&Age=30&emails=a%2C,b,c&addresses=Shanghai|China|descA|1000,Hangzhou%7C|China|descB|12300&company_address=Suzhou|China|descC|8888`
+	q := `id=1&name=John&Age=30&emails=a%2C,b,c&addresses=Shanghai_China_descA_1000,Hangzhou%7C_China_descB_12300&company_address=Suzhou_China_descC_8888`
 
 	type Embbeded struct {
 		Description string `json:"description"`

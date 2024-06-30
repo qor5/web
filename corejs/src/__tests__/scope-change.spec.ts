@@ -82,7 +82,7 @@ describe('scope change', () => {
             :form-init="{value:0}"
             v-slot="{ form }" 
             @change-debounced='({form,locals,oldLocals,oldForm}) => { form.value++ }'
-            :use-debounce='800'
+            :use-debounce='600'
         >
           <v-text-field id="name" v-model="form.name" v-assign="[form,{'name':'debounced'}]"></v-text-field>
           <button @click="form.name='change'"></button>
