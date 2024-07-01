@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, watch, inject } from 'vue'
+import { watch, inject } from 'vue'
 
 const props = defineProps({
   notificationName: {
