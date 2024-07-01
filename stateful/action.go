@@ -38,16 +38,6 @@ const (
 	LocalsKeyEncodeQuery = "encodeQuery"
 )
 
-func LocalsActionable(c any) string {
-	hash := ""
-	if named, ok := any(c).(Named); ok {
-		hash = MurmurHash3(fmt.Sprintf("%T:%s", c, named.CompoName()))
-	} else {
-		hash = MurmurHash3(fmt.Sprintf("%T", c))
-	}
-	return fmt.Sprintf(`__actionable_%s__`, hash)
-}
-
 func Actionable[T h.HTMLComponent](ctx context.Context, c T, children ...h.HTMLComponent) (r h.HTMLComponent) {
 	defer func() {
 		if named, ok := any(c).(Named); ok {
@@ -75,29 +65,27 @@ func Actionable[T h.HTMLComponent](ctx context.Context, c T, children ...h.HTMLC
 		queryEncodersJs = strings.Join(queryEncoders, ",\n") + ",\n"
 	}
 
-	locals := LocalsActionable(c)
-
 	named, ok := any(c).(Named)
 	if ok {
 		children = append([]h.HTMLComponent{
 			// borrow to get the document
 			h.Div().Attr("v-run", fmt.Sprintf(`(el) => {
-	const cookieTags = %s.%s().filter(tag => tag.cookie)
-	%s.%s = function(v) {
+	const cookieTags = locals.%s().filter(tag => tag.cookie)
+	locals.%s = function(v) {
 		if (!v.sync_query || !el.ownerDocument) {
 			return;
 		}
 		el.ownerDocument.cookie = "%s=" + vars.__encodeObjectToQuery(v.compo, cookieTags);
 	}
 }`,
-				locals, LocalsKeyQueryTags,
-				locals, LocalsKeySetCookies, NamedCookieKey(named),
+				LocalsKeyQueryTags,
+				LocalsKeySetCookies, NamedCookieKey(named),
 			)),
 		}, children...)
 	}
 
 	return web.Scope(children...).
-		VSlot(fmt.Sprintf("{ locals: %s }", locals)).
+		VSlot(fmt.Sprintf("{ locals }")).
 		Init(fmt.Sprintf(`{
 	%s
 	%s: function() {
@@ -173,9 +161,7 @@ func postAction(_ context.Context, c any, method any, request any, o *postAction
 		methodName = GetFuncName(method)
 	}
 
-	locals := LocalsActionable(c)
 	b := web.POST().
-		Locals(web.Var(locals)).
 		EventFunc(eventDispatchAction).
 		Queries(url.Values{}) // force clear queries first
 
@@ -200,18 +186,14 @@ func postAction(_ context.Context, c any, method any, request any, o *postAction
 	}
 
 	b.Run(web.Var(fmt.Sprintf(`function(b){
-	const actionable = b.parent ? b.parent.__actionable__ : %s;
-	b.__actionable__ = actionable;
-
-	let v = actionable.%s(); // %T
+	let v = locals.%s(); // %T
 	v.method = %q;
 	v.request = %s;%s
 
 	b.__action__ = v;
-	b.__stringQuery__ = actionable.%s(v);
-	actionable.%s(v);
+	b.__stringQuery__ = locals.%s(v);
+	locals.%s(v);
 }`,
-		locals,
 		LocalsKeyNewAction, c,
 		methodName,
 		PrettyJSONString(request),
@@ -220,7 +202,7 @@ func postAction(_ context.Context, c any, method any, request any, o *postAction
 		LocalsKeySetCookies,
 	)))
 	b.StringQuery(web.Var(`(b) => b.__stringQuery__`))
-	b.PushState(web.Var(`(b) => b.__action__.sync_query`)) // TODO: duplicate path?query should not actually be executed
+	b.PushState(web.Var(`(b) => b.__action__.sync_query`))
 	return b.FieldValue(fieldKeyAction, web.Var(`(b) => JSON.stringify(b.__action__, null, "\t")`))
 }
 

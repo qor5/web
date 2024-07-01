@@ -21,8 +21,9 @@ func IsSyncQuery(ctx context.Context) bool {
 	return ok
 }
 
-func NamedCookieKey(c Named) string {
-	return fmt.Sprintf("__sync_cookie%s", LocalsActionable(c))
+func NamedCookieKey(named Named) string {
+	hash := MurmurHash3(fmt.Sprintf("%T:%s", named, named.CompoName()))
+	return fmt.Sprintf("__sync_cookie_%s__", hash)
 }
 
 type querySyncer struct {
