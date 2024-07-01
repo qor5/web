@@ -173,7 +173,9 @@ func postAction(_ context.Context, c any, method any, request any, o *postAction
 		methodName = GetFuncName(method)
 	}
 
+	locals := LocalsActionable(c)
 	b := web.POST().
+		Locals(web.Var(locals)).
 		EventFunc(eventDispatchAction).
 		Queries(url.Values{}) // force clear queries first
 
@@ -197,7 +199,6 @@ func postAction(_ context.Context, c any, method any, request any, o *postAction
 		fix = strings.Join(lines, "\n")
 	}
 
-	locals := LocalsActionable(c)
 	b.Run(web.Var(fmt.Sprintf(`function(b){
 	const actionable = b.parent ? b.parent.__actionable__ : %s;
 	b.__actionable__ = actionable;
