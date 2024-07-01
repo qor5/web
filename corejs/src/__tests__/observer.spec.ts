@@ -10,15 +10,15 @@ describe('observer', () => {
             :form-init='{value: "", name:""}'
             v-slot='{ form: xform }' 
         >
-          <go-plaid-observer notification-name="test1" :handler='({notificationName, payload: xpayload}) => {
+          <go-plaid-observer @test1='({notificationName, payload: xpayload}) => {
             xform.value = xpayload.a;
             xform.name = notificationName;
-          }' />
+          }'  />
           <h1>{{xform.value}}</h1>
           <h2>{{xform.name}}</h2>
         </go-plaid-scope>
         
-        <button @click='vars.__sendNotification("test1", {"a": "19"})'></button>
+        <button @click='plaid().emit("test1", {"a": "19"})'></button>
       </div>
       `)
 
