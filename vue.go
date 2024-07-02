@@ -344,7 +344,3 @@ func Listen(event string, on string) *h.HTMLTagBuilder {
 	}
 	return h.Tag("go-plaid-listener").Attr("event", event).Attr("@on", on)
 }
-
-func DataSync(model string, uniqueId string) *h.HTMLTagBuilder {
-	return h.Tag("go-plaid-syncer").Attr(":model", model).Attr("unique-id", uniqueId)
-}
