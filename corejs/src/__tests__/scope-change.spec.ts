@@ -109,30 +109,4 @@ describe('scope change', () => {
     expect(wrapper.find('h1').text()).toEqual('1')
     console.log(wrapper.html())
   })
-
-  it('observers', async () => {
-    const wrapper = mountTemplate(`
-      <div>
-        <go-plaid-scope 
-            :form-init='{value: ""}'
-            v-slot='{ form }' 
-            :observers='[
-                {
-                    name: "test1",
-                    script: "form.value = payload.a"
-                }
-            ]'
-        >
-          <h1>{{form.value}}</h1>
-        </go-plaid-scope>
-        
-        <button @click='vars.__sendNotification("test1", {"a": "19"})'></button>
-      </div>
-      `)
-
-    await nextTick()
-    expect(wrapper.find('h1').text()).toEqual('')
-    await wrapper.find('button').trigger('click')
-    expect(wrapper.find('h1').text()).toEqual('19')
-  })
 })

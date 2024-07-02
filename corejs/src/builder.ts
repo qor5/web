@@ -218,6 +218,12 @@ export class Builder {
     }
   }
 
+  public emit(event: string, payload: any) {
+    if (this._vars) {
+      this._vars.__emitter.emit(event, payload)
+    }
+  }
+
   public go(): Promise<void | EventResponse> {
     if (this._eventFuncID.id == '__reload__') {
       this._buildPushStateResult = null

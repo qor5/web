@@ -9,8 +9,7 @@ import (
 )
 
 type ScopeBuilder struct {
-	tag       *h.HTMLTagBuilder
-	observers []Observer
+	tag *h.HTMLTagBuilder
 }
 
 func Scope(children ...h.HTMLComponent) (r *ScopeBuilder) {
@@ -73,27 +72,5 @@ func (b *ScopeBuilder) Children(comps ...h.HTMLComponent) (r *ScopeBuilder) {
 }
 
 func (b *ScopeBuilder) MarshalHTML(ctx context.Context) (r []byte, err error) {
-	if len(b.observers) > 0 {
-		b.tag.Attr(":observers", h.JSONString(b.observers))
-	}
 	return b.tag.MarshalHTML(ctx)
-}
-
-type Observer struct {
-	Name   string `json:"name"`
-	Script string `json:"script"` // available parameters: name payload vars locals form plaid
-}
-
-func (b *ScopeBuilder) Observe(name string, script string) (r *ScopeBuilder) {
-	b.observers = append(b.observers, Observer{name, script})
-	return b
-}
-
-func (b *ScopeBuilder) Observers(vs ...Observer) (r *ScopeBuilder) {
-	b.observers = append(b.observers, vs...)
-	return b
-}
-
-func NotifyScript(name string, payload any) string {
-	return fmt.Sprintf(`vars.__sendNotification(%q, %s)`, name, h.JSONString(payload))
 }

@@ -322,12 +322,27 @@ func RunScript(s string) *h.HTMLTagBuilder {
 	return h.Tag("go-plaid-run-script").Attr(":script", s)
 }
 
-func Observe(name string, handler string) *h.HTMLTagBuilder {
-	handler = strings.TrimSpace(handler)
-	if !strings.HasPrefix(handler, "function") && !strings.HasPrefix(handler, "(") {
-		handler = fmt.Sprintf("function({notificationName, payload}) { %s }", handler)
+func Emit(event string, payloads ...any) string {
+	if len(payloads) > 1 {
+		panic("only one payload can be emitted")
 	}
-	return h.Tag("go-plaid-observer").Attr("notification-name", name).Attr(":handler", handler)
+	var payload any
+	if len(payloads) == 1 {
+		payload = payloads[0]
+	}
+	return fmt.Sprintf(`plaid().vars(vars).emit(%q, %s)`, event, h.JSONString(payload))
+}
+
+func (r *EventResponse) Emit(event string, payloads ...any) {
+	AppendRunScripts(r, Emit(event, payloads...))
+}
+
+func Listen(event string, on string) *h.HTMLTagBuilder {
+	on = strings.TrimSpace(on)
+	if !strings.HasPrefix(on, "function") && !strings.HasPrefix(on, "(") {
+		on = fmt.Sprintf("({event, payload}) => { %s }", on)
+	}
+	return h.Tag("go-plaid-listener").Attr("event", event).Attr("@on", on)
 }
 
 func DataSync(model string, uniqueId string) *h.HTMLTagBuilder {

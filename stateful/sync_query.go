@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/qor5/web/v3"
-	"github.com/samber/lo"
 	h "github.com/theplant/htmlgo"
 )
 
@@ -28,6 +27,7 @@ func IdentifiableCookieKey(v Identifiable) string {
 
 type querySyncer struct {
 	h.HTMLComponent
+	onlyParse bool
 }
 
 func (s *querySyncer) MarshalHTML(ctx context.Context) ([]byte, error) {
@@ -45,8 +45,7 @@ func (s *querySyncer) MarshalHTML(ctx context.Context) ([]byte, error) {
 			return nil, err
 		}
 		if cookie != nil {
-			cookieTags := QueryTags(lo.Filter(tags, func(tag QueryTag, _ int) bool { return tag.Cookie }))
-			if err := cookieTags.Decode(cookie.Value, s.HTMLComponent); err != nil {
+			if err := tags.CookieTags().Decode(cookie.Value, s.HTMLComponent); err != nil {
 				return nil, err
 			}
 		}
@@ -55,7 +54,9 @@ func (s *querySyncer) MarshalHTML(ctx context.Context) ([]byte, error) {
 	if err := tags.Decode(evCtx.R.URL.RawQuery, s.HTMLComponent); err != nil {
 		return nil, err
 	}
-	ctx = withSyncQuery(ctx)
+	if !s.onlyParse {
+		ctx = withSyncQuery(ctx)
+	}
 	return s.HTMLComponent.MarshalHTML(ctx)
 }
 
@@ -65,4 +66,8 @@ func (c *querySyncer) Unwrap() h.HTMLComponent {
 
 func SyncQuery(c h.HTMLComponent) h.HTMLComponent {
 	return &querySyncer{HTMLComponent: c}
+}
+
+func ParseQuery(c h.HTMLComponent) h.HTMLComponent {
+	return &querySyncer{HTMLComponent: c, onlyParse: true}
 }

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { mountTemplate } from './testutils'
 import { nextTick } from 'vue'
 
-describe('observer', () => {
+describe('listener', () => {
   it('access scoped slot', async () => {
     const wrapper = mountTemplate(`
       <div>
@@ -10,15 +10,15 @@ describe('observer', () => {
             :form-init='{value: "", name:""}'
             v-slot='{ form: xform }' 
         >
-          <go-plaid-observer notification-name="test1" :handler='({notificationName, payload: xpayload}) => {
+          <go-plaid-listener event="test1" @on='({event, payload: xpayload}) => {
             xform.value = xpayload.a;
-            xform.name = notificationName;
+            xform.name = event;
           }' />
           <h1>{{xform.value}}</h1>
           <h2>{{xform.name}}</h2>
         </go-plaid-scope>
         
-        <button @click='vars.__sendNotification("test1", {"a": "19"})'></button>
+        <button @click='plaid().vars(vars).emit("test1", {"a": "19"})'></button>
       </div>
       `)
 

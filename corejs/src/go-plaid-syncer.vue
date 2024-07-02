@@ -7,37 +7,28 @@ import { watch, inject } from 'vue'
 import { isEqual } from 'lodash'
 
 const props = defineProps({
-  uniqueId: {
-    type: String,
-    required: true
-  },
   model: {
     type: Object,
+    required: true
+  },
+  uniqueId: {
+    type: String,
     required: true
   }
 })
 
-const vars = inject<{
-  __sendNotification: Function
-  __notification?: { id: string; name: string; payload: any }
-}>('vars')
+const event = '__go-plaid-syncer-' + props.uniqueId + '__'
 
-const notifName = '__go-plaid-syncer-' + props.uniqueId + '__'
+const vars: any = inject('vars')
 
 let ignoreOnce = false
-watch(
-  () => vars?.__notification,
-  (notif) => {
-    if (!notif || notif?.name !== notifName) {
-      return
-    }
-    if (isEqual(props.model, notif.payload)) {
-      return
-    }
-    ignoreOnce = true
-    Object.assign(props.model, notif.payload)
+vars.__emitter.on(event, function (payload: any) {
+  if (isEqual(props.model, payload)) {
+    return
   }
-)
+  ignoreOnce = true
+  Object.assign(props.model, payload)
+})
 
 watch(
   () => props.model,
@@ -46,8 +37,8 @@ watch(
       ignoreOnce = false
       return
     }
-    vars?.__sendNotification(notifName, newVal)
+    vars.__emitter.emit(event, newVal)
   },
-  { deep: true, immediate: true }
+  { deep: true }
 )
 </script>

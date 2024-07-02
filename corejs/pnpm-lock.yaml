@@ -20,6 +20,9 @@ importers:
       query-string:
         specifier: ^9.0.0
         version: 9.0.0
+      tiny-emitter:
+        specifier: ^2.1.0
+        version: 2.1.0
       vue:
         specifier: ^3.4.30
         version: 3.4.30(typescript@5.3.3)
@@ -1458,6 +1461,9 @@ packages:
 
   text-table@0.2.0:
     resolution: {integrity: sha512-N+8UisAXDGk8PFXP4HAzVR9nbfmVJ3zYLAWiTIoqC5v5isinhr+r5uaO8+7r3BMfuNIufIsA7RdpVgacC2cSpw==}
+
+  tiny-emitter@2.1.0:
+    resolution: {integrity: sha512-NB6Dk1A9xgQPMoGqC5CVXn123gWyte215ONT5Pp5a0yt4nlEoO1ZWeCwpncaekPHXO60i47ihFnZPiRPjRMq4Q==}
 
   tinybench@2.8.0:
     resolution: {integrity: sha512-1/eK7zUnIklz4JUUlL+658n58XO2hHLQfSk1Zf2LKieUjxidN16eKFEoDEfjHc3ohofSSqK3X5yO6VGb6iW8Lw==}
@@ -3074,6 +3080,8 @@ snapshots:
       tslib: 2.6.3
 
   text-table@0.2.0: {}
+
+  tiny-emitter@2.1.0: {}
 
   tinybench@2.8.0: {}
 

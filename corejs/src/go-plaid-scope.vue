@@ -10,7 +10,6 @@ const props = defineProps<{
   init?: object | any[]
   formInit?: object | any[]
   useDebounce?: number
-  observers?: { name: string; script: string }[]
 }>()
 
 const emit = defineEmits<{
@@ -29,49 +28,9 @@ if (Array.isArray(initForm)) {
 }
 const form = reactive({ ...initForm })
 
-const vars = inject<{ __notification?: { id: string; name: string; payload: any } }>('vars')
+const vars = inject('vars')
 const plaid = inject('plaid')
 
-function addObservers() {
-  if (!props.observers || props.observers.length == 0) {
-    return
-  }
-  watch(
-    () => vars?.__notification,
-    (newNotification) => {
-      if (!newNotification) {
-        return
-      }
-      props.observers?.forEach((observer) => {
-        if (newNotification?.name === observer.name) {
-          let payload
-          try {
-            payload =
-              typeof newNotification.payload === 'string'
-                ? JSON.parse(newNotification.payload)
-                : newNotification.payload
-          } catch (e) {
-            payload = newNotification.payload
-          }
-          try {
-            const scriptFunc = new Function(
-              'name',
-              'payload',
-              'vars',
-              'locals',
-              'form',
-              'plaid',
-              observer.script
-            )
-            scriptFunc(observer.name, payload, vars, locals, form, plaid)
-          } catch (error) {
-            console.error('Error executing observer script:', error)
-          }
-        }
-      })
-    }
-  )
-}
 onMounted(() => {
   setTimeout(() => {
     if (props.useDebounce) {
@@ -88,7 +47,5 @@ onMounted(() => {
       })
     }
   }, 0)
-
-  addObservers()
 })
 </script>

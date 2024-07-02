@@ -156,6 +156,10 @@ func ParseQueryTags(v any) (QueryTags, error) {
 	return tags, nil
 }
 
+func (tags QueryTags) CookieTags() QueryTags {
+	return QueryTags(lo.Filter(tags, func(tag QueryTag, _ int) bool { return tag.Cookie }))
+}
+
 // TODO: Does rt need to be a non-pointer?
 func newStructObject(rt reflect.Type, desc string) (any, error) {
 	var err error

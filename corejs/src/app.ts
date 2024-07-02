@@ -13,13 +13,14 @@ import { GlobalEvents } from 'vue-global-events'
 import GoPlaidScope from '@/go-plaid-scope.vue'
 import GoPlaidPortal from '@/go-plaid-portal.vue'
 import GoPlaidRunScript from '@/go-plaid-run-script.vue'
-import GoPlaidObserver from '@/go-plaid-observer.vue'
+import GoPlaidListener from '@/go-plaid-listener.vue'
 import GoPlaidSyncer from '@/go-plaid-syncer.vue'
 import { componentByTemplate, encodeObjectToQuery } from '@/utils'
 import { Builder, plaid } from '@/builder'
 import { keepScroll } from '@/keepScroll'
 import { assignOnMounted, runOnMounted } from '@/assign'
 import jsonpatch from 'fast-json-patch'
+import { TinyEmitter } from 'tiny-emitter'
 
 export const Root = defineComponent({
   props: {
@@ -40,14 +41,7 @@ export const Root = defineComponent({
     provide('updateRootTemplate', updateRootTemplate)
 
     const vars = reactive({
-      __notification: {},
-      __sendNotification: function (name: string, payload: any) {
-        vars.__notification = {
-          id: `notification-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
-          name: name,
-          payload: payload
-        }
-      },
+      __emitter: new TinyEmitter(),
       __applyJsonPatch: jsonpatch.applyPatch,
       __encodeObjectToQuery: encodeObjectToQuery
     })
@@ -91,7 +85,7 @@ export const plaidPlugin = {
     app.component('GoPlaidScope', GoPlaidScope)
     app.component('GoPlaidPortal', GoPlaidPortal)
     app.component('GoPlaidRunScript', GoPlaidRunScript)
-    app.component('GoPlaidObserver', GoPlaidObserver)
+    app.component('GoPlaidListener', GoPlaidListener)
     app.component('GoPlaidSyncer', GoPlaidSyncer)
     app.directive('keep-scroll', keepScroll)
     app.directive('assign', assignOnMounted)

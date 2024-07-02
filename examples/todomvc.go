@@ -56,7 +56,7 @@ func (c *TodoApp) MarshalHTML(ctx context.Context) ([]byte, error) {
 
 	checkBoxID := fmt.Sprintf("%s-toggle-all", c.ID)
 	return stateful.Actionable(ctx, c,
-		web.Observe(NotifyTodosChanged, stateful.ReloadAction(ctx, c, nil).Go()),
+		web.Listen(NotifyTodosChanged, stateful.ReloadAction(ctx, c, nil).Go()),
 		Section().Class("todoapp").Children(
 			Header().Class("header").Children(
 				H1("Todos"),
@@ -158,8 +158,7 @@ func (c *TodoApp) ToggleAll(ctx context.Context) (r web.EventResponse, err error
 			return r, err
 		}
 	}
-
-	web.AppendRunScripts(&r, web.NotifyScript(NotifyTodosChanged, nil))
+	r.Emit(NotifyTodosChanged)
 	return
 }
 
@@ -180,7 +179,7 @@ func (c *TodoApp) CreateTodo(ctx context.Context, req *CreateTodoRequest) (r web
 	}); err != nil {
 		return r, err
 	}
-	web.AppendRunScripts(&r, web.NotifyScript(NotifyTodosChanged, nil))
+	r.Emit(NotifyTodosChanged)
 	return
 }
 
@@ -233,7 +232,7 @@ func (c *TodoItem) Toggle(ctx context.Context) (r web.EventResponse, err error) 
 		return r, err
 	}
 
-	web.AppendRunScripts(&r, web.NotifyScript(NotifyTodosChanged, nil))
+	r.Emit(NotifyTodosChanged)
 	return
 }
 
@@ -242,7 +241,7 @@ func (c *TodoItem) Remove(ctx context.Context) (r web.EventResponse, err error) 
 		return r, err
 	}
 
-	web.AppendRunScripts(&r, web.NotifyScript(NotifyTodosChanged, nil))
+	r.Emit(NotifyTodosChanged)
 	return
 }
 
