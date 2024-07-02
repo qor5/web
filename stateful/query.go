@@ -140,7 +140,7 @@ func collectQueryTags(rt reflect.Type, tags *QueryTags) error {
 	return nil
 }
 
-func GetQueryTags(v any) (QueryTags, error) {
+func ParseQueryTags(v any) (QueryTags, error) {
 	rv := reflect.ValueOf(v)
 	for rv.Kind() == reflect.Ptr || rv.Kind() == reflect.Interface {
 		rv = rv.Elem()

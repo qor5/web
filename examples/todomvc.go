@@ -33,7 +33,7 @@ type TodoApp struct {
 	Visibility Visibility `json:"visibility" query:";cookie"`
 }
 
-func (c *TodoApp) CompoName() string {
+func (c *TodoApp) CompoID() string {
 	return fmt.Sprintf("TodoApp:%s", c.ID)
 }
 
@@ -51,7 +51,6 @@ func (c *TodoApp) MarshalHTML(ctx context.Context) ([]byte, error) {
 		filteredTodoItems[i] = stateful.MustApply(ctx, &TodoItem{
 			ID:   todo.ID,
 			todo: todo,
-			// OnChanged: stateful.ReloadActionX(ctx,a, nil).Go(),
 		})
 	}
 
@@ -161,7 +160,6 @@ func (c *TodoApp) ToggleAll(ctx context.Context) (r web.EventResponse, err error
 	}
 
 	web.AppendRunScripts(&r, web.NotifyScript(NotifyTodosChanged, nil))
-	// stateful.AppendReloadToResponse(&r, a)
 	return
 }
 
@@ -183,7 +181,6 @@ func (c *TodoApp) CreateTodo(ctx context.Context, req *CreateTodoRequest) (r web
 		return r, err
 	}
 	web.AppendRunScripts(&r, web.NotifyScript(NotifyTodosChanged, nil))
-	// stateful.AppendReloadToResponse(&r, a)
 	return
 }
 
@@ -193,7 +190,6 @@ type TodoItem struct {
 
 	ID   string `json:"id"`
 	todo *Todo  // use this if not nil, otherwise load with ID from Storage
-	// OnChanged string `json:"on_changed"`
 }
 
 func (c *TodoItem) MarshalHTML(ctx context.Context) ([]byte, error) {
@@ -238,7 +234,6 @@ func (c *TodoItem) Toggle(ctx context.Context) (r web.EventResponse, err error) 
 	}
 
 	web.AppendRunScripts(&r, web.NotifyScript(NotifyTodosChanged, nil))
-	// r.RunScript = t.OnChanged
 	return
 }
 
@@ -248,7 +243,6 @@ func (c *TodoItem) Remove(ctx context.Context) (r web.EventResponse, err error) 
 	}
 
 	web.AppendRunScripts(&r, web.NotifyScript(NotifyTodosChanged, nil))
-	// r.RunScript = t.OnChanged
 	return
 }
 

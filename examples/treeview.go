@@ -27,7 +27,7 @@ type TreeNode struct {
 	Children []*TreeNode `json:"children"`
 }
 
-func (t *TreeItem) CompoName() string {
+func (t *TreeItem) CompoID() string {
 	return fmt.Sprintf("TreeItem:%s", t.ID)
 }
 

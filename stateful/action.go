@@ -40,8 +40,8 @@ const (
 
 func Actionable[T h.HTMLComponent](ctx context.Context, c T, children ...h.HTMLComponent) (r h.HTMLComponent) {
 	defer func() {
-		if named, ok := any(c).(Named); ok {
-			r = reloadable(named, r)
+		if ident, ok := any(c).(Identifiable); ok {
+			r = reloadable(ident, r)
 		}
 	}()
 	actionBase := PrettyJSONString(Action{
@@ -52,7 +52,7 @@ func Actionable[T h.HTMLComponent](ctx context.Context, c T, children ...h.HTMLC
 		Method:    "",
 		Request:   json.RawMessage("{}"),
 	})
-	queryTags, err := GetQueryTags(c)
+	queryTags, err := ParseQueryTags(c)
 	if err != nil {
 		panic(err)
 	}
@@ -65,7 +65,7 @@ func Actionable[T h.HTMLComponent](ctx context.Context, c T, children ...h.HTMLC
 		queryEncodersJs = strings.Join(queryEncoders, ",\n") + ",\n"
 	}
 
-	named, ok := any(c).(Named)
+	ident, ok := any(c).(Identifiable)
 	if ok {
 		children = append([]h.HTMLComponent{
 			// borrow to get the document
@@ -79,7 +79,7 @@ func Actionable[T h.HTMLComponent](ctx context.Context, c T, children ...h.HTMLC
 	}
 }`,
 				LocalsKeyQueryTags,
-				LocalsKeySetCookies, NamedCookieKey(named),
+				LocalsKeySetCookies, IdentifiableCookieKey(ident),
 			)),
 		}, children...)
 	}
@@ -95,7 +95,7 @@ func Actionable[T h.HTMLComponent](ctx context.Context, c T, children ...h.HTMLC
 		let tags = %s || [];
 		tags.forEach(tag => {
 			if (tag.method) {
-				tag.encoder = this["__queryEncoder_" + tag.method + "__"] || tag.method;
+				tag.encoder = this["__queryEncoder_" + tag.method + "__"];
 			}
 		});
 		return tags;
@@ -108,7 +108,7 @@ func Actionable[T h.HTMLComponent](ctx context.Context, c T, children ...h.HTMLC
 		return vars.__encodeObjectToQuery(v.compo, this.%s());
 	},
 }`,
-			queryEncodersJs, // TODO: 最好是放到一个全局的位置
+			queryEncodersJs,
 			LocalsKeyNewAction, actionBase,
 			LocalsKeyQueryTags, PrettyJSONString(queryTags),
 			LocalsKeySetCookies,
@@ -172,17 +172,6 @@ func postAction(_ context.Context, c any, method any, request any, o *postAction
 	fix := ""
 	if len(o.fixes) > 0 {
 		fix = "\n" + strings.Join(o.fixes, "\n")
-		// TODO: This needs to be optimized to remove only the smallest number of spaces first, and then add the prefixes uniformly
-		lines := strings.Split(fix, "\n")
-		for i, line := range lines {
-			line := strings.TrimSpace(line)
-			if line == "" {
-				lines[i] = line
-				continue
-			}
-			lines[i] = "\t" + line
-		}
-		fix = strings.Join(lines, "\n")
 	}
 
 	b.Run(web.Var(fmt.Sprintf(`function(b){
@@ -282,9 +271,9 @@ func eventDispatchActionHandler(evCtx *web.EventContext) (r web.EventResponse, e
 
 	switch action.Method {
 	case actionMethodReload:
-		rc, ok := v.(Named)
+		rc, ok := v.(Identifiable)
 		if !ok {
-			return r, fmt.Errorf("compo %T does not implement Named", v)
+			return r, fmt.Errorf("compo %T does not implement Identifiable", v)
 		}
 		return OnReload(rc)
 	default:

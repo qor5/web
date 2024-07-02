@@ -21,8 +21,8 @@ func IsSyncQuery(ctx context.Context) bool {
 	return ok
 }
 
-func NamedCookieKey(named Named) string {
-	hash := MurmurHash3(fmt.Sprintf("%T:%s", named, named.CompoName()))
+func IdentifiableCookieKey(v Identifiable) string {
+	hash := MurmurHash3(fmt.Sprintf("%T:%s", v, v.CompoID()))
 	return fmt.Sprintf("__sync_cookie_%s__", hash)
 }
 
@@ -33,14 +33,14 @@ type querySyncer struct {
 func (s *querySyncer) MarshalHTML(ctx context.Context) ([]byte, error) {
 	evCtx := web.MustGetEventContext(ctx)
 
-	tags, err := GetQueryTags(s.HTMLComponent)
+	tags, err := ParseQueryTags(s.HTMLComponent)
 	if err != nil {
 		return nil, err
 	}
 
-	named, ok := s.HTMLComponent.(Named)
+	ident, ok := s.HTMLComponent.(Identifiable)
 	if ok {
-		cookie, err := evCtx.R.Cookie(NamedCookieKey(named))
+		cookie, err := evCtx.R.Cookie(IdentifiableCookieKey(ident))
 		if err != nil && err != http.ErrNoCookie {
 			return nil, err
 		}

@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetQueryTags(t *testing.T) {
+func TestParseQueryTags(t *testing.T) {
 	type InvalidStruct int // Not a struct
 
 	type User struct {
@@ -191,7 +191,7 @@ func TestGetQueryTags(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tags, err := GetQueryTags(tt.input)
+			tags, err := ParseQueryTags(tt.input)
 			if tt.errMsg != "" {
 				assert.ErrorContains(t, err, tt.errMsg)
 				return
@@ -227,7 +227,7 @@ func TestQueryUnmarshal(t *testing.T) {
 
 	user := User{}
 
-	tags, err := GetQueryTags(user)
+	tags, err := ParseQueryTags(user)
 	assert.NoError(t, err)
 
 	err = tags.Decode(q, &user)

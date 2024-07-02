@@ -10,7 +10,7 @@ import (
 )
 
 type portalize struct {
-	c        Named
+	c        Identifiable
 	children []h.HTMLComponent
 }
 
@@ -22,11 +22,11 @@ func WithPortalName(ctx context.Context, name string) context.Context {
 
 type skipPortalNameCtxKey struct{}
 
-func SkipPortalize(c Named) h.HTMLComponent {
+func SkipPortalize(c Identifiable) h.HTMLComponent {
 	return h.ComponentFunc(func(ctx context.Context) (r []byte, err error) {
 		portalName, _ := ctx.Value(portalNameCtxKey{}).(string)
 		if portalName == "" {
-			portalName = c.CompoName()
+			portalName = c.CompoID()
 		}
 		ctx = context.WithValue(ctx, skipPortalNameCtxKey{}, portalName)
 		return c.MarshalHTML(ctx)
@@ -36,7 +36,7 @@ func SkipPortalize(c Named) h.HTMLComponent {
 func (p *portalize) MarshalHTML(ctx context.Context) ([]byte, error) {
 	portalName, _ := ctx.Value(portalNameCtxKey{}).(string)
 	if portalName == "" {
-		portalName = p.c.CompoName()
+		portalName = p.c.CompoID()
 	}
 	skipName, _ := ctx.Value(skipPortalNameCtxKey{}).(string)
 	if skipName == portalName {
@@ -45,7 +45,7 @@ func (p *portalize) MarshalHTML(ctx context.Context) ([]byte, error) {
 	return web.Portal(p.children...).Name(portalName).MarshalHTML(ctx)
 }
 
-func reloadable[T Named](c T, children ...h.HTMLComponent) h.HTMLComponent {
+func reloadable[T Identifiable](c T, children ...h.HTMLComponent) h.HTMLComponent {
 	return &portalize{
 		c:        c,
 		children: children,
@@ -56,7 +56,7 @@ const (
 	actionMethodReload = "OnReload"
 )
 
-func ReloadAction[T Named](ctx context.Context, source T, f func(target T), opts ...PostActionOption) *web.VueEventTagBuilder {
+func ReloadAction[T Identifiable](ctx context.Context, source T, f func(target T), opts ...PostActionOption) *web.VueEventTagBuilder {
 	if f == nil {
 		return PostAction(ctx, source, actionMethodReload, struct{}{}, opts...)
 	}
@@ -82,16 +82,16 @@ func ReloadAction[T Named](ctx context.Context, source T, f func(target T), opts
 	return postAction(ctx, target, actionMethodReload, struct{}{}, o)
 }
 
-func AppendReloadToResponse(r *web.EventResponse, c Named) {
+func AppendReloadToResponse(r *web.EventResponse, c Identifiable) {
 	r.UpdatePortals = append(r.UpdatePortals, &web.PortalUpdate{
-		Name: c.CompoName(),
+		Name: c.CompoID(),
 		Body: SkipPortalize(c),
 	})
 }
 
-func OnReload(c Named) (r web.EventResponse, err error) {
+func OnReload(c Identifiable) (r web.EventResponse, err error) {
 	r.UpdatePortals = append(r.UpdatePortals, &web.PortalUpdate{
-		Name: c.CompoName(),
+		Name: c.CompoID(),
 		Body: SkipPortalize(c),
 	})
 	return
