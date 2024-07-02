@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/iancoleman/strcase"
 	h "github.com/theplant/htmlgo"
 )
 
@@ -138,6 +139,14 @@ func (b *VueEventTagBuilder) StringQuery(v interface{}) (r *VueEventTagBuilder) 
 	return b
 }
 
+func (b *VueEventTagBuilder) StringifyOptions(v interface{}) (r *VueEventTagBuilder) {
+	b.calls = append(b.calls, jsCall{
+		method: "stringifyOptions",
+		args:   []interface{}{v},
+	})
+	return b
+}
+
 func (b *VueEventTagBuilder) PushState(v interface{}) (r *VueEventTagBuilder) {
 	b.calls = append(b.calls, jsCall{
 		method: "pushState",
@@ -182,6 +191,14 @@ func (b *VueEventTagBuilder) FieldValue(name interface{}, v interface{}) (r *Vue
 	b.calls = append(b.calls, jsCall{
 		method: "fieldValue",
 		args:   []interface{}{name, v},
+	})
+	return b
+}
+
+func (b *VueEventTagBuilder) Run(v interface{}) (r *VueEventTagBuilder) {
+	b.calls = append(b.calls, jsCall{
+		method: "run",
+		args:   []interface{}{v},
 	})
 	return b
 }
@@ -304,4 +321,39 @@ func GlobalEvents() *h.HTMLTagBuilder {
 
 func RunScript(s string) *h.HTMLTagBuilder {
 	return h.Tag("go-plaid-run-script").Attr(":script", s)
+}
+
+func Emit(event string, payloads ...any) string {
+	if len(payloads) > 1 {
+		panic("only one payload can be emitted")
+	}
+	var payload any
+	if len(payloads) == 1 {
+		payload = payloads[0]
+	}
+	return fmt.Sprintf(`plaid().vars(vars).emit(%q, %s)`, strcase.ToCamel(event), h.JSONString(payload))
+}
+
+func (r *EventResponse) Emit(event string, payloads ...any) {
+	AppendRunScripts(r, Emit(event, payloads...))
+}
+
+func Listen(vs ...string) *h.HTMLTagBuilder {
+	if len(vs)%2 != 0 {
+		panic("Listen arguments must have an even number")
+	}
+
+	t := h.Tag("go-plaid-listener")
+	for i := 0; i < len(vs); i = i + 2 {
+		setOnAttr(t, vs[i], vs[i+1])
+	}
+	return t
+}
+
+func setOnAttr(tag *h.HTMLTagBuilder, event string, fn string) {
+	fn = strings.TrimSpace(fn)
+	if !strings.HasPrefix(fn, "function") && !strings.HasPrefix(fn, "(") {
+		fn = fmt.Sprintf("(payload) => { %s }", fn)
+	}
+	tag.Attr("@"+strcase.ToKebab(strcase.ToCamel(event)), fn)
 }

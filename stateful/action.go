@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"net/url"
 	"reflect"
+	"strings"
 	"sync"
 
 	"github.com/qor5/web/v3"
+	"github.com/samber/lo"
 	h "github.com/theplant/htmlgo"
 )
 
@@ -21,21 +23,136 @@ func Install(b *web.Builder) {
 }
 
 type Action struct {
-	ActionableType string          `json:"actionable_type"`
-	Actionable     json.RawMessage `json:"actionable"`
-	Injector       string          `json:"injector"`
-	SyncQuery      bool            `json:"sync_query"`
-	Method         string          `json:"method"`
-	Request        json.RawMessage `json:"request"`
+	CompoType string          `json:"compo_type"`
+	Compo     json.RawMessage `json:"compo"`
+	Injector  string          `json:"injector"`
+	SyncQuery bool            `json:"sync_query"`
+	Method    string          `json:"method"`
+	Request   json.RawMessage `json:"request"`
 }
 
-const eventDispatchAction = "__dispatch_actionable_action__"
+const (
+	LocalsKeyNewAction   = "newAction"
+	LocalsKeyQueryTags   = "queryTags"
+	LocalsKeySetCookies  = "setCookies"
+	LocalsKeyEncodeQuery = "encodeQuery"
+)
+
+func Actionable[T h.HTMLComponent](ctx context.Context, c T, children ...h.HTMLComponent) (r h.HTMLComponent) {
+	defer func() {
+		if ident, ok := any(c).(Identifiable); ok {
+			r = reloadable(ident, r)
+		}
+	}()
+	actionBase := PrettyJSONString(Action{
+		CompoType: fmt.Sprintf("%T", c),
+		Compo:     json.RawMessage(PrettyJSONString(c)),
+		Injector:  InjectorNameFromContext(ctx),
+		SyncQuery: IsSyncQuery(ctx),
+		Method:    "",
+		Request:   json.RawMessage("{}"),
+	})
+	queryTags, err := ParseQueryTags(c)
+	if err != nil {
+		panic(err)
+	}
+
+	queryEncoders := lo.Map(QueryTagMethods, func(method *QueryTagMethod, _ int) string {
+		return fmt.Sprintf(`__queryEncoder_%s__: %s`, method.Name, method.Encoder)
+	})
+	queryEncodersJs := ""
+	if len(queryEncoders) > 0 {
+		queryEncodersJs = strings.Join(queryEncoders, ",\n") + ",\n"
+	}
+
+	ident, ok := any(c).(Identifiable)
+	if ok {
+		children = append([]h.HTMLComponent{
+			// borrow to get the document
+			h.Div().Attr("v-run", fmt.Sprintf(`(el) => {
+	const cookieTags = locals.%s().filter(tag => tag.cookie)
+	locals.%s = function(v) {
+		if (!v.sync_query || !el.ownerDocument) {
+			return;
+		}
+		el.ownerDocument.cookie = "%s=" + vars.__encodeObjectToQuery(v.compo, cookieTags);
+	}
+}`,
+				LocalsKeyQueryTags,
+				LocalsKeySetCookies, IdentifiableCookieKey(ident),
+			)),
+		}, children...)
+	}
+
+	return web.Scope(children...).
+		VSlot(fmt.Sprintf("{ locals }")).
+		Init(fmt.Sprintf(`{
+	%s
+	%s: function() {
+		return %s;
+	},
+	%s: function(v) {
+		let tags = %s || [];
+		tags.forEach(tag => {
+			if (tag.method) {
+				tag.encoder = this["__queryEncoder_" + tag.method + "__"];
+			}
+		});
+		return tags;
+	},
+	%s: function(v) {}, // a placeholder
+	%s: function(v) {
+		if (!v.sync_query) {
+			return "";
+		}
+		return vars.__encodeObjectToQuery(v.compo, this.%s());
+	},
+}`,
+			queryEncodersJs,
+			LocalsKeyNewAction, actionBase,
+			LocalsKeyQueryTags, PrettyJSONString(queryTags),
+			LocalsKeySetCookies,
+			LocalsKeyEncodeQuery, LocalsKeyQueryTags))
+}
+
+const eventDispatchAction = "__dispatch_stateful_action__"
 
 const (
 	fieldKeyAction = "__action__"
 )
 
-func PostAction(ctx context.Context, c any, method any, request any) *web.VueEventTagBuilder {
+type postActionOptions struct {
+	useProvidedCompo bool
+	fixes            []string
+}
+
+type PostActionOption func(*postActionOptions)
+
+func WithUseProvidedCompo() PostActionOption {
+	return func(o *postActionOptions) {
+		o.useProvidedCompo = true
+	}
+}
+
+func WithAppendFix(v string) PostActionOption {
+	return func(o *postActionOptions) {
+		o.fixes = append(o.fixes, v)
+	}
+}
+
+func PostAction(ctx context.Context, c any, method any, request any, opts ...PostActionOption) *web.VueEventTagBuilder {
+	return postAction(ctx, c, method, request, newPostActionOptions(opts...))
+}
+
+func newPostActionOptions(opts ...PostActionOption) *postActionOptions {
+	o := new(postActionOptions)
+	for _, opt := range opts {
+		opt(o)
+	}
+	return o
+}
+
+func postAction(_ context.Context, c any, method any, request any, o *postActionOptions) *web.VueEventTagBuilder {
 	var methodName string
 	switch m := method.(type) {
 	case string:
@@ -48,27 +165,34 @@ func PostAction(ctx context.Context, c any, method any, request any) *web.VueEve
 		EventFunc(eventDispatchAction).
 		Queries(url.Values{}) // force clear queries first
 
-	action := Action{
-		ActionableType: fmt.Sprintf("%T", c),
-		Actionable:     json.RawMessage(h.JSONString(c)),
-		Injector:       injectorNameFromContext(ctx),
-		Method:         methodName,
-		Request:        json.RawMessage(h.JSONString(request)),
+	if o.useProvidedCompo {
+		o.fixes = append([]string{fmt.Sprintf("v.compo = %s;", PrettyJSONString(c))}, o.fixes...)
 	}
 
-	if IsSyncQuery(ctx) {
-		action.SyncQuery = true
-
-		queries, err := queryEncoder.Encode(c)
-		if err != nil {
-			panic(err)
-		}
-		b.Queries(queries).MergeQuery(true).PushState(true)
+	fix := ""
+	if len(o.fixes) > 0 {
+		fix = "\n" + strings.Join(o.fixes, "\n")
 	}
 
-	return b.FieldValue(fieldKeyAction, web.Var(
-		fmt.Sprintf(`JSON.stringify(%s, null, "\t")`, PrettyJSONString(action)),
-	))
+	b.Run(web.Var(fmt.Sprintf(`function(b){
+	let v = locals.%s(); // %T
+	v.method = %q;
+	v.request = %s;%s
+
+	b.__action__ = v;
+	b.__stringQuery__ = locals.%s(v);
+	locals.%s(v);
+}`,
+		LocalsKeyNewAction, c,
+		methodName,
+		PrettyJSONString(request),
+		fix,
+		LocalsKeyEncodeQuery,
+		LocalsKeySetCookies,
+	)))
+	b.StringQuery(web.Var(`(b) => b.__stringQuery__`))
+	b.PushState(web.Var(`(b) => b.__action__.sync_query`))
+	return b.FieldValue(fieldKeyAction, web.Var(`(b) => JSON.stringify(b.__action__, null, "\t")`))
 }
 
 var (
@@ -83,18 +207,18 @@ func eventDispatchActionHandler(evCtx *web.EventContext) (r web.EventResponse, e
 		return r, fmt.Errorf("failed to unmarshal action: %w", err)
 	}
 
-	v, err := newActionable(action.ActionableType)
+	v, err := newActionableCompo(action.CompoType)
 	if err != nil {
 		return r, err
 	}
 
-	err = json.Unmarshal(action.Actionable, v)
+	err = json.Unmarshal(action.Compo, v)
 	if err != nil {
 		return r, err
 	}
 
 	if action.Injector != "" {
-		evCtx.R = evCtx.R.WithContext(withInjectorName(evCtx.R.Context(), action.Injector))
+		evCtx.R = evCtx.R.WithContext(WithInjectorName(evCtx.R.Context(), action.Injector))
 		if err := Apply(evCtx.R.Context(), v); err != nil {
 			return r, err
 		}
@@ -147,9 +271,9 @@ func eventDispatchActionHandler(evCtx *web.EventContext) (r web.EventResponse, e
 
 	switch action.Method {
 	case actionMethodReload:
-		rc, ok := v.(Named)
+		rc, ok := v.(Identifiable)
 		if !ok {
-			return r, fmt.Errorf("actionable %T does not implement Reloadable", v)
+			return r, fmt.Errorf("compo %T does not implement Identifiable", v)
 		}
 		return OnReload(rc)
 	default:
@@ -157,23 +281,23 @@ func eventDispatchActionHandler(evCtx *web.EventContext) (r web.EventResponse, e
 	}
 }
 
-var actionableTypeRegistry = new(sync.Map)
+var actionableCompoTypeRegistry = new(sync.Map)
 
-func RegisterActionableType(vs ...any) {
+func RegisterActionableCompoType(vs ...any) {
 	for _, v := range vs {
-		registerActionableType(v)
+		registerActionableCompoType(v)
 	}
 }
 
-func registerActionableType(v any) {
-	_, loaded := actionableTypeRegistry.LoadOrStore(fmt.Sprintf("%T", v), reflect.TypeOf(v))
+func registerActionableCompoType(v any) {
+	_, loaded := actionableCompoTypeRegistry.LoadOrStore(fmt.Sprintf("%T", v), reflect.TypeOf(v))
 	if loaded {
-		panic(fmt.Sprintf("actionable type %T already registered", v))
+		panic(fmt.Sprintf("actionable compo type %T already registered", v))
 	}
 }
 
-func newActionable(typeName string) (any, error) {
-	if t, ok := actionableTypeRegistry.Load(typeName); ok {
+func newActionableCompo(typeName string) (any, error) {
+	if t, ok := actionableCompoTypeRegistry.Load(typeName); ok {
 		return reflect.New(t.(reflect.Type).Elem()).Interface(), nil
 	}
 	return nil, fmt.Errorf("type not found: %s", typeName)

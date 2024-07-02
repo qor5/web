@@ -1,3 +1,4 @@
 .idea
 .vscode
 _coverage.out
+__debug*

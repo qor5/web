@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	. "github.com/theplant/htmlgo"
+	h "github.com/theplant/htmlgo"
 	"github.com/theplant/inject"
 )
 
@@ -105,11 +105,11 @@ func MustInjector(name string) *inject.Injector {
 
 type injectorNameCtxKey struct{}
 
-func withInjectorName(ctx context.Context, name string) context.Context {
+func WithInjectorName(ctx context.Context, name string) context.Context {
 	return context.WithValue(ctx, injectorNameCtxKey{}, name)
 }
 
-func injectorNameFromContext(ctx context.Context) string {
+func InjectorNameFromContext(ctx context.Context) string {
 	name, _ := ctx.Value(injectorNameCtxKey{}).(string)
 	return name
 }
@@ -129,7 +129,7 @@ func MustProvide(name string, fs ...any) {
 	}
 }
 
-func Inject(injectorName string, c HTMLComponent) (HTMLComponent, error) {
+func Inject(injectorName string, c h.HTMLComponent) (h.HTMLComponent, error) {
 	inj, err := defaultDependencyCenter.Injector(injectorName)
 	if err != nil {
 		return nil, err
@@ -137,13 +137,13 @@ func Inject(injectorName string, c HTMLComponent) (HTMLComponent, error) {
 	if err := inj.Apply(Unwrap(c)); err != nil {
 		return nil, err
 	}
-	return ComponentFunc(func(ctx context.Context) ([]byte, error) {
-		ctx = withInjectorName(ctx, injectorName)
+	return h.ComponentFunc(func(ctx context.Context) ([]byte, error) {
+		ctx = WithInjectorName(ctx, injectorName)
 		return c.MarshalHTML(ctx)
 	}), nil
 }
 
-func MustInject(injectorName string, c HTMLComponent) HTMLComponent {
+func MustInject(injectorName string, c h.HTMLComponent) h.HTMLComponent {
 	c, err := Inject(injectorName, c)
 	if err != nil {
 		panic(err)
@@ -152,7 +152,7 @@ func MustInject(injectorName string, c HTMLComponent) HTMLComponent {
 }
 
 func Apply(ctx context.Context, target any) error {
-	name := injectorNameFromContext(ctx)
+	name := InjectorNameFromContext(ctx)
 	if name == "" {
 		return nil
 	}
@@ -160,7 +160,7 @@ func Apply(ctx context.Context, target any) error {
 	if err != nil {
 		return err
 	}
-	if c, ok := target.(HTMLComponent); ok {
+	if c, ok := target.(h.HTMLComponent); ok {
 		return inj.Apply(Unwrap(c))
 	}
 	return inj.Apply(target)

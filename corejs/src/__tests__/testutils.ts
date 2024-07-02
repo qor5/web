@@ -1,4 +1,4 @@
-import { expect, vi } from 'vitest'
+import { vi } from 'vitest'
 import { mount, VueWrapper } from '@vue/test-utils'
 import { plaidPlugin, Root } from '../app'
 import { type Ref } from 'vue'

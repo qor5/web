@@ -2,9 +2,9 @@ package stateful
 
 import h "github.com/theplant/htmlgo"
 
-type Named interface {
+type Identifiable interface {
 	h.HTMLComponent
-	CompoName() string
+	CompoID() string
 }
 
 type Unwrapable interface {

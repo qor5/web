@@ -59,7 +59,6 @@ describe('app', () => {
   })
 
   it('init vars with object', async () => {
-    const form = ref(new FormData())
     const wrapper = mountTemplate(
       `
         <div>
@@ -99,7 +98,7 @@ describe('app', () => {
 
   it('plaid pushState dead loop', async () => {
     const form = ref(new FormData())
-    mockFetchWithReturnTemplate(form, (url: any, opts: any) => {
+    mockFetchWithReturnTemplate(form, (url: any) => {
       if (url.includes('__reload__')) {
         return { body: '<h6></h6>' }
       } else {
@@ -138,7 +137,7 @@ describe('app', () => {
     const wrapper = mountTemplate(template)
     await nextTick()
     const form = ref(new FormData())
-    mockFetchWithReturnTemplate(form, (url: any, opts: any) => {
+    mockFetchWithReturnTemplate(form, (url: any) => {
       if (url.includes('/test')) {
         return { body: '<h3>result</h3>' }
       }
@@ -167,7 +166,7 @@ describe('app', () => {
     const wrapper = mountTemplate(template)
     await nextTick()
     const form = ref(new FormData())
-    mockFetchWithReturnTemplate(form, (url: any, opts: any) => {
+    mockFetchWithReturnTemplate(form, (url: any) => {
       if (url.includes('/test')) {
         return {
           runScript:

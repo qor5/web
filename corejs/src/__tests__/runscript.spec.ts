@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { mountTemplate } from './testutils'
-import { defineComponent, nextTick } from 'vue'
-import { flushPromises } from '@vue/test-utils'
-import GoPlaidScope from '../go-plaid-scope.vue'
-import GoPlaidPortal from '../go-plaid-portal.vue'
+import { nextTick } from 'vue'
 
 describe('run script', () => {
   it('set vars', async () => {
