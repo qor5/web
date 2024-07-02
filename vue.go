@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/iancoleman/strcase"
 	h "github.com/theplant/htmlgo"
 )
 
@@ -330,17 +331,29 @@ func Emit(event string, payloads ...any) string {
 	if len(payloads) == 1 {
 		payload = payloads[0]
 	}
-	return fmt.Sprintf(`plaid().vars(vars).emit(%q, %s)`, event, h.JSONString(payload))
+	return fmt.Sprintf(`plaid().vars(vars).emit(%q, %s)`, strcase.ToCamel(event), h.JSONString(payload))
 }
 
 func (r *EventResponse) Emit(event string, payloads ...any) {
 	AppendRunScripts(r, Emit(event, payloads...))
 }
 
-func Listen(event string, on string) *h.HTMLTagBuilder {
-	on = strings.TrimSpace(on)
-	if !strings.HasPrefix(on, "function") && !strings.HasPrefix(on, "(") {
-		on = fmt.Sprintf("({event, payload}) => { %s }", on)
+func Listen(vs ...string) *h.HTMLTagBuilder {
+	if len(vs)%2 != 0 {
+		panic("Listen arguments must have an even number")
 	}
-	return h.Tag("go-plaid-listener").Attr("event", event).Attr("@on", on)
+
+	t := h.Tag("go-plaid-listener")
+	for i := 0; i < len(vs); i = i + 2 {
+		setOnAttr(t, vs[i], vs[i+1])
+	}
+	return t
+}
+
+func setOnAttr(tag *h.HTMLTagBuilder, event string, fn string) {
+	fn = strings.TrimSpace(fn)
+	if !strings.HasPrefix(fn, "function") && !strings.HasPrefix(fn, "(") {
+		fn = fmt.Sprintf("(payload) => { %s }", fn)
+	}
+	tag.Attr("@"+strcase.ToKebab(event), fn)
 }

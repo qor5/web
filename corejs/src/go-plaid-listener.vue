@@ -3,29 +3,17 @@
 </template>
 
 <script setup lang="ts">
-import { inject } from 'vue'
-
-const props = defineProps({
-  event: {
-    type: String,
-    required: true
-  },
-  name: {
-    type: String,
-    required: false
-  }
+import { inject, useAttrs } from 'vue'
+defineOptions({
+  inheritAttrs: false
 })
-
-const emit = defineEmits<{
-  (e: 'on', payload: any): void
-}>()
-
 const vars: any = inject('vars')
-vars.__emitter.on(props.event, function (payload: any) {
-  try {
-    emit('on', { event: props.event, payload })
-  } catch (error) {
-    console.error('Error executing on script:', error)
+const emitter = vars.__emitter
+const attrs = useAttrs()
+
+Object.keys(attrs).forEach((key) => {
+  if (key.startsWith('on')) {
+    emitter.on(key.slice(2), attrs[key])
   }
 })
 </script>
