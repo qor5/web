@@ -355,5 +355,5 @@ func setOnAttr(tag *h.HTMLTagBuilder, event string, fn string) {
 	if !strings.HasPrefix(fn, "function") && !strings.HasPrefix(fn, "(") {
 		fn = fmt.Sprintf("(payload) => { %s }", fn)
 	}
-	tag.Attr("@"+strcase.ToKebab(event), fn)
+	tag.Attr("@"+strcase.ToKebab(strcase.ToCamel(event)), fn)
 }

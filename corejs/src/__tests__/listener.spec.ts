@@ -10,11 +10,11 @@ describe('listener', () => {
             :form-init='{value: "", name:""}'
             v-slot='{ form: xform }' 
         >
-          <go-plaid-listener @test1='(xpayload) => {
+          <go-plaid-listener @presets-models-updated-examples-presets-credit-card='(xpayload) => {
             xform.value = xpayload.a;
             xform.name = "test1";
           }' 
-            @test-it2="(e) => {
+            @can-not-to-use-uppercase-id="(e) => {
                 xform.test2 = e.b
             }"
           />
@@ -23,8 +23,8 @@ describe('listener', () => {
           <h3>{{xform.test2}}</h3>
         </go-plaid-scope>
         
-        <button @click='plaid().vars(vars).emit("Test1", {"a": "19"})'></button>
-        <span @click='plaid().vars(vars).emit("TestIt2", {"b": "18"})'></span>
+        <button @click='plaid().vars(vars).emit("PresetsModelsUpdatedExamplesPresetsCreditCard", {"a": "19"})'></button>
+        <span @click='plaid().vars(vars).emit("CanNotToUseUppercaseId", {"b": "18"})'></span>
       </div>
       `)
 
