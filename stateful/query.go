@@ -224,10 +224,10 @@ func (tags QueryTags) Decode(rawQuery string, v any) (rerr error) {
 		}
 
 		qvs, ok := qs[tag.Name]
-		if !ok {
+		if !ok || len(qvs) == 0 {
 			continue
 		}
-		qv := qvs[0]
+		qv := qvs[len(qvs)-1]
 		// TODO: should set zero value if empty?
 		if qv == "" {
 			continue
@@ -366,6 +366,50 @@ func collectJsonTags(rt reflect.Type, tags map[string]string) error {
 		tags[name] = structField.Name
 	}
 	return nil
+}
+
+// IsQuerySubset checks if all key-value pairs in sub are contained within sup, considering comma-separated.
+func IsQuerySubset(sup, sub url.Values) bool {
+	for key, subValues := range sub {
+		if len(subValues) == 0 {
+			continue
+		}
+		supValues, found := sup[key]
+		if !found || len(supValues) == 0 {
+			return false
+		}
+
+		supValues = strings.Split(supValues[len(supValues)-1], ",")
+		subValues = strings.Split(subValues[len(subValues)-1], ",")
+
+		supCount := make(map[string]int)
+		for _, value := range supValues {
+			supCount[value]++
+		}
+
+		for _, value := range subValues {
+			if supCount[value] == 0 {
+				return false
+			}
+			supCount[value]--
+		}
+	}
+	return true
+}
+
+// IsRawQuerySubset checks if all key-value pairs in the sub query string are contained within the sup query string.
+func IsRawQuerySubset(sup, sub string) bool {
+	supValues, err := url.ParseQuery(sup)
+	if err != nil {
+		return false
+	}
+
+	subValues, err := url.ParseQuery(sub)
+	if err != nil {
+		return false
+	}
+
+	return IsQuerySubset(supValues, subValues)
 }
 
 type QueryTagMethod struct {

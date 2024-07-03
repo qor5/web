@@ -263,3 +263,30 @@ func TestQueryUnmarshal(t *testing.T) {
 		Distance: 8888,
 	}, user.CompanyAddress)
 }
+
+func TestIsRawQuerySubset(t *testing.T) {
+	sup := "id=1&name=John&age=30&emails=a%2C,b,c"
+	sub := "id=1&name=John&age=30"
+	result := IsRawQuerySubset(sup, sub)
+	assert.True(t, result)
+
+	sub = "id=1&name=John&age=30&emails=a%2C,b"
+	result = IsRawQuerySubset(sup, sub)
+	assert.True(t, result)
+
+	sub = "id=1&name=John&age=30&emails=a%2C,b,c"
+	result = IsRawQuerySubset(sup, sub)
+	assert.True(t, result)
+
+	sub = "id=1&name=John&age=30&emails=a%2C&emails=b&emails=c" // emails: only 'c' is valid
+	result = IsRawQuerySubset(sup, sub)
+	assert.True(t, result)
+
+	sub = "id=1&name=John&age=30&emails=a%2C&emails=b&emails=d" // emails: only 'd' is valid
+	result = IsRawQuerySubset(sup, sub)
+	assert.False(t, result)
+
+	sub = "id=1&name=John&age=30&emails=a%2C,b,c&addresses=Shanghai"
+	result = IsRawQuerySubset(sup, sub)
+	assert.False(t, result)
+}

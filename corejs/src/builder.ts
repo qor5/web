@@ -1,6 +1,7 @@
 import type { EventFuncID, EventResponse, Location, Queries, QueryValue } from './types'
-import { buildPushState, objectToFormData } from '@/utils'
+import { buildPushState, objectToFormData, encodeObjectToQuery, isRawQuerySubset } from '@/utils'
 import querystring from 'query-string'
+import jsonpatch from 'fast-json-patch'
 
 declare let window: any
 
@@ -218,12 +219,6 @@ export class Builder {
     }
   }
 
-  public emit(name: string, ...args: any[]) {
-    if (this._vars) {
-      this._vars.__emitter.emit(name, ...args)
-    }
-  }
-
   public go(): Promise<void | EventResponse> {
     if (this._eventFuncID.id == '__reload__') {
       this._buildPushStateResult = null
@@ -349,6 +344,27 @@ export class Builder {
       },
       this._url || defaultURL
     )
+  }
+
+  public emit(name: string, ...args: any[]) {
+    if (this._vars) {
+      this._vars.__emitter.emit(name, ...args)
+    }
+  }
+
+  public applyJsonPatch(obj: any, patch: any): any {
+    return jsonpatch.applyPatch(obj, patch)
+  }
+
+  public encodeObjectToQuery(
+    obj: any,
+    queryTags: { name: string; json_name: string; omitempty: boolean; encoder?: Function }[]
+  ) {
+    return encodeObjectToQuery(obj, queryTags)
+  }
+
+  public isRawQuerySubset(sup: string, sub: string, options?: querystring.ParseOptions): boolean {
+    return isRawQuerySubset(sup, sub, options)
   }
 }
 

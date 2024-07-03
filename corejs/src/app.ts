@@ -14,11 +14,10 @@ import GoPlaidScope from '@/go-plaid-scope.vue'
 import GoPlaidPortal from '@/go-plaid-portal.vue'
 import GoPlaidRunScript from '@/go-plaid-run-script.vue'
 import GoPlaidListener from '@/go-plaid-listener.vue'
-import { componentByTemplate, encodeObjectToQuery } from '@/utils'
+import { componentByTemplate } from '@/utils'
 import { Builder, plaid } from '@/builder'
 import { keepScroll } from '@/keepScroll'
 import { assignOnMounted, runOnMounted } from '@/assign'
-import jsonpatch from 'fast-json-patch'
 import { TinyEmitter } from 'tiny-emitter'
 
 export const Root = defineComponent({
@@ -40,9 +39,7 @@ export const Root = defineComponent({
     provide('updateRootTemplate', updateRootTemplate)
 
     const vars = reactive({
-      __emitter: new TinyEmitter(),
-      __applyJsonPatch: jsonpatch.applyPatch,
-      __encodeObjectToQuery: encodeObjectToQuery
+      __emitter: new TinyEmitter()
     })
     const _plaid = (): Builder => {
       return plaid().updateRootTemplate(updateRootTemplate).vars(vars)

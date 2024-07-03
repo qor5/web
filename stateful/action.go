@@ -75,7 +75,7 @@ func Actionable[T h.HTMLComponent](ctx context.Context, c T, children ...h.HTMLC
 		if (!v.sync_query || !el.ownerDocument) {
 			return;
 		}
-		el.ownerDocument.cookie = "%s=" + vars.__encodeObjectToQuery(v.compo, cookieTags);
+		el.ownerDocument.cookie = "%s=" + plaid().encodeObjectToQuery(v.compo, cookieTags);
 	}
 }`,
 				LocalsKeyQueryTags,
@@ -105,7 +105,7 @@ func Actionable[T h.HTMLComponent](ctx context.Context, c T, children ...h.HTMLC
 		if (!v.sync_query) {
 			return "";
 		}
-		return vars.__encodeObjectToQuery(v.compo, this.%s());
+		return plaid().encodeObjectToQuery(v.compo, this.%s());
 	},
 }`,
 			queryEncodersJs,

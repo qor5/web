@@ -1,4 +1,4 @@
-import { objectToFormData, setFormValue, encodeObjectToQuery } from '../utils'
+import { objectToFormData, setFormValue, encodeObjectToQuery, isRawQuerySubset } from '../utils'
 import { describe, it, expect } from 'vitest'
 
 describe('utils', () => {
@@ -131,5 +131,26 @@ describe('utils', () => {
     expect(queryString).toEqual(
       'xpage=0&chi%2Cld=aa_100&xselected_ids=x%2C,y,z&display_columns=&order_bys=Name%7C_ASC,Age_DES%2CC&f_approved.gte=0001-01-01+00%3A00&f_name.ilike=felix'
     )
+  })
+
+  it('isRawQuerySubset', () => {
+    const sup = 'id=1&name=John&age=30&emails=a%2C,b,c'
+    let sub = 'id=1&name=John&age=30'
+    expect(isRawQuerySubset(sup, sub)).toBe(true)
+
+    sub = 'id=1&name=John&age=30&emails=a%2C,b'
+    expect(isRawQuerySubset(sup, sub)).toBe(true)
+
+    sub = 'id=1&name=John&age=30&emails=a%2C,b,c'
+    expect(isRawQuerySubset(sup, sub)).toBe(true)
+
+    sub = 'id=1&name=John&age=30&emails=a%2C&emails=b&emails=c' // emails: only 'c' is valid
+    expect(isRawQuerySubset(sup, sub)).toBe(true)
+
+    sub = 'id=1&name=John&age=30&emails=a%2C&emails=b&emails=d' // emails: only 'd' is valid
+    expect(isRawQuerySubset(sup, sub)).toBe(false)
+
+    sub = 'id=1&name=John&age=30&emails=a%2C,b,c&addresses=Shanghai'
+    expect(isRawQuerySubset(sup, sub)).toBe(false)
   })
 })

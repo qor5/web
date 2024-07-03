@@ -77,7 +77,7 @@ func ReloadAction[T Identifiable](ctx context.Context, source T, f func(target T
 	}
 
 	o.fixes = append([]string{
-		fmt.Sprintf(`vars.__applyJsonPatch(v.compo, %s);`, h.JSONString(patch)),
+		fmt.Sprintf(`b.applyJsonPatch(v.compo, %s);`, h.JSONString(patch)),
 	}, o.fixes...)
 	return postAction(ctx, target, actionMethodReload, struct{}{}, o)
 }
