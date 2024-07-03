@@ -85,7 +85,7 @@ func TestTodoMVCExamplePB(t *testing.T) {
 					).BuildEventFuncRequest()
 			},
 			EventResponseMatch: func(t *testing.T, er *multipartestutils.TestEventResponse) {
-				require.Equal(t, `plaid().vars(vars).emit("NotifyTodosChanged", null)`, er.RunScript)
+				require.Equal(t, `plaid().vars(vars).emit("NotifyTodosChanged")`, er.RunScript)
 			},
 		},
 		{
@@ -152,7 +152,7 @@ func TestTodoMVCExamplePB(t *testing.T) {
 					).BuildEventFuncRequest()
 			},
 			EventResponseMatch: func(t *testing.T, er *multipartestutils.TestEventResponse) {
-				require.Equal(t, `plaid().vars(vars).emit("NotifyTodosChanged", null)`, er.RunScript)
+				require.Equal(t, `plaid().vars(vars).emit("NotifyTodosChanged")`, er.RunScript)
 			},
 		},
 		{
@@ -220,7 +220,7 @@ func TestTodoMVCExamplePB(t *testing.T) {
 					).BuildEventFuncRequest()
 			},
 			EventResponseMatch: func(t *testing.T, er *multipartestutils.TestEventResponse) {
-				require.Equal(t, `plaid().vars(vars).emit("NotifyTodosChanged", null)`, er.RunScript)
+				require.Equal(t, `plaid().vars(vars).emit("NotifyTodosChanged")`, er.RunScript)
 			},
 		},
 		{
@@ -265,7 +265,7 @@ func TestTodoMVCExamplePB(t *testing.T) {
 					).BuildEventFuncRequest()
 			},
 			EventResponseMatch: func(t *testing.T, er *multipartestutils.TestEventResponse) {
-				require.Equal(t, `plaid().vars(vars).emit("NotifyTodosChanged", null)`, er.RunScript)
+				require.Equal(t, `plaid().vars(vars).emit("NotifyTodosChanged")`, er.RunScript)
 			},
 		},
 		{
