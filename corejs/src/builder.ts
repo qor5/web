@@ -218,9 +218,9 @@ export class Builder {
     }
   }
 
-  public emit(event: string, payload: any) {
+  public emit(name: string, ...args: any[]) {
     if (this._vars) {
-      this._vars.__emitter.emit(event, payload)
+      this._vars.__emitter.emit(name, ...args)
     }
   }
 

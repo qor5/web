@@ -3,9 +3,11 @@ package web
 import (
 	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/iancoleman/strcase"
+	"github.com/samber/lo"
 	h "github.com/theplant/htmlgo"
 )
 
@@ -323,19 +325,18 @@ func RunScript(s string) *h.HTMLTagBuilder {
 	return h.Tag("go-plaid-run-script").Attr(":script", s)
 }
 
-func Emit(event string, payloads ...any) string {
-	if len(payloads) > 1 {
-		panic("only one payload can be emitted")
+func Emit(name string, payloads ...any) string {
+	args := []string{
+		strconv.Quote(strcase.ToCamel(name)),
 	}
-	var payload any
-	if len(payloads) == 1 {
-		payload = payloads[0]
-	}
-	return fmt.Sprintf(`plaid().vars(vars).emit(%q, %s)`, strcase.ToCamel(event), h.JSONString(payload))
+	args = append(args, lo.Map(payloads, func(p any, _ int) string {
+		return h.JSONString(p)
+	})...)
+	return fmt.Sprintf(`plaid().vars(vars).emit(%s)`, strings.Join(args, ", "))
 }
 
-func (r *EventResponse) Emit(event string, payloads ...any) {
-	AppendRunScripts(r, Emit(event, payloads...))
+func (r *EventResponse) Emit(name string, payloads ...any) {
+	AppendRunScripts(r, Emit(name, payloads...))
 }
 
 func Listen(vs ...string) *h.HTMLTagBuilder {

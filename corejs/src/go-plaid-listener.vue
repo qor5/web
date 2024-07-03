@@ -11,22 +11,22 @@ const vars: any = inject('vars')
 const emitter = vars.__emitter
 const attrs = useAttrs()
 
-const handlers: Record<string, Function> = {}
+const callbacks: Record<string, Function> = {}
 
 onMounted(() => {
   Object.keys(attrs).forEach((key) => {
     if (key.startsWith('on')) {
-      const eventName = key.slice(2)
-      const handler = attrs[key] as Function
-      handlers[eventName] = handler
-      emitter.on(eventName, handler)
+      const callback = attrs[key] as Function
+      const name = key.slice(2)
+      callbacks[name] = callback
+      emitter.on(name, callback)
     }
   })
 })
 
 onUnmounted(() => {
-  Object.keys(handlers).forEach((eventName) => {
-    emitter.off(eventName, handlers[eventName])
+  Object.keys(callbacks).forEach((name) => {
+    emitter.off(name, callbacks[name])
   })
 })
 </script>
