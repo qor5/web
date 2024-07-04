@@ -14,12 +14,8 @@ import (
 	h "github.com/theplant/htmlgo"
 )
 
-func init() {
-	Install(web.Default)
-}
-
-func Install(b *web.Builder) {
-	b.RegisterEventFunc(eventDispatchAction, eventDispatchActionHandler)
+func Install(b web.EventFuncHub, dc *DependencyCenter) {
+	b.RegisterEventFunc(eventDispatchAction, newEventDispatchActionHandler(dc))
 }
 
 type Action struct {
@@ -47,7 +43,7 @@ func Actionable[T h.HTMLComponent](ctx context.Context, c T, children ...h.HTMLC
 	actionBase := PrettyJSONString(Action{
 		CompoType: fmt.Sprintf("%T", c),
 		Compo:     json.RawMessage(PrettyJSONString(c)),
-		Injector:  InjectorNameFromContext(ctx),
+		Injector:  injectorNameFromContext(ctx),
 		SyncQuery: IsSyncQuery(ctx),
 		Method:    "",
 		Request:   json.RawMessage("{}"),
@@ -201,104 +197,106 @@ var (
 	inType0  = reflect.TypeOf((*context.Context)(nil)).Elem()
 )
 
-func eventDispatchActionHandler(evCtx *web.EventContext) (r web.EventResponse, err error) {
-	var action Action
-	if err = json.Unmarshal([]byte(evCtx.R.FormValue(fieldKeyAction)), &action); err != nil {
-		return r, fmt.Errorf("failed to unmarshal action: %w", err)
-	}
+func newEventDispatchActionHandler(dc *DependencyCenter) web.EventFunc {
+	return func(evCtx *web.EventContext) (r web.EventResponse, err error) {
+		var action Action
+		if err = json.Unmarshal([]byte(evCtx.R.FormValue(fieldKeyAction)), &action); err != nil {
+			return r, fmt.Errorf("failed to unmarshal action: %w", err)
+		}
 
-	v, err := newActionableCompo(action.CompoType)
-	if err != nil {
-		return r, err
-	}
-
-	err = json.Unmarshal(action.Compo, v)
-	if err != nil {
-		return r, err
-	}
-
-	if action.Injector != "" {
-		evCtx.R = evCtx.R.WithContext(WithInjectorName(evCtx.R.Context(), action.Injector))
-		if err := Apply(evCtx.R.Context(), v); err != nil {
+		v, err := newActionableCompo(action.CompoType)
+		if err != nil {
 			return r, err
 		}
-	}
 
-	if action.SyncQuery {
-		evCtx.R = evCtx.R.WithContext(withSyncQuery(evCtx.R.Context()))
-	}
-
-	method := reflect.ValueOf(v).MethodByName(action.Method)
-	if method.IsValid() && method.Kind() == reflect.Func {
-		methodType := method.Type()
-		if methodType.NumOut() != 2 ||
-			methodType.Out(0) != outType0 ||
-			methodType.Out(1) != outType1 {
-			return r, fmt.Errorf("action method %q has incorrect signature", action.Method)
+		err = json.Unmarshal(action.Compo, v)
+		if err != nil {
+			return r, err
 		}
 
-		numIn := methodType.NumIn()
-		if numIn <= 0 || numIn > 2 {
-			return r, fmt.Errorf("action method %q has incorrect number of arguments", action.Method)
-		}
-		if methodType.In(0) != inType0 {
-			return r, fmt.Errorf("action method %q has incorrect signature", action.Method)
-		}
-		ctxValue := reflect.ValueOf(evCtx.R.Context())
-
-		params := []reflect.Value{ctxValue}
-		if numIn == 2 {
-			argType := methodType.In(1)
-			argValue := reflect.New(argType).Interface()
-			err := json.Unmarshal([]byte(action.Request), &argValue)
-			if err != nil {
-				return r, fmt.Errorf("failed to unmarshal action request to %T: %w", argValue, err)
+		if action.Injector != "" {
+			evCtx.R = evCtx.R.WithContext(withInjectorName(evCtx.R.Context(), action.Injector))
+			if err := dc.Apply(evCtx.R.Context(), v); err != nil {
+				return r, err
 			}
-			params = append(params, reflect.ValueOf(argValue).Elem())
 		}
 
-		result := method.Call(params)
-		if len(result) != 2 || !result[0].CanInterface() || !result[1].CanInterface() {
-			return r, fmt.Errorf("action method %q has incorrect return values", action.Method)
+		if action.SyncQuery {
+			evCtx.R = evCtx.R.WithContext(withSyncQuery(evCtx.R.Context()))
 		}
-		r = result[0].Interface().(web.EventResponse)
-		if result[1].IsNil() {
-			return r, nil
-		}
-		err = result[1].Interface().(error)
-		return r, fmt.Errorf("failed to call action method %q: %w", action.Method, err)
-	}
 
-	switch action.Method {
-	case actionMethodReload:
-		rc, ok := v.(Identifiable)
-		if !ok {
-			return r, fmt.Errorf("compo %T does not implement Identifiable", v)
+		method := reflect.ValueOf(v).MethodByName(action.Method)
+		if method.IsValid() && method.Kind() == reflect.Func {
+			methodType := method.Type()
+			if methodType.NumOut() != 2 ||
+				methodType.Out(0) != outType0 ||
+				methodType.Out(1) != outType1 {
+				return r, fmt.Errorf("action method %q has incorrect signature", action.Method)
+			}
+
+			numIn := methodType.NumIn()
+			if numIn <= 0 || numIn > 2 {
+				return r, fmt.Errorf("action method %q has incorrect number of arguments", action.Method)
+			}
+			if methodType.In(0) != inType0 {
+				return r, fmt.Errorf("action method %q has incorrect signature", action.Method)
+			}
+			ctxValue := reflect.ValueOf(evCtx.R.Context())
+
+			params := []reflect.Value{ctxValue}
+			if numIn == 2 {
+				argType := methodType.In(1)
+				argValue := reflect.New(argType).Interface()
+				err := json.Unmarshal([]byte(action.Request), &argValue)
+				if err != nil {
+					return r, fmt.Errorf("failed to unmarshal action request to %T: %w", argValue, err)
+				}
+				params = append(params, reflect.ValueOf(argValue).Elem())
+			}
+
+			result := method.Call(params)
+			if len(result) != 2 || !result[0].CanInterface() || !result[1].CanInterface() {
+				return r, fmt.Errorf("action method %q has incorrect return values", action.Method)
+			}
+			r = result[0].Interface().(web.EventResponse)
+			if result[1].IsNil() {
+				return r, nil
+			}
+			err = result[1].Interface().(error)
+			return r, fmt.Errorf("failed to call action method %q: %w", action.Method, err)
 		}
-		return OnReload(rc)
-	default:
-		return r, fmt.Errorf("action method %q not found", action.Method)
+
+		switch action.Method {
+		case actionMethodReload:
+			rc, ok := v.(Identifiable)
+			if !ok {
+				return r, fmt.Errorf("compo %T does not implement Identifiable", v)
+			}
+			return OnReload(rc)
+		default:
+			return r, fmt.Errorf("action method %q not found", action.Method)
+		}
 	}
 }
 
 var actionableCompoTypeRegistry = new(sync.Map)
 
-func RegisterActionableCompoType(vs ...any) {
+func RegisterActionableCompoType(vs ...h.HTMLComponent) {
 	for _, v := range vs {
 		registerActionableCompoType(v)
 	}
 }
 
-func registerActionableCompoType(v any) {
+func registerActionableCompoType(v h.HTMLComponent) {
 	_, loaded := actionableCompoTypeRegistry.LoadOrStore(fmt.Sprintf("%T", v), reflect.TypeOf(v))
 	if loaded {
 		panic(fmt.Sprintf("actionable compo type %T already registered", v))
 	}
 }
 
-func newActionableCompo(typeName string) (any, error) {
+func newActionableCompo(typeName string) (h.HTMLComponent, error) {
 	if t, ok := actionableCompoTypeRegistry.Load(typeName); ok {
-		return reflect.New(t.(reflect.Type).Elem()).Interface(), nil
+		return reflect.New(t.(reflect.Type).Elem()).Interface().(h.HTMLComponent), nil
 	}
 	return nil, fmt.Errorf("type not found: %s", typeName)
 }

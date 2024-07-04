@@ -48,7 +48,7 @@ func (c *TodoApp) MarshalHTML(ctx context.Context) ([]byte, error) {
 
 	filteredTodoItems := make([]HTMLComponent, len(filteredTodos))
 	for i, todo := range filteredTodos {
-		filteredTodoItems[i] = stateful.MustApply(ctx, &TodoItem{
+		filteredTodoItems[i] = c.dep.dc.MustApply(ctx, &TodoItem{
 			ID:   todo.ID,
 			todo: todo,
 		})
@@ -246,11 +246,16 @@ func (c *TodoItem) Remove(ctx context.Context) (r web.EventResponse, err error) 
 }
 
 type TodoAppDep struct {
+	dc             *stateful.DependencyCenter `inject:""`
 	db             Storage
 	itemTitleCompo func(todo *Todo) HTMLComponent
 }
 
-const (
+var (
+	dc                 = stateful.NewDependencyCenter()
+	TodoMVCExamplePB   = web.Page(TodoMVCExample)
+	TodoMVCExamplePath = URLPathByFunc(TodoMVCExample)
+
 	InjectorTop = "top"
 	InjectorSub = "top/sub"
 )
@@ -261,10 +266,11 @@ func init() {
 		(*TodoItem)(nil),
 	)
 
-	stateful.RegisterInjector(InjectorTop)
-	stateful.RegisterInjector(InjectorSub, stateful.WithParent(InjectorTop))
+	stateful.Install(TodoMVCExamplePB, dc)
 
-	stateful.MustProvide(InjectorTop,
+	dc.RegisterInjector(InjectorTop)
+	dc.RegisterInjector(InjectorSub, stateful.WithParent(InjectorTop))
+	dc.MustProvide(InjectorTop,
 		func() Storage {
 			return &MemoryStorage{}
 		},
@@ -275,8 +281,7 @@ func init() {
 			}
 		},
 	)
-
-	stateful.MustProvide(InjectorSub, func(db Storage) *TodoAppDep {
+	dc.MustProvide(InjectorSub, func(db Storage) *TodoAppDep {
 		return &TodoAppDep{
 			db: db,
 			itemTitleCompo: func(todo *Todo) HTMLComponent {
@@ -292,13 +297,13 @@ func init() {
 func TodoMVCExample(ctx *web.EventContext) (r web.PageResponse, err error) {
 	r.Body = Div().Style("display: flex; justify-content: center;").Children(
 		Div().Style("width: 550px; margin-right: 40px;").Children(
-			stateful.MustInject(InjectorTop, stateful.SyncQuery(&TodoApp{
+			dc.MustInject(InjectorTop, stateful.SyncQuery(&TodoApp{
 				ID:         "TodoApp0",
 				Visibility: VisibilityAll,
 			})),
 		),
 		Div().Style("width: 550px;").Children(
-			stateful.MustInject(InjectorSub, &TodoApp{
+			dc.MustInject(InjectorSub, &TodoApp{
 				ID:         "TodoApp1",
 				Visibility: VisibilityCompleted,
 			}),
@@ -314,8 +319,3 @@ func TodoMVCExample(ctx *web.EventContext) (r web.PageResponse, err error) {
 	`)
 	return
 }
-
-var (
-	TodoMVCExamplePB   = web.Page(TodoMVCExample)
-	TodoMVCExamplePath = URLPathByFunc(TodoMVCExample)
-)
