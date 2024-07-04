@@ -330,7 +330,7 @@ func Emit(name string, payloads ...any) string {
 		strconv.Quote(strcase.ToCamel(name)),
 	}
 	args = append(args, lo.Map(payloads, func(p any, _ int) string {
-		return h.JSONString(p)
+		return toJsValue(p)
 	})...)
 	return fmt.Sprintf(`plaid().vars(vars).emit(%s)`, strings.Join(args, ", "))
 }
