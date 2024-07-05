@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-	stateful.RegisterActionableType((*TreeItem)(nil))
+	stateful.RegisterActionableCompoType((*TreeItem)(nil))
 }
 
 type TreeItem struct {
@@ -27,7 +27,7 @@ type TreeNode struct {
 	Children []*TreeNode `json:"children"`
 }
 
-func (t *TreeItem) CompoName() string {
+func (t *TreeItem) CompoID() string {
 	return fmt.Sprintf("TreeItem:%s", t.ID)
 }
 
@@ -41,15 +41,15 @@ func (t *TreeItem) MarshalHTML(ctx context.Context) ([]byte, error) {
 			}),
 		)
 	if isFolder {
-		div.Attr("@click", stateful.ReloadAction(ctx, t, func(cloned *TreeItem) {
-			cloned.Toggle()
+		div.Attr("@click", stateful.ReloadAction(ctx, t, func(target *TreeItem) {
+			target.Toggle()
 		}).Go())
 	} else {
-		div.Attr("@dblclick", stateful.ReloadAction(ctx, t, func(cloned *TreeItem) {
-			cloned.ChangeType()
+		div.Attr("@dblclick", stateful.ReloadAction(ctx, t, func(target *TreeItem) {
+			target.ChangeType()
 		}).Go())
 	}
-	return stateful.Reloadable(t,
+	return stateful.Actionable(ctx, t,
 		h.Li(
 			div,
 			h.Iff(t.IsOpen && isFolder, func() h.HTMLComponent {
@@ -61,8 +61,8 @@ func (t *TreeItem) MarshalHTML(ctx context.Context) ([]byte, error) {
 					})
 				}
 				childComponents = append(childComponents,
-					h.Li(h.Text("+")).Attr("@click", stateful.ReloadAction(ctx, t, func(cloned *TreeItem) {
-						cloned.AddChild()
+					h.Li(h.Text("+")).Attr("@click", stateful.ReloadAction(ctx, t, func(target *TreeItem) {
+						target.AddChild()
 					}).Go()),
 				)
 				return h.Ul(childComponents...)

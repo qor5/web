@@ -13,10 +13,12 @@ import { GlobalEvents } from 'vue-global-events'
 import GoPlaidScope from '@/go-plaid-scope.vue'
 import GoPlaidPortal from '@/go-plaid-portal.vue'
 import GoPlaidRunScript from '@/go-plaid-run-script.vue'
+import GoPlaidListener from '@/go-plaid-listener.vue'
 import { componentByTemplate } from '@/utils'
 import { Builder, plaid } from '@/builder'
 import { keepScroll } from '@/keepScroll'
 import { assignOnMounted, runOnMounted } from '@/assign'
+import { TinyEmitter } from 'tiny-emitter'
 
 export const Root = defineComponent({
   props: {
@@ -26,7 +28,7 @@ export const Root = defineComponent({
     }
   },
 
-  setup(props, { emit }) {
+  setup(props) {
     const current = shallowRef<DefineComponent | null>(null)
     const form = reactive({})
     provide('form', form)
@@ -35,15 +37,9 @@ export const Root = defineComponent({
     }
 
     provide('updateRootTemplate', updateRootTemplate)
+
     const vars = reactive({
-      __notification: {},
-      __sendNotification: function (name: string, payload: any) {
-        vars.__notification = {
-          id: `notification-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
-          name: name,
-          payload: payload
-        }
-      }
+      __emitter: new TinyEmitter()
     })
     const _plaid = (): Builder => {
       return plaid().updateRootTemplate(updateRootTemplate).vars(vars)
@@ -56,10 +52,10 @@ export const Root = defineComponent({
     onMounted(() => {
       updateRootTemplate(props.initialTemplate)
 
-      window.addEventListener('fetchStart', (e: Event) => {
+      window.addEventListener('fetchStart', () => {
         isFetching.value = true
       })
-      window.addEventListener('fetchEnd', (e: Event) => {
+      window.addEventListener('fetchEnd', () => {
         isFetching.value = false
       })
       window.addEventListener('popstate', (evt) => {
@@ -85,6 +81,7 @@ export const plaidPlugin = {
     app.component('GoPlaidScope', GoPlaidScope)
     app.component('GoPlaidPortal', GoPlaidPortal)
     app.component('GoPlaidRunScript', GoPlaidRunScript)
+    app.component('GoPlaidListener', GoPlaidListener)
     app.directive('keep-scroll', keepScroll)
     app.directive('assign', assignOnMounted)
     app.directive('run', runOnMounted)

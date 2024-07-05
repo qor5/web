@@ -1,4 +1,4 @@
-import { objectToFormData, setFormValue } from '../utils'
+import { objectToFormData, setFormValue, encodeObjectToQuery, isRawQuerySubset } from '../utils'
 import { describe, it, expect } from 'vitest'
 
 describe('utils', () => {
@@ -50,5 +50,107 @@ describe('utils', () => {
       expect(formData.getAll('Photos')[0]).toBeInstanceOf(File)
       expect(formData.getAll('Photos')[1]).toBeInstanceOf(File)
     })
+  })
+
+  it('encodeObjectToQuery', () => {
+    const exampleObject = {
+      compo_id: 'customers',
+      long_style_search_box: false,
+      selected_ids: ['x,', 'y', 'z'],
+      keyword: '',
+      order_bys: [
+        {
+          FieldName: 'Name|',
+          'Order,By': 'ASC'
+        },
+        {
+          'Fiel|dName': 'Age',
+          OrderBy: 'DES,C'
+        }
+      ],
+      page: 0,
+      per_page: 0,
+      'chi,ld': {
+        a: 'aa',
+        b: 100
+      },
+      active_filter_tab: 'tab2',
+      filter_query: 'f_approved.gte=0001-01-01+00%3A00&f_name.ilike=felix',
+      display_columns: null
+    }
+    const queryTags = [
+      {
+        name: 'xpage',
+        json_name: 'page',
+        omitempty: false
+      },
+      {
+        name: 'per_page',
+        json_name: 'per_page',
+        omitempty: true
+      },
+      {
+        name: 'chi,ld',
+        json_name: 'chi,ld',
+        omitempty: true
+      },
+      {
+        name: 'xselected_ids',
+        json_name: 'selected_ids',
+        omitempty: true
+      },
+      {
+        name: 'display_columns',
+        json_name: 'display_columns',
+        omitempty: false
+      },
+      {
+        name: 'order_bys',
+        json_name: 'order_bys',
+        omitempty: true
+      },
+      {
+        name: 'testUndefined',
+        json_name: 'testUndefined',
+        omitempty: true
+      },
+      {
+        name: 'filter_query',
+        json_name: 'filter_query',
+        omitempty: true,
+        encoder: ({ value, queries }: { value: string; queries: string[]; tag: any }) => {
+          if (value) {
+            value.split('&').forEach((query) => {
+              queries.push(query)
+            })
+          }
+        }
+      }
+    ]
+    const queryString = encodeObjectToQuery(exampleObject, queryTags)
+    expect(queryString).toEqual(
+      'xpage=0&chi%2Cld=aa_100&xselected_ids=x%2C,y,z&display_columns=&order_bys=Name%7C_ASC,Age_DES%2CC&f_approved.gte=0001-01-01+00%3A00&f_name.ilike=felix'
+    )
+  })
+
+  it('isRawQuerySubset', () => {
+    const sup = 'id=1&name=John&age=30&emails=a%2C,b,c'
+    let sub = 'id=1&name=John&age=30'
+    expect(isRawQuerySubset(sup, sub)).toBe(true)
+
+    sub = 'id=1&name=John&age=30&emails=a%2C,b'
+    expect(isRawQuerySubset(sup, sub)).toBe(true)
+
+    sub = 'id=1&name=John&age=30&emails=a%2C,b,c'
+    expect(isRawQuerySubset(sup, sub)).toBe(true)
+
+    sub = 'id=1&name=John&age=30&emails=a%2C&emails=b&emails=c' // emails: only 'c' is valid
+    expect(isRawQuerySubset(sup, sub)).toBe(true)
+
+    sub = 'id=1&name=John&age=30&emails=a%2C&emails=b&emails=d' // emails: only 'd' is valid
+    expect(isRawQuerySubset(sup, sub)).toBe(false)
+
+    sub = 'id=1&name=John&age=30&emails=a%2C,b,c&addresses=Shanghai'
+    expect(isRawQuerySubset(sup, sub)).toBe(false)
   })
 })

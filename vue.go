@@ -3,8 +3,11 @@ package web
 import (
 	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
 
+	"github.com/iancoleman/strcase"
+	"github.com/samber/lo"
 	h "github.com/theplant/htmlgo"
 )
 
@@ -138,6 +141,14 @@ func (b *VueEventTagBuilder) StringQuery(v interface{}) (r *VueEventTagBuilder) 
 	return b
 }
 
+func (b *VueEventTagBuilder) StringifyOptions(v interface{}) (r *VueEventTagBuilder) {
+	b.calls = append(b.calls, jsCall{
+		method: "stringifyOptions",
+		args:   []interface{}{v},
+	})
+	return b
+}
+
 func (b *VueEventTagBuilder) PushState(v interface{}) (r *VueEventTagBuilder) {
 	b.calls = append(b.calls, jsCall{
 		method: "pushState",
@@ -182,6 +193,14 @@ func (b *VueEventTagBuilder) FieldValue(name interface{}, v interface{}) (r *Vue
 	b.calls = append(b.calls, jsCall{
 		method: "fieldValue",
 		args:   []interface{}{name, v},
+	})
+	return b
+}
+
+func (b *VueEventTagBuilder) Run(v interface{}) (r *VueEventTagBuilder) {
+	b.calls = append(b.calls, jsCall{
+		method: "run",
+		args:   []interface{}{v},
 	})
 	return b
 }
@@ -304,4 +323,38 @@ func GlobalEvents() *h.HTMLTagBuilder {
 
 func RunScript(s string) *h.HTMLTagBuilder {
 	return h.Tag("go-plaid-run-script").Attr(":script", s)
+}
+
+func Emit(name string, payloads ...any) string {
+	args := []string{
+		strconv.Quote(strcase.ToCamel(name)),
+	}
+	args = append(args, lo.Map(payloads, func(p any, _ int) string {
+		return toJsValue(p)
+	})...)
+	return fmt.Sprintf(`plaid().vars(vars).emit(%s)`, strings.Join(args, ", "))
+}
+
+func (r *EventResponse) Emit(name string, payloads ...any) {
+	AppendRunScripts(r, Emit(name, payloads...))
+}
+
+func Listen(vs ...string) *h.HTMLTagBuilder {
+	if len(vs)%2 != 0 {
+		panic("Listen arguments must have an even number")
+	}
+
+	t := h.Tag("go-plaid-listener")
+	for i := 0; i < len(vs); i = i + 2 {
+		setOnAttr(t, vs[i], vs[i+1])
+	}
+	return t
+}
+
+func setOnAttr(tag *h.HTMLTagBuilder, event string, fn string) {
+	fn = strings.TrimSpace(fn)
+	if !strings.HasPrefix(fn, "function") && !strings.HasPrefix(fn, "(") {
+		fn = fmt.Sprintf("(payload) => { %s }", fn)
+	}
+	tag.Attr("@"+strcase.ToKebab(strcase.ToCamel(event)), fn)
 }

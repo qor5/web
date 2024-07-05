@@ -1,10 +1,12 @@
+import querystring from 'query-string'
+
 export interface ValueOp {
   value: string | string[]
   add?: boolean
   remove?: boolean
 }
 
-export type QueryValue = null | undefined | string | string[] | ValueOp
+export type QueryValue = null | undefined | string | string[] | ValueOp | Function
 
 export interface Queries {
   [key: string]: QueryValue
@@ -17,6 +19,7 @@ export interface Location {
   stringQuery?: string
   query?: Queries
   clearMergeQueryKeys?: string[]
+  stringifyOptions?: querystring.StringifyOptions
 }
 
 export interface EventFuncID {

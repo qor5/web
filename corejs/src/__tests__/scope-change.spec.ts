@@ -25,7 +25,7 @@ describe('scope change', () => {
     await flushPromises()
 
     console.log(wrapper.html())
-    await new Promise((resolve, reject) => {
+    await new Promise((resolve) => {
       setTimeout(async () => {
         await wrapper.find('button').trigger('click')
         console.log('clicked')
@@ -44,7 +44,7 @@ describe('scope change', () => {
   it('debounce form with v-model', async () => {
     const form = ref(new FormData())
     let fetchCount = 0
-    mockFetchWithReturnTemplate(form, (url: any, opts: any) => {
+    mockFetchWithReturnTemplate(form, () => {
       fetchCount++
       return { body: '<h6></h6>' }
     })
@@ -62,7 +62,7 @@ describe('scope change', () => {
 
     await nextTick()
     console.log(wrapper.html())
-    await new Promise((resolve, reject) => {
+    await new Promise((resolve) => {
       setTimeout(async () => {
         await wrapper.find('input').setValue('1')
         await wrapper.find('input').setValue('12')
@@ -82,7 +82,7 @@ describe('scope change', () => {
             :form-init="{value:0}"
             v-slot="{ form }" 
             @change-debounced='({form,locals,oldLocals,oldForm}) => { form.value++ }'
-            :use-debounce='800'
+            :use-debounce='600'
         >
           <v-text-field id="name" v-model="form.name" v-assign="[form,{'name':'debounced'}]"></v-text-field>
           <button @click="form.name='change'"></button>
@@ -93,7 +93,7 @@ describe('scope change', () => {
 
     await nextTick()
     await waitUntil(() => (wrapper.find('.v-field input').element as any).value === 'debounced')
-    await new Promise((resolve, reject) => {
+    await new Promise((resolve) => {
       setTimeout(() => {
         resolve('')
       }, 800)
@@ -101,38 +101,12 @@ describe('scope change', () => {
     expect(wrapper.find('h1').text()).toEqual('0')
     await wrapper.find('button').trigger('click')
     await waitUntil(() => (wrapper.find('.v-field input').element as any).value === 'change')
-    await new Promise((resolve, reject) => {
+    await new Promise((resolve) => {
       setTimeout(() => {
         resolve('')
       }, 800)
     })
     expect(wrapper.find('h1').text()).toEqual('1')
     console.log(wrapper.html())
-  })
-
-  it('observers', async () => {
-    const wrapper = mountTemplate(`
-      <div>
-        <go-plaid-scope 
-            :form-init='{value: ""}'
-            v-slot='{ form }' 
-            :observers='[
-                {
-                    name: "test1",
-                    script: "form.value = payload.a"
-                }
-            ]'
-        >
-          <h1>{{form.value}}</h1>
-        </go-plaid-scope>
-        
-        <button @click='vars.__sendNotification("test1", {"a": "19"})'></button>
-      </div>
-      `)
-
-    await nextTick()
-    expect(wrapper.find('h1').text()).toEqual('')
-    await wrapper.find('button').trigger('click')
-    expect(wrapper.find('h1').text()).toEqual('19')
   })
 })

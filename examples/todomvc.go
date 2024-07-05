@@ -30,10 +30,10 @@ type TodoApp struct {
 	dep *TodoAppDep `inject:""`
 
 	ID         string     `json:"id"`
-	Visibility Visibility `json:"visibility" query:"visibility"`
+	Visibility Visibility `json:"visibility" query:";cookie"`
 }
 
-func (c *TodoApp) CompoName() string {
+func (c *TodoApp) CompoID() string {
 	return fmt.Sprintf("TodoApp:%s", c.ID)
 }
 
@@ -48,16 +48,15 @@ func (c *TodoApp) MarshalHTML(ctx context.Context) ([]byte, error) {
 
 	filteredTodoItems := make([]HTMLComponent, len(filteredTodos))
 	for i, todo := range filteredTodos {
-		filteredTodoItems[i] = stateful.MustApply(ctx, &TodoItem{
+		filteredTodoItems[i] = c.dep.dc.MustApply(ctx, &TodoItem{
 			ID:   todo.ID,
 			todo: todo,
-			// OnChanged: stateful.ReloadAction(ctx,a, nil).Go(),
 		})
 	}
 
 	checkBoxID := fmt.Sprintf("%s-toggle-all", c.ID)
-	return stateful.Reloadable(c,
-		web.Scope().Observe(NotifyTodosChanged, stateful.ReloadAction(ctx, c, nil).Go()),
+	return stateful.Actionable(ctx, c,
+		web.Listen(NotifyTodosChanged, stateful.ReloadAction(ctx, c, nil).Go()),
 		Section().Class("todoapp").Children(
 			Header().Class("header").Children(
 				H1("Todos"),
@@ -66,12 +65,11 @@ func (c *TodoApp) MarshalHTML(ctx context.Context) ([]byte, error) {
 					Class("new-todo").
 					Attr("id", fmt.Sprintf("%s-creator", c.ID)).
 					Attr("placeholder", "What needs to be done?").
-					Attr("@keyup.enter", strings.Replace(
-						stateful.PostAction(ctx, c, c.CreateTodo, &CreateTodoRequest{Title: "_placeholder_"}).Go(),
-						`"_placeholder_"`,
-						"$event.target.value",
-						1,
-					)),
+					Attr("@keyup.enter", stateful.PostAction(ctx,
+						c,
+						c.CreateTodo, &CreateTodoRequest{},
+						stateful.WithAppendFix(`v.request.title = $event.target.value`),
+					).Go()),
 			),
 			Section().Class("main").Attr("v-show", JSONString(len(todos) > 0)).Children(
 				Input("").Type("checkbox").Attr("id", checkBoxID).Class("toggle-all").
@@ -88,20 +86,23 @@ func (c *TodoApp) MarshalHTML(ctx context.Context) ([]byte, error) {
 				Ul().Class("filters").Children(
 					Li(
 						A(Text("All")).ClassIf("selected", c.Visibility == VisibilityAll).
-							Attr("@click", stateful.ReloadAction(ctx, c, func(cloned *TodoApp) {
-								cloned.Visibility = VisibilityAll
-							}).Go()),
+							Attr("@click", stateful.ReloadAction(ctx, c,
+								func(target *TodoApp) {
+									target.Visibility = VisibilityAll
+								},
+								stateful.WithUseProvidedCompo(), // test use provided compo
+							).Go()),
 					),
 					Li(
 						A(Text("Active")).ClassIf("selected", c.Visibility == VisibilityActive).
-							Attr("@click", stateful.ReloadAction(ctx, c, func(cloned *TodoApp) {
-								cloned.Visibility = VisibilityActive
+							Attr("@click", stateful.ReloadAction(ctx, c, func(target *TodoApp) {
+								target.Visibility = VisibilityActive
 							}).Go()),
 					),
 					Li(
 						A(Text("Completed")).ClassIf("selected", c.Visibility == VisibilityCompleted).
-							Attr("@click", stateful.ReloadAction(ctx, c, func(cloned *TodoApp) {
-								cloned.Visibility = VisibilityCompleted
+							Attr("@click", stateful.ReloadAction(ctx, c, func(target *TodoApp) {
+								target.Visibility = VisibilityCompleted
 							}).Go()),
 					),
 				),
@@ -157,9 +158,7 @@ func (c *TodoApp) ToggleAll(ctx context.Context) (r web.EventResponse, err error
 			return r, err
 		}
 	}
-
-	web.AppendRunScripts(&r, web.NotifyScript(NotifyTodosChanged, nil))
-	// stateful.AppendReloadToResponse(&r, a)
+	r.Emit(NotifyTodosChanged)
 	return
 }
 
@@ -180,8 +179,7 @@ func (c *TodoApp) CreateTodo(ctx context.Context, req *CreateTodoRequest) (r web
 	}); err != nil {
 		return r, err
 	}
-	web.AppendRunScripts(&r, web.NotifyScript(NotifyTodosChanged, nil))
-	// stateful.AppendReloadToResponse(&r, a)
+	r.Emit(NotifyTodosChanged)
 	return
 }
 
@@ -191,7 +189,6 @@ type TodoItem struct {
 
 	ID   string `json:"id"`
 	todo *Todo  // use this if not nil, otherwise load with ID from Storage
-	// OnChanged string `json:"on_changed"`
 }
 
 func (c *TodoItem) MarshalHTML(ctx context.Context) ([]byte, error) {
@@ -210,13 +207,16 @@ func (c *TodoItem) MarshalHTML(ctx context.Context) ([]byte, error) {
 	} else {
 		itemTitleCompo = Label(todo.Title)
 	}
-	return Li().ClassIf("completed", todo.Completed).Children(
-		Div().Class("view").Children(
-			Input("").Type("checkbox").Class("toggle").Attr("checked", todo.Completed).
-				Attr("@change", stateful.PostAction(ctx, c, c.Toggle, nil).Go()),
-			itemTitleCompo,
-			Button("").Class("destroy").
-				Attr("@click", stateful.PostAction(ctx, c, c.Remove, nil).Go()),
+	return stateful.Actionable(ctx, c,
+		Li().ClassIf("completed", todo.Completed).Children(
+			Div().Class("view").Children(
+				Input("").Type("checkbox").Class("toggle").Attr("checked", todo.Completed).
+					// test use provided compo
+					Attr("@change", stateful.PostAction(ctx, c, c.Toggle, nil, stateful.WithUseProvidedCompo()).Go()),
+				itemTitleCompo,
+				Button("").Class("destroy").
+					Attr("@click", stateful.PostAction(ctx, c, c.Remove, nil).Go()),
+			),
 		),
 	).MarshalHTML(ctx)
 }
@@ -232,8 +232,7 @@ func (c *TodoItem) Toggle(ctx context.Context) (r web.EventResponse, err error) 
 		return r, err
 	}
 
-	web.AppendRunScripts(&r, web.NotifyScript(NotifyTodosChanged, nil))
-	// r.RunScript = t.OnChanged
+	r.Emit(NotifyTodosChanged)
 	return
 }
 
@@ -242,31 +241,36 @@ func (c *TodoItem) Remove(ctx context.Context) (r web.EventResponse, err error) 
 		return r, err
 	}
 
-	web.AppendRunScripts(&r, web.NotifyScript(NotifyTodosChanged, nil))
-	// r.RunScript = t.OnChanged
+	r.Emit(NotifyTodosChanged)
 	return
 }
 
 type TodoAppDep struct {
+	dc             *stateful.DependencyCenter `inject:""`
 	db             Storage
 	itemTitleCompo func(todo *Todo) HTMLComponent
 }
 
-const (
+var (
+	dc                 = stateful.NewDependencyCenter()
+	TodoMVCExamplePB   = web.Page(TodoMVCExample)
+	TodoMVCExamplePath = URLPathByFunc(TodoMVCExample)
+
 	InjectorTop = "top"
 	InjectorSub = "top/sub"
 )
 
 func init() {
-	stateful.RegisterActionableType(
+	stateful.RegisterActionableCompoType(
 		(*TodoApp)(nil),
 		(*TodoItem)(nil),
 	)
 
-	stateful.RegisterInjector(InjectorTop)
-	stateful.RegisterInjector(InjectorSub, stateful.WithParent(InjectorTop))
+	stateful.Install(TodoMVCExamplePB, dc)
 
-	stateful.MustProvide(InjectorTop,
+	dc.RegisterInjector(InjectorTop)
+	dc.RegisterInjector(InjectorSub, stateful.WithParent(InjectorTop))
+	dc.MustProvide(InjectorTop,
 		func() Storage {
 			return &MemoryStorage{}
 		},
@@ -277,8 +281,7 @@ func init() {
 			}
 		},
 	)
-
-	stateful.MustProvide(InjectorSub, func(db Storage) *TodoAppDep {
+	dc.MustProvide(InjectorSub, func(db Storage) *TodoAppDep {
 		return &TodoAppDep{
 			db: db,
 			itemTitleCompo: func(todo *Todo) HTMLComponent {
@@ -294,13 +297,13 @@ func init() {
 func TodoMVCExample(ctx *web.EventContext) (r web.PageResponse, err error) {
 	r.Body = Div().Style("display: flex; justify-content: center;").Children(
 		Div().Style("width: 550px; margin-right: 40px;").Children(
-			stateful.MustInject(InjectorTop, stateful.SyncQuery(&TodoApp{
+			dc.MustInject(InjectorTop, stateful.SyncQuery(&TodoApp{
 				ID:         "TodoApp0",
 				Visibility: VisibilityAll,
 			})),
 		),
 		Div().Style("width: 550px;").Children(
-			stateful.MustInject(InjectorSub, &TodoApp{
+			dc.MustInject(InjectorSub, &TodoApp{
 				ID:         "TodoApp1",
 				Visibility: VisibilityCompleted,
 			}),
@@ -316,6 +319,3 @@ func TodoMVCExample(ctx *web.EventContext) (r web.PageResponse, err error) {
 	`)
 	return
 }
-
-var TodoMVCExamplePB = web.Page(TodoMVCExample)
-var TodoMVCExamplePath = URLPathByFunc(TodoMVCExample)

@@ -2,25 +2,12 @@ package stateful
 
 import (
 	"context"
+	"fmt"
+	"net/http"
 
-	"github.com/go-playground/form/v4"
 	"github.com/qor5/web/v3"
 	h "github.com/theplant/htmlgo"
 )
-
-var queryDecoder = func() *form.Decoder {
-	decoder := form.NewDecoder()
-	decoder.SetMode(form.ModeExplicit)
-	decoder.SetTagName("query")
-	return decoder
-}()
-
-var queryEncoder = func() *form.Encoder {
-	encoder := form.NewEncoder()
-	encoder.SetMode(form.ModeExplicit)
-	encoder.SetTagName("query")
-	return encoder
-}()
 
 type syncQueryCtxKey struct{}
 
@@ -33,29 +20,44 @@ func IsSyncQuery(ctx context.Context) bool {
 	return ok
 }
 
-type querySyncer struct {
-	h.HTMLComponent
+func IdentifiableCookieKey(v Identifiable) string {
+	hash := MurmurHash3(fmt.Sprintf("%T:%s", v, v.CompoID()))
+	return fmt.Sprintf("__sync_cookie_%s__", hash)
 }
 
-func (c *querySyncer) MarshalHTML(ctx context.Context) ([]byte, error) {
+type querySyncer struct {
+	h.HTMLComponent
+	onlyParse bool
+}
+
+func (s *querySyncer) MarshalHTML(ctx context.Context) ([]byte, error) {
 	evCtx := web.MustGetEventContext(ctx)
-	query := evCtx.R.URL.Query()
 
-	// TODO: support prefix ?
-	// const prefix = "main_"
-	// r := url.Values{}
-	// for k, v := range query {
-	// 	if strings.HasPrefix(k, prefix) {
-	// 		r[strings.TrimPrefix(k, prefix)] = v
-	// 	}
-	// }
-	// query = r
-
-	if err := queryDecoder.Decode(&c.HTMLComponent, query); err != nil {
+	tags, err := ParseQueryTags(s.HTMLComponent)
+	if err != nil {
 		return nil, err
 	}
-	ctx = withSyncQuery(ctx)
-	return c.HTMLComponent.MarshalHTML(ctx)
+
+	ident, ok := s.HTMLComponent.(Identifiable)
+	if ok {
+		cookie, err := evCtx.R.Cookie(IdentifiableCookieKey(ident))
+		if err != nil && err != http.ErrNoCookie {
+			return nil, err
+		}
+		if cookie != nil {
+			if err := tags.CookieTags().Decode(cookie.Value, s.HTMLComponent); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	if err := tags.Decode(evCtx.R.URL.RawQuery, s.HTMLComponent); err != nil {
+		return nil, err
+	}
+	if !s.onlyParse {
+		ctx = withSyncQuery(ctx)
+	}
+	return s.HTMLComponent.MarshalHTML(ctx)
 }
 
 func (c *querySyncer) Unwrap() h.HTMLComponent {
@@ -64,4 +66,8 @@ func (c *querySyncer) Unwrap() h.HTMLComponent {
 
 func SyncQuery(c h.HTMLComponent) h.HTMLComponent {
 	return &querySyncer{HTMLComponent: c}
+}
+
+func ParseQuery(c h.HTMLComponent) h.HTMLComponent {
+	return &querySyncer{HTMLComponent: c, onlyParse: true}
 }

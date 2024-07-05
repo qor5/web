@@ -54,7 +54,9 @@ export function buildPushState(eventFuncId: EventFuncID, url: string): any {
 
   const requestQuery = { ...resultQuery, ...{ __execute_event__: eventFuncId.id } }
 
-  addressBarQuery = querystring.stringify(resultQuery, { arrayFormat: 'comma' })
+  const stringifyOpts = loc?.stringifyOptions || { arrayFormat: 'comma' }
+
+  addressBarQuery = querystring.stringify(resultQuery, stringifyOpts)
   if (addressBarQuery.length > 0) {
     addressBarQuery = `?${addressBarQuery}`
   }
@@ -67,7 +69,7 @@ export function buildPushState(eventFuncId: EventFuncID, url: string): any {
 
   return {
     pushStateArgs: [pushedState, '', newUrl],
-    eventURL: `${orig.url}?${querystring.stringify(requestQuery, { arrayFormat: 'comma' })}`
+    eventURL: `${orig.url}?${querystring.stringify(requestQuery, stringifyOpts)}`
   }
 }
 
@@ -244,4 +246,111 @@ export function objectToFormData(obj: any, form: FormData, parentKey = '') {
   })
 
   return form
+}
+
+export function encodeObjectToQuery(
+  obj: any,
+  queryTags: { name: string; json_name: string; omitempty: boolean; encoder?: Function }[]
+) {
+  if (queryTags.length === 0) {
+    return ''
+  }
+
+  const processObject = (obj: any) => {
+    return Object.keys(obj)
+      .sort()
+      .map((key) => {
+        const encodedValue = encodeURIComponent(obj[key])
+        if (encodedValue.includes('_')) {
+          throw new Error(`Value contains underscore (_) which is not allowed: ${encodedValue}`)
+        }
+        return encodedValue
+      })
+      .join('_')
+  }
+
+  const processArray = (arr: []) => {
+    return arr
+      .map((item) => {
+        if (typeof item === 'object' && !Array.isArray(item)) {
+          return processObject(item)
+        } else {
+          return encodeURIComponent(item)
+        }
+      })
+      .join(',')
+  }
+
+  const queries: string[] = []
+
+  queryTags.forEach((tag) => {
+    const value: any = obj[tag.json_name]
+    if (value === undefined) {
+      return
+    }
+
+    if (tag.encoder) {
+      tag.encoder({ value, queries, tag })
+      return
+    }
+
+    const key = encodeURIComponent(tag.name)
+    if (!value && tag.omitempty) {
+      return
+    }
+    if (value === null) {
+      queries.push(`${key}=`)
+    } else if (Array.isArray(value)) {
+      if (tag.omitempty && obj[tag.json_name].length === 0) {
+        return
+      }
+      queries.push(`${key}=${processArray(obj[tag.json_name])}`)
+    } else if (typeof value === 'object') {
+      queries.push(`${key}=${processObject(value)}`)
+    } else {
+      queries.push(`${key}=${encodeURIComponent(value)}`)
+    }
+  })
+
+  return queries.join('&')
+}
+
+function isQuerySubset(
+  sup: querystring.ParsedQuery<string>,
+  sub: querystring.ParsedQuery<string>
+): boolean {
+  for (const key in sub) {
+    if (sup[key] === undefined) {
+      return false
+    }
+
+    const supValues = Array.isArray(sup[key]) ? (sup[key] as string[]) : [sup[key] as string]
+    const subValues = Array.isArray(sub[key]) ? (sub[key] as string[]) : [sub[key] as string]
+
+    const supCount: Record<string, number> = {}
+    supValues.forEach((value) => {
+      supCount[value] = (supCount[value] || 0) + 1
+    })
+
+    for (const value of subValues) {
+      if (!supCount[value] || supCount[value] === 0) {
+        return false
+      }
+      supCount[value]--
+    }
+  }
+  return true
+}
+
+export function isRawQuerySubset(
+  sup: string,
+  sub: string,
+  options?: querystring.ParseOptions
+): boolean {
+  if (options === undefined) {
+    options = { arrayFormat: 'comma' }
+  }
+  const supValues = querystring.parse(sup, options)
+  const subValues = querystring.parse(sub, options)
+  return isQuerySubset(supValues, subValues)
 }
