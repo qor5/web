@@ -148,7 +148,7 @@ func newPostActionOptions(opts ...PostActionOption) *postActionOptions {
 	return o
 }
 
-func postAction(_ context.Context, c any, method any, request any, o *postActionOptions) *web.VueEventTagBuilder {
+func postAction(ctx context.Context, c any, method any, request any, o *postActionOptions) *web.VueEventTagBuilder {
 	var methodName string
 	switch m := method.(type) {
 	case string:
@@ -160,6 +160,9 @@ func postAction(_ context.Context, c any, method any, request any, o *postAction
 	b := web.POST().
 		EventFunc(eventDispatchAction).
 		Queries(url.Values{}) // force clear queries first
+
+	evCtx := web.MustGetEventContext(ctx)
+	b.URL(evCtx.R.URL.Path)
 
 	if o.useProvidedCompo {
 		o.fixes = append([]string{fmt.Sprintf("v.compo = %s;", PrettyJSONString(c))}, o.fixes...)
