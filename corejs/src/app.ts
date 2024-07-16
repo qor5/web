@@ -14,6 +14,7 @@ import GoPlaidScope from '@/go-plaid-scope.vue'
 import GoPlaidPortal from '@/go-plaid-portal.vue'
 import GoPlaidRunScript from '@/go-plaid-run-script.vue'
 import GoPlaidListener from '@/go-plaid-listener.vue'
+import ParentSizeObserver from '@/parent-size-observer.vue'
 import { componentByTemplate } from '@/utils'
 import { Builder, plaid } from '@/builder'
 import { keepScroll } from '@/keepScroll'
@@ -82,6 +83,7 @@ export const plaidPlugin = {
     app.component('GoPlaidPortal', GoPlaidPortal)
     app.component('GoPlaidRunScript', GoPlaidRunScript)
     app.component('GoPlaidListener', GoPlaidListener)
+    app.component('ParentSizeObserver', ParentSizeObserver)
     app.directive('keep-scroll', keepScroll)
     app.directive('assign', assignOnMounted)
     app.directive('run', runOnMounted)
