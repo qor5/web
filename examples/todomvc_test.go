@@ -293,6 +293,8 @@ func TestTodoMVCExamplePB(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		multipartestutils.RunCase(t, c, examples.TodoMVCExamplePB)
+		t.Run(c.Name, func(t *testing.T) {
+			multipartestutils.RunCase(t, c, examples.TodoMVCExamplePB)
+		})
 	}
 }
