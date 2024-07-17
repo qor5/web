@@ -358,3 +358,9 @@ func setOnAttr(tag *h.HTMLTagBuilder, event string, fn string) {
 	}
 	tag.Attr("@"+strcase.ToKebab(strcase.ToCamel(event)), fn)
 }
+
+// ParentSizeObserver is a component that observes the size of its parent element.
+// vslot example: "{ width, height }"
+func ParentSizeObserver(vslot string) *h.HTMLTagBuilder {
+	return h.Tag("parent-size-observer").Attr("v-slot", vslot)
+}
