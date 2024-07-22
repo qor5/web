@@ -72,7 +72,7 @@ func RunCase(t *testing.T, c TestCase, handler http.Handler) {
 		c.ResponseMatch(t, w)
 	}
 
-	var body string = w.Body.String()
+	var body string
 	var er TestEventResponse
 	if strings.Contains(w.Header().Get("Content-Type"), "application/json") {
 		err := json.NewDecoder(w.Body).Decode(&er)
@@ -80,6 +80,8 @@ func RunCase(t *testing.T, c TestCase, handler http.Handler) {
 			t.Errorf("%s for: %s", err, w.Body.String())
 		}
 		body = er.Body
+	} else {
+		body = w.Body.String()
 	}
 
 	if c.PageMatch != nil {
