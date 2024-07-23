@@ -1,14 +1,17 @@
 package stateful
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"reflect"
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/samber/lo"
 	"github.com/sunfmin/reflectutils"
+	"golang.org/x/sync/singleflight"
 )
 
 type QueryTag struct {
@@ -140,43 +143,63 @@ func collectQueryTags(rt reflect.Type, tags *QueryTags) error {
 	return nil
 }
 
+var (
+	collectedQueryTags  sync.Map
+	collectQueryTagsSfg singleflight.Group
+)
+
+func parseQueryTags(rt reflect.Type) (QueryTags, error) {
+	v, ok := collectedQueryTags.Load(rt)
+	if ok && v != nil {
+		return v.(QueryTags), nil
+	}
+	rtUnique := rt.PkgPath() + "." + rt.Name()
+	v, err, _ := collectQueryTagsSfg.Do(rtUnique, func() (interface{}, error) {
+		v, ok := collectedQueryTags.Load(rt)
+		if ok && v != nil {
+			return v, nil
+		}
+		tags := QueryTags{}
+		if err := collectQueryTags(rt, &tags); err != nil {
+			return nil, err
+		}
+		collectedQueryTags.Store(rt, tags)
+		return tags, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return v.(QueryTags), nil
+}
+
 func ParseQueryTags(v any) (QueryTags, error) {
 	rv := reflect.ValueOf(v)
 	for rv.Kind() == reflect.Ptr || rv.Kind() == reflect.Interface {
 		rv = rv.Elem()
 	}
-
-	// TODO: A simple caching mechanism is required
 	rt := rv.Type()
-
-	var tags QueryTags
-	if err := collectQueryTags(rt, &tags); err != nil {
-		return nil, err
-	}
-	return tags, nil
+	return parseQueryTags(rt)
 }
 
 func (tags QueryTags) CookieTags() QueryTags {
 	return QueryTags(lo.Filter(tags, func(tag QueryTag, _ int) bool { return tag.Cookie }))
 }
 
-// TODO: Does rt need to be a non-pointer?
-func newStructObject(rt reflect.Type, desc string) (any, error) {
+func decodeToStruct(rt reflect.Type, descWithoutUnescape string) (any, error) {
 	var err error
 
-	fields := strings.Split(desc, "_")
+	fields := strings.Split(descWithoutUnescape, "_")
 	for i := range fields {
 		fields[i], err = url.QueryUnescape(fields[i])
 		if err != nil {
 			return nil, err
 		}
 	}
-	// TODO: A caching mechanism is needed here
-	jsonTags := map[string]string{}
-	if err := collectJsonTags(rt, jsonTags); err != nil {
+	jsonTags, err := parseJsonTags(rt)
+	if err != nil {
 		return nil, err
 	}
-	elem := reflect.New(rt).Interface()
+	ptr := reflect.New(rt).Interface()
 	jsonKeys := lo.Keys(jsonTags)
 	sort.Strings(jsonKeys)
 	for i, field := range fields {
@@ -184,15 +207,19 @@ func newStructObject(rt reflect.Type, desc string) (any, error) {
 			break
 		}
 		path := jsonTags[jsonKeys[i]]
-		if err := reflectutils.Set(elem, path, field); err != nil {
-			return nil, fmt.Errorf("failed to set %q to %v: %w", path, elem, err)
+		if err := reflectutils.Set(ptr, path, field); err != nil {
+			return nil, fmt.Errorf("failed to set %q to %v: %w", path, ptr, err)
 		}
 	}
-	return elem, nil
+	return reflect.ValueOf(ptr).Elem().Interface(), nil
 }
 
-// TODO: Currently it can only accept pointer information, the internal logic needs to be optimized properly
-func (tags QueryTags) Decode(rawQuery string, v any) (rerr error) {
+func (tags QueryTags) Decode(rawQuery string, dest any) (rerr error) {
+	rv := reflect.ValueOf(dest)
+	if rv.Kind() != reflect.Ptr {
+		return errors.New("decode dest must be a pointer")
+	}
+
 	defer func() {
 		if r := recover(); r != nil {
 			err, ok := r.(error)
@@ -217,7 +244,7 @@ func (tags QueryTags) Decode(rawQuery string, v any) (rerr error) {
 			if !ok {
 				return fmt.Errorf("query tag method %q not found", tag.Method)
 			}
-			if err := method.Decoder(qs, tag, v); err != nil {
+			if err := method.Decoder(qs, tag, dest); err != nil {
 				return fmt.Errorf("failed to decode %q: %w", tag.Name, err)
 			}
 			continue
@@ -228,12 +255,15 @@ func (tags QueryTags) Decode(rawQuery string, v any) (rerr error) {
 			continue
 		}
 		qv := qvs[len(qvs)-1]
-		// TODO: should set zero value if empty?
 		if qv == "" {
+			// set zero value if empty?
+			if err := reflectutils.Set(dest, tag.path, qv); err != nil {
+				return fmt.Errorf("failed to set %q to %v: %w", tag.path, dest, err)
+			}
 			continue
 		}
 
-		rt := reflectutils.GetType(v, tag.path)
+		rt := reflectutils.GetType(dest, tag.path)
 		switch unwrapPtrType(rt).Kind() {
 		case reflect.Array, reflect.Slice:
 			elements := strings.Split(qv, ",")
@@ -242,14 +272,14 @@ func (tags QueryTags) Decode(rawQuery string, v any) (rerr error) {
 			switch unwrapPtrType(rtElem).Kind() {
 			case reflect.Struct:
 				for i, element := range elements {
-					elem, err := newStructObject(rtElem, element)
+					elem, err := decodeToStruct(rtElem, element)
 					if err != nil {
 						return err
 					}
 
 					path := fmt.Sprintf("%s[%d]", tag.path, i)
-					if err := reflectutils.Set(v, path, elem); err != nil {
-						return fmt.Errorf("failed to set %q to %v: %w", path, v, err)
+					if err := reflectutils.Set(dest, path, elem); err != nil {
+						return fmt.Errorf("failed to set %q to %v: %w", path, dest, err)
 					}
 				}
 			default:
@@ -259,22 +289,26 @@ func (tags QueryTags) Decode(rawQuery string, v any) (rerr error) {
 						return fmt.Errorf("failed to unescape %q: %w", element, err)
 					}
 					path := fmt.Sprintf("%s[%d]", tag.path, i)
-					if err := reflectutils.Set(v, path, unescape); err != nil {
-						return fmt.Errorf("failed to set %q to %v: %w", path, v, err)
+					if err := reflectutils.Set(dest, path, unescape); err != nil {
+						return fmt.Errorf("failed to set %q to %v: %w", path, dest, err)
 					}
 				}
 			}
 		case reflect.Struct:
-			obj, err := newStructObject(rt, qv)
+			obj, err := decodeToStruct(rt, qv)
 			if err != nil {
 				return err
 			}
-			if err := reflectutils.Set(v, tag.path, obj); err != nil {
-				return fmt.Errorf("failed to set %q to %v: %w", tag.path, v, err)
+			if err := reflectutils.Set(dest, tag.path, obj); err != nil {
+				return fmt.Errorf("failed to set %q to %v: %w", tag.path, dest, err)
 			}
 		default:
-			if err := reflectutils.Set(v, tag.path, qv); err != nil {
-				return fmt.Errorf("failed to set %q to %v: %w", tag.path, v, err)
+			unescape, err := url.QueryUnescape(qv)
+			if err != nil {
+				return fmt.Errorf("failed to unescape %q: %w", qv, err)
+			}
+			if err := reflectutils.Set(dest, tag.path, unescape); err != nil {
+				return fmt.Errorf("failed to set %q to %v: %w", tag.path, dest, err)
 			}
 		}
 	}
@@ -316,7 +350,35 @@ func parseQuery(m url.Values, query string,
 	return err
 }
 
-// TODO: Can this logic be reused with collectQueryTags?
+var (
+	collectedJsonTags    sync.Map
+	collectedJsonTagsSfg singleflight.Group
+)
+
+func parseJsonTags(rt reflect.Type) (map[string]string, error) {
+	v, ok := collectedJsonTags.Load(rt)
+	if ok && v != nil {
+		return v.(map[string]string), nil
+	}
+	rtUnique := rt.PkgPath() + "." + rt.Name()
+	v, err, _ := collectedJsonTagsSfg.Do(rtUnique, func() (interface{}, error) {
+		v, ok := collectedJsonTags.Load(rt)
+		if ok && v != nil {
+			return v, nil
+		}
+		tags := map[string]string{}
+		if err := collectJsonTags(rt, tags); err != nil {
+			return nil, err
+		}
+		collectedJsonTags.Store(rt, tags)
+		return tags, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return v.(map[string]string), nil
+}
+
 // tags: jsonName => path
 func collectJsonTags(rt reflect.Type, tags map[string]string) error {
 	rt = unwrapPtrType(rt)
