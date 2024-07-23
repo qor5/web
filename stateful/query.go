@@ -161,10 +161,10 @@ func (tags QueryTags) CookieTags() QueryTags {
 }
 
 // TODO: Does rt need to be a non-pointer?
-func newStructObject(rt reflect.Type, desc string) (any, error) {
+func newStructObject(rt reflect.Type, descWithoutUnescape string) (any, error) {
 	var err error
 
-	fields := strings.Split(desc, "_")
+	fields := strings.Split(descWithoutUnescape, "_")
 	for i := range fields {
 		fields[i], err = url.QueryUnescape(fields[i])
 		if err != nil {
@@ -228,8 +228,11 @@ func (tags QueryTags) Decode(rawQuery string, v any) (rerr error) {
 			continue
 		}
 		qv := qvs[len(qvs)-1]
-		// TODO: should set zero value if empty?
 		if qv == "" {
+			// set zero value if empty?
+			if err := reflectutils.Set(v, tag.path, qv); err != nil {
+				return fmt.Errorf("failed to set %q to %v: %w", tag.path, v, err)
+			}
 			continue
 		}
 
@@ -273,7 +276,11 @@ func (tags QueryTags) Decode(rawQuery string, v any) (rerr error) {
 				return fmt.Errorf("failed to set %q to %v: %w", tag.path, v, err)
 			}
 		default:
-			if err := reflectutils.Set(v, tag.path, qv); err != nil {
+			unescape, err := url.QueryUnescape(qv)
+			if err != nil {
+				return fmt.Errorf("failed to unescape %q: %w", qv, err)
+			}
+			if err := reflectutils.Set(v, tag.path, unescape); err != nil {
 				return fmt.Errorf("failed to set %q to %v: %w", tag.path, v, err)
 			}
 		}

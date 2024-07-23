@@ -202,8 +202,8 @@ func TestParseQueryTags(t *testing.T) {
 	}
 }
 
-func TestQueryUnmarshal(t *testing.T) {
-	q := `id=1&name=John&Age=30&emails=a%2C,b,c&addresses=Shanghai_China_descA_1000,Hangzhou%7C_China_descB_12300&company_address=Suzhou_China_descC_8888`
+func TestQueryTagsDecode(t *testing.T) {
+	q := `foo=&id=1&keyword=user4%40gmail.com&name=John&Age=30&emails=a%2C,b,c&addresses=Shanghai_China_descA_1000,Hangzhou%7C_China_descB_12300&company_address=Suzhou_China_descC_8888`
 
 	type Embbeded struct {
 		Description string `json:"description"`
@@ -218,21 +218,31 @@ func TestQueryUnmarshal(t *testing.T) {
 
 	type User struct {
 		ID             int       `query:"id"`
+		Keyword        string    `query:"keyword"`
 		Name           string    `query:"name"`
 		Age            int       `query:""`
 		Emails         []string  `query:"emails"`
 		Addresses      []Address `query:"addresses"`
 		CompanyAddress *Address  `query:"company_address"`
+
+		Foo string `query:"foo"`
+		Bar string `query:"bar"`
 	}
 
-	user := User{}
+	user := User{
+		Foo: "foo",
+		Bar: "bar",
+	}
 
 	tags, err := ParseQueryTags(user)
 	assert.NoError(t, err)
 
 	err = tags.Decode(q, &user)
 	assert.NoError(t, err)
+	assert.Equal(t, "", user.Foo)
+	assert.Equal(t, "bar", user.Bar)
 	assert.Equal(t, 1, user.ID)
+	assert.Equal(t, "user4@gmail.com", user.Keyword)
 	assert.Equal(t, "John", user.Name)
 	assert.Equal(t, 30, user.Age)
 	assert.Equal(t, []string{"a,", "b", "c"}, user.Emails)
