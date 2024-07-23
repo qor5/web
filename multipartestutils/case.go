@@ -79,7 +79,6 @@ func RunCase(t *testing.T, c TestCase, handler http.Handler) {
 		if err != nil {
 			t.Errorf("%s for: %s", err, w.Body.String())
 		}
-		body = er.Body
 	}
 
 	if c.PageMatch != nil {
