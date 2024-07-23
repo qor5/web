@@ -9,7 +9,7 @@ require (
 	github.com/samber/lo v1.40.0
 	github.com/spaolacci/murmur3 v1.1.0
 	github.com/stretchr/testify v1.9.0
-	github.com/sunfmin/reflectutils v1.0.5
+	github.com/sunfmin/reflectutils v1.0.6-0.20240723093451-ac287aca03a9
 	github.com/theplant/htmlgo v1.0.3
 	github.com/theplant/htmltestingutils v0.0.0-20190423050759-0e06de7b6967
 	github.com/theplant/inject v0.0.1
