@@ -99,6 +99,15 @@ func (e *EventContext) ParamAsInt(key string) (r int) {
 	return
 }
 
+func (e *EventContext) ParamAsBool(key string) (r bool) {
+	strVal := e.Param(key)
+	if len(strVal) == 0 {
+		return
+	}
+	r, _ = strconv.ParseBool(strVal)
+	return
+}
+
 func (e *EventContext) Queries() (r url.Values) {
 	r = e.R.URL.Query()
 	delete(r, EventFuncIDName)
