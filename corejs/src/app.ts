@@ -60,9 +60,7 @@ export const Root = defineComponent({
         isFetching.value = false
       })
       window.addEventListener('popstate', (evt) => {
-        if (evt && evt.state != null) {
-          _plaid().onpopstate(evt)
-        }
+        _plaid().onpopstate(evt)
       })
     })
 

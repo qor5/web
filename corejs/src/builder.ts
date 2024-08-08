@@ -200,9 +200,8 @@ export class Builder {
   }
 
   public onpopstate(event: any): Promise<void | EventResponse> {
-    if (!event.state) {
-      // hashtag changes will trigger popstate, when this happens, event.state is null.
-      return Promise.reject('event state is undefined')
+    if (!event || !event.state) {
+      return this.popstate(true).location(window.location.href).reload().go()
     }
     return this.popstate(true).location(event.state).reload().go()
   }
