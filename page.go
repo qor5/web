@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"mime/multipart"
 	"net/http"
 
 	h "github.com/theplant/htmlgo"
@@ -12,12 +11,14 @@ import (
 
 var Default = New()
 
+const ReloadEventFuncID = "__reload__"
+
 func Page(pf PageFunc, efs ...interface{}) (p *PageBuilder) {
 	p = &PageBuilder{
 		b: Default,
 	}
 	p.pageRenderFunc = pf
-	p.RegisterEventFunc("__reload__", reload)
+	p.RegisterEventFunc(ReloadEventFuncID, reload)
 	p.EventFuncs(efs...)
 	return
 }
@@ -26,7 +27,6 @@ type PageBuilder struct {
 	EventsHub
 	b                *Builder
 	pageRenderFunc   PageFunc
-	maxFormSize      int64
 	eventFuncWrapper func(in EventFunc) EventFunc
 }
 
@@ -47,12 +47,6 @@ func (p *PageBuilder) Wrap(middlewares ...func(in PageFunc) PageFunc) (r *PageBu
 		pf = m(pf)
 	}
 	p.pageRenderFunc = pf
-	r = p
-	return
-}
-
-func (p *PageBuilder) MaxFormSize(v int64) (r *PageBuilder) {
-	p.maxFormSize = v
 	r = p
 	return
 }
@@ -130,20 +124,6 @@ func (p *PageBuilder) index(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-}
-
-func (p *PageBuilder) parseForm(r *http.Request) *multipart.Form {
-	maxSize := p.maxFormSize
-	if maxSize == 0 {
-		maxSize = 128 << 20 // 128MB
-	}
-
-	err := r.ParseMultipartForm(maxSize)
-	if err != nil {
-		panic(err)
-	}
-
-	return r.MultipartForm
 }
 
 const EventFuncIDName = "__execute_event__"
