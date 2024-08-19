@@ -9,7 +9,6 @@
 <script setup lang="ts">
 import {
   type DefineComponent,
-  onBeforeMount,
   onBeforeUnmount,
   onMounted,
   onUpdated,
