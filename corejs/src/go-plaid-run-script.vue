@@ -1,18 +1,20 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted as vueOnMounted, watch, watchEffect } from 'vue'
 
 const props = defineProps({
-  script: {
+  onMounted: {
     type: Function,
     required: true
   }
 })
 
-onMounted(() => {
-  props.script()
+vueOnMounted(() => {
+  props.onMounted({ window, watch, watchEffect })
 })
 </script>
 
 <template>
-  <slot></slot>
+  <div v-if="false">
+    <!-- This won't render anything and no warning -->
+  </div>
 </template>

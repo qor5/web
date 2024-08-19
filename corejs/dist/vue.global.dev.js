@@ -1,5 +1,5 @@
 /**
-* vue v3.4.36
+* vue v3.4.38
 * (c) 2018-present Yuxi (Evan) You and Vue contributors
 * @license MIT
 **/
@@ -820,7 +820,7 @@ var Vue = (function (exports) {
         return isShallow2;
       } else if (key === "__v_raw") {
         if (receiver === (isReadonly2 ? isShallow2 ? shallowReadonlyMap : readonlyMap : isShallow2 ? shallowReactiveMap : reactiveMap).get(target) || // receiver is not the reactive proxy, but has the same prototype
-        // this means the reciever is a user proxy of the reactive proxy
+        // this means the receiver is a user proxy of the reactive proxy
         Object.getPrototypeOf(target) === Object.getPrototypeOf(receiver)) {
           return target;
         }
@@ -2939,7 +2939,7 @@ getter: `, this.getter);
       }
       function pruneCacheEntry(key) {
         const cached = cache.get(key);
-        if (!current || !isSameVNodeType(cached, current)) {
+        if (cached && (!current || !isSameVNodeType(cached, current))) {
           unmount(cached);
         } else if (current) {
           resetShapeFlag(current);
@@ -3001,6 +3001,10 @@ getter: `, this.getter);
           return rawVNode;
         }
         let vnode = getInnerChild(rawVNode);
+        if (vnode.type === Comment) {
+          current = null;
+          return vnode;
+        }
         const comp = vnode.type;
         const name = getComponentName(
           isAsyncWrapper(vnode) ? vnode.type.__asyncResolved || {} : comp
@@ -4293,7 +4297,7 @@ If you want to remount the same app, move your app creation logic into a factory
   function inject(key, defaultValue, treatDefaultAsFactory = false) {
     const instance = currentInstance || currentRenderingInstance;
     if (instance || currentApp) {
-      const provides = instance ? instance.parent == null ? instance.vnode.appContext && instance.vnode.appContext.provides : instance.parent.provides : currentApp._context.provides;
+      const provides = currentApp ? currentApp._context.provides : instance ? instance.parent == null ? instance.vnode.appContext && instance.vnode.appContext.provides : instance.parent.provides : void 0;
       if (provides && key in provides) {
         return provides[key];
       } else if (arguments.length > 1) {
@@ -7193,13 +7197,13 @@ Server rendered element contains fewer child nodes than client vdom.`
           namespace
         );
       }
+      container._vnode = vnode;
       if (!isFlushing) {
         isFlushing = true;
         flushPreFlushCbs();
         flushPostFlushCbs();
         isFlushing = false;
       }
-      container._vnode = vnode;
     };
     const internals = {
       p: patch,
@@ -7601,7 +7605,8 @@ Server rendered element contains fewer child nodes than client vdom.`
           return options.get ? options.get(localValue) : localValue;
         },
         set(value) {
-          if (!hasChanged(value, localValue) && !(prevSetValue !== EMPTY_OBJ && hasChanged(value, prevSetValue))) {
+          const emittedValue = options.set ? options.set(value) : value;
+          if (!hasChanged(emittedValue, localValue) && !(prevSetValue !== EMPTY_OBJ && hasChanged(value, prevSetValue))) {
             return;
           }
           const rawProps = i.vnode.props;
@@ -7610,7 +7615,6 @@ Server rendered element contains fewer child nodes than client vdom.`
             localValue = value;
             trigger();
           }
-          const emittedValue = options.set ? options.set(value) : value;
           i.emit(`update:${name}`, emittedValue);
           if (hasChanged(value, emittedValue) && hasChanged(value, prevSetValue) && !hasChanged(emittedValue, prevEmittedValue)) {
             trigger();
@@ -7648,9 +7652,9 @@ Server rendered element contains fewer child nodes than client vdom.`
       } = instance;
       if (emitsOptions) {
         if (!(event in emitsOptions) && true) {
-          if (!propsOptions || !(toHandlerKey(event) in propsOptions)) {
+          if (!propsOptions || !(toHandlerKey(camelize(event)) in propsOptions)) {
             warn$1(
-              `Component emitted event "${event}" but it is neither declared in the emits option nor as an "${toHandlerKey(event)}" prop.`
+              `Component emitted event "${event}" but it is neither declared in the emits option nor as an "${toHandlerKey(camelize(event))}" prop.`
             );
           }
         } else {
@@ -9676,7 +9680,7 @@ Component that was made reactive: `,
     return true;
   }
 
-  const version = "3.4.36";
+  const version = "3.4.38";
   const warn = warn$1 ;
   const ErrorTypeStrings = ErrorTypeStrings$1 ;
   const devtools = devtools$1 ;
@@ -10099,8 +10103,10 @@ Component that was made reactive: `,
       setVarsOnVNode(instance.subTree, vars);
       updateTeleports(vars);
     };
-    onMounted(() => {
+    onBeforeMount(() => {
       watchPostEffect(setVars);
+    });
+    onMounted(() => {
       const ob = new MutationObserver(setVars);
       ob.observe(instance.subTree.el.parentNode, { childList: true });
       onUnmounted(() => ob.disconnect());
@@ -12375,8 +12381,9 @@ Use a v-bind binding combined with a v-on listener that emits update:x event ins
   const validFirstIdentCharRE = /[A-Za-z_$\xA0-\uFFFF]/;
   const validIdentCharRE = /[\.\?\w$\xA0-\uFFFF]/;
   const whitespaceRE = /\s+[.[]\s*|\s*[.[]\s+/g;
-  const isMemberExpressionBrowser = (path) => {
-    path = path.trim().replace(whitespaceRE, (s) => s.trim());
+  const getExpSource = (exp) => exp.type === 4 ? exp.content : exp.loc.source;
+  const isMemberExpressionBrowser = (exp) => {
+    const path = getExpSource(exp).trim().replace(whitespaceRE, (s) => s.trim());
     let state = 0 /* inMemberExp */;
     let stateStack = [];
     let currentOpenBracketCount = 0;
@@ -12438,6 +12445,9 @@ Use a v-bind binding combined with a v-on listener that emits update:x event ins
     return !currentOpenBracketCount && !currentOpenParensCount;
   };
   const isMemberExpression = isMemberExpressionBrowser ;
+  const fnExpRE = /^\s*(async\s*)?(\([^)]*?\)|[\w$_]+)\s*(:[^=]+)?=>|^\s*(async\s+)?function(?:\s+[\w$]+)?\s*\(/;
+  const isFnExpressionBrowser = (exp) => fnExpRE.test(getExpSource(exp));
+  const isFnExpression = isFnExpressionBrowser ;
   function assert(condition, msg) {
     if (!condition) {
       throw new Error(msg || `unexpected compiler condition`);
@@ -15269,7 +15279,7 @@ Use a v-bind binding combined with a v-on listener that emits update:x event ins
         } else {
           exp = isProp.exp;
           if (!exp) {
-            exp = createSimpleExpression(`is`, false, isProp.loc);
+            exp = createSimpleExpression(`is`, false, isProp.arg.loc);
           }
         }
         if (exp) {
@@ -15737,7 +15747,6 @@ Use a v-bind binding combined with a v-on listener that emits update:x event ins
     };
   }
 
-  const fnExpRE = /^\s*(async\s*)?(\([^)]*?\)|[\w$_]+)\s*(:[^=]+)?=>|^\s*(async\s+)?function(?:\s+[\w$]+)?\s*\(/;
   const transformOn$1 = (dir, node, context, augmentor) => {
     const { loc, modifiers, arg } = dir;
     if (!dir.exp && !modifiers.length) {
@@ -15781,8 +15790,8 @@ Use a v-bind binding combined with a v-on listener that emits update:x event ins
     }
     let shouldCache = context.cacheHandlers && !exp && !context.inVOnce;
     if (exp) {
-      const isMemberExp = isMemberExpression(exp.content);
-      const isInlineStatement = !(isMemberExp || fnExpRE.test(exp.content));
+      const isMemberExp = isMemberExpression(exp);
+      const isInlineStatement = !(isMemberExp || isFnExpression(exp));
       const hasMultipleStatements = exp.content.includes(`;`);
       {
         validateBrowserExpression(
@@ -15930,7 +15939,7 @@ Use a v-bind binding combined with a v-on listener that emits update:x event ins
       return createTransformProps();
     }
     const maybeRef = false;
-    if (!expString.trim() || !isMemberExpression(expString) && !maybeRef) {
+    if (!expString.trim() || !isMemberExpression(exp) && !maybeRef) {
       context.onError(
         createCompilerError(42, exp.loc)
       );

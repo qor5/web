@@ -1,5 +1,7 @@
 <template>
-  <slot></slot>
+  <div v-if="false">
+    <!-- This won't render anything and no warning -->
+  </div>
 </template>
 
 <script setup lang="ts">
