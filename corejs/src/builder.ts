@@ -2,6 +2,7 @@ import type { EventFuncID, EventResponse, Location, Queries, QueryValue } from '
 import { buildPushState, objectToFormData, encodeObjectToQuery, isRawQuerySubset } from '@/utils'
 import querystring from 'query-string'
 import jsonpatch from 'fast-json-patch'
+import lodash from 'lodash'
 
 declare let window: any
 
@@ -19,6 +20,7 @@ export class Builder {
   _updateRootTemplate?: any
   _buildPushStateResult?: any
   parent?: Builder
+  lodash: any = lodash
 
   readonly ignoreErrors = [
     'Failed to fetch', // Chrome

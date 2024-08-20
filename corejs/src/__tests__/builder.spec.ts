@@ -254,4 +254,31 @@ describe('builder', () => {
     const [, , url] = b.buildPushStateArgs()
     expect(url).toEqual('/page1?order_bys=Name|ASC,Age|DESC')
   })
+
+  it('lodash', () => {
+    const obj1 = {
+      name: 'Alice',
+      age: 25,
+      version: '1.0',
+      details: {
+        city: 'New York'
+      }
+    }
+
+    const obj2 = {
+      name: 'Alice',
+      details: {
+        city: 'New York'
+      },
+      age: 25,
+      version: '2.0'
+    }
+    expect(plaid().lodash.isEqual(obj1, obj2)).toEqual(false)
+    expect(
+      plaid().lodash.isEqual(
+        plaid().lodash.omit(obj1, 'version'),
+        plaid().lodash.omit(obj2, 'version')
+      )
+    ).toEqual(true)
+  })
 })
