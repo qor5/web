@@ -65,7 +65,7 @@ func Actionable[T h.HTMLComponent](ctx context.Context, c T, children ...h.HTMLC
 	if ok {
 		children = append([]h.HTMLComponent{
 			// borrow to get the document
-			h.Div().Attr("v-run", fmt.Sprintf(`(el) => {
+			h.Div().Attr("v-on-mounted", fmt.Sprintf(`({el}) => {
 	const cookieTags = locals.%s().filter(tag => tag.cookie)
 	locals.%s = function(v) {
 		if (!v.sync_query || !el.ownerDocument) {

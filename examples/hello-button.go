@@ -19,7 +19,7 @@ func HelloButton(ctx *web.EventContext) (pr web.PageResponse, err error) {
 		Button("Hello").Attr("@click", web.POST().EventFunc("reload").Go()),
 		Tag("input").
 			Attr("type", "text").
-			Attr("v-run", "(el) => el.focus()").
+			Attr("v-on-mounted", "({el}) => el.focus()").
 			Attr("value", s.Message).
 			Attr("@input", web.POST().
 				EventFunc("reload").

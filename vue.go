@@ -322,7 +322,7 @@ func GlobalEvents() *h.HTMLTagBuilder {
 }
 
 func RunScript(s string) *h.HTMLTagBuilder {
-	return h.Tag("go-plaid-run-script").Attr(":script", s)
+	return h.Div().Style("display: none;").Attr("v-on-mounted", s)
 }
 
 func Emit(name string, payloads ...any) string {

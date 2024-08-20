@@ -12,13 +12,21 @@ import {
 import { GlobalEvents } from 'vue-global-events'
 import GoPlaidScope from '@/go-plaid-scope.vue'
 import GoPlaidPortal from '@/go-plaid-portal.vue'
-import GoPlaidRunScript from '@/go-plaid-run-script.vue'
 import GoPlaidListener from '@/go-plaid-listener.vue'
 import ParentSizeObserver from '@/parent-size-observer.vue'
 import { componentByTemplate } from '@/utils'
 import { Builder, plaid } from '@/builder'
 import { keepScroll } from '@/keepScroll'
-import { assignOnMounted, runOnMounted } from '@/assign'
+import { assignOnMounted } from '@/assign'
+import {
+  runOnCreated,
+  runBeforeMount,
+  runOnMounted,
+  runBeforeUpdate,
+  runOnUpdated,
+  runBeforeUnmount,
+  runOnUnmounted
+} from '@/lifecycle'
 import { TinyEmitter } from 'tiny-emitter'
 
 export const Root = defineComponent({
@@ -79,12 +87,17 @@ export const plaidPlugin = {
   install(app: App) {
     app.component('GoPlaidScope', GoPlaidScope)
     app.component('GoPlaidPortal', GoPlaidPortal)
-    app.component('GoPlaidRunScript', GoPlaidRunScript)
     app.component('GoPlaidListener', GoPlaidListener)
     app.component('ParentSizeObserver', ParentSizeObserver)
     app.directive('keep-scroll', keepScroll)
     app.directive('assign', assignOnMounted)
-    app.directive('run', runOnMounted)
+    app.directive('on-created', runOnCreated)
+    app.directive('before-mount', runBeforeMount)
+    app.directive('on-mounted', runOnMounted)
+    app.directive('before-update', runBeforeUpdate)
+    app.directive('on-updated', runOnUpdated)
+    app.directive('before-unmount', runBeforeUnmount)
+    app.directive('on-unmounted', runOnUnmounted)
     app.component('GlobalEvents', GlobalEvents)
   }
 }

@@ -172,7 +172,7 @@ describe('scope', () => {
     expect(txt.text()).toEqual(`345`)
   })
 
-  it('simulate computed via locals and runscript', async () => {
+  it('simulate computed via locals and v-on-mounted', async () => {
     const wrapper = mountTemplate(`
             <go-plaid-scope :init="{
               hello:'123',
@@ -180,12 +180,12 @@ describe('scope', () => {
                 return '234'
               }
             }" v-slot="{ locals }">
-              <go-plaid-run-script :script="function() {
+              <div v-on-mounted="function() {
                 locals.hello = '666'
                 locals.computedFunc = function() {
                   return this.hello
                 }
-              }"></go-plaid-run-script>
+              }"></div>
               <button id="btn"
                   @click='locals.hello = "888";'>
               </button>

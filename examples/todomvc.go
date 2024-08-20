@@ -61,7 +61,7 @@ func (c *TodoApp) MarshalHTML(ctx context.Context) ([]byte, error) {
 			Header().Class("header").Children(
 				H1("Todos"),
 				Input("").
-					Attr("v-run", "(el) => el.focus()").
+					Attr("v-on-mounted", "({el}) => el.focus()").
 					Class("new-todo").
 					Attr("id", fmt.Sprintf("%s-creator", c.ID)).
 					Attr("placeholder", "What needs to be done?").
