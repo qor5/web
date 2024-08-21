@@ -354,3 +354,11 @@ export function isRawQuerySubset(
   const subValues = querystring.parse(sub, options)
   return isQuerySubset(supValues, subValues)
 }
+
+export function parsePathAndQuery(href: string) {
+  if (/^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(href)) {
+    const url = new URL(href)
+    return url.pathname + url.search
+  }
+  return href
+}

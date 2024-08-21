@@ -1,5 +1,11 @@
 import type { EventFuncID, EventResponse, Location, Queries, QueryValue } from './types'
-import { buildPushState, objectToFormData, encodeObjectToQuery, isRawQuerySubset } from '@/utils'
+import {
+  buildPushState,
+  objectToFormData,
+  encodeObjectToQuery,
+  isRawQuerySubset,
+  parsePathAndQuery
+} from '@/utils'
 import querystring from 'query-string'
 import jsonpatch from 'fast-json-patch'
 import lodash from 'lodash'
@@ -203,18 +209,19 @@ export class Builder {
 
   public onpopstate(event: any): Promise<void | EventResponse> {
     if (!event || !event.state) {
-      return this.popstate(true).location(window.location.href).reload().go()
+      return this.popstate(true).url(parsePathAndQuery(window.location.href)).reload().go()
     }
     return this.popstate(true).location(event.state).reload().go()
   }
 
   public runPushState() {
     if (this._popstate !== true && this._pushState === true) {
-      if (window.history.length <= 2) {
-        window.history.pushState({ url: window.location.href }, '', window.location.href)
-      }
       const args = this.buildPushStateArgs()
       if (args) {
+        if (args[2] === parsePathAndQuery(window.location.href)) {
+          window.history.replaceState(...args)
+          return
+        }
         window.history.pushState(...args)
       }
     }
@@ -336,7 +343,7 @@ export class Builder {
       return
     }
 
-    const defaultURL = window.location.href
+    const defaultURL = parsePathAndQuery(window.location.href)
 
     this._buildPushStateResult = buildPushState(
       {

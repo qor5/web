@@ -1,4 +1,10 @@
-import { objectToFormData, setFormValue, encodeObjectToQuery, isRawQuerySubset } from '../utils'
+import {
+  objectToFormData,
+  setFormValue,
+  encodeObjectToQuery,
+  isRawQuerySubset,
+  parsePathAndQuery
+} from '../utils'
 import { describe, it, expect } from 'vitest'
 
 describe('utils', () => {
@@ -152,5 +158,17 @@ describe('utils', () => {
 
     sub = 'id=1&name=John&age=30&emails=a%2C,b,c&addresses=Shanghai'
     expect(isRawQuerySubset(sup, sub)).toBe(false)
+  })
+
+  it('parsePathAndQuery', () => {
+    expect(
+      parsePathAndQuery('https://www.example.com/path/to/resource?name=value&key=value')
+    ).toEqual('/path/to/resource?name=value&key=value')
+    expect(parsePathAndQuery('/path/to/resource?name=value&key=value')).toEqual(
+      '/path/to/resource?name=value&key=value'
+    )
+    expect(parsePathAndQuery('/path/to/resource?name=value&key=value#1')).toEqual(
+      '/path/to/resource?name=value&key=value#1'
+    )
   })
 })
