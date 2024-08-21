@@ -1,4 +1,4 @@
-import { parsePathAndQuery } from '@/utils'
+import { parsePathAndQuery, generateUniqueId } from '@/utils'
 
 export interface HistoryRecord {
   state: any
@@ -39,7 +39,7 @@ export class HistoryManager {
     if (!state) {
       state = {}
     }
-    state.__uniqueId = Math.random().toString(36).substr(2, 9)
+    state.__uniqueId = generateUniqueId()
 
     this.stack = this.stack.slice(0, this.currentIndex + 1)
     this.stack.push({ state: state, unused: unused, url: url })
@@ -59,7 +59,7 @@ export class HistoryManager {
       if (!state) {
         state = {}
       }
-      state.__uniqueId = Math.random().toString(36).substr(2, 9)
+      state.__uniqueId = generateUniqueId()
 
       this.stack[this.currentIndex] = { state: state, unused: unused, url: url }
       if (debug) {

@@ -1,3 +1,5 @@
+import { generateUniqueId } from '@/utils'
+
 export type FetchInterceptor = {
   onRequest?: (id: string, resource: RequestInfo | URL, config?: RequestInit) => void
   onResponse?: (id: string, response: Response, resource: RequestInfo, config?: RequestInit) => void
@@ -5,11 +7,6 @@ export type FetchInterceptor = {
 
 // Global Map to store the mapping between request ID and Request info
 const requestMap = new Map<string, { resource: RequestInfo | URL; config?: RequestInit }>()
-
-// Function to generate a unique identifier (you can use a more complex strategy if needed)
-const generateUniqueId = (): string => {
-  return Math.random().toString(36).substr(2, 9) // Simple unique ID generation
-}
 
 const originalFetch: typeof window.fetch = window.fetch
 

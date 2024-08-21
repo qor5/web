@@ -3,7 +3,8 @@ import {
   setFormValue,
   encodeObjectToQuery,
   isRawQuerySubset,
-  parsePathAndQuery
+  parsePathAndQuery,
+  generateUniqueId
 } from '../utils'
 import { describe, it, expect } from 'vitest'
 
@@ -170,5 +171,13 @@ describe('utils', () => {
     expect(parsePathAndQuery('/path/to/resource?name=value&key=value#1')).toEqual(
       '/path/to/resource?name=value&key=value#1'
     )
+  })
+
+  it('generateUniqueId', () => {
+    const a = generateUniqueId()
+    const b = generateUniqueId()
+    expect(a.length).toEqual(7)
+    expect(b.length).toEqual(7)
+    expect(a).not.toEqual(b)
   })
 })
