@@ -18,6 +18,7 @@ import { componentByTemplate } from '@/utils'
 import { Builder, plaid } from '@/builder'
 import { keepScroll } from '@/keepScroll'
 import { assignOnMounted } from '@/assign'
+import { initFetchInterceptor } from './fetchInterceptor'
 import {
   runOnCreated,
   runBeforeMount,
@@ -58,11 +59,29 @@ export const Root = defineComponent({
     provide('plaid', _plaid)
     provide('vars', vars)
     const isFetching = ref(false)
+    const isReloadingPage = ref(true)
     provide('isFetching', isFetching)
+    provide('isReloadingPage', isReloadingPage)
+
+    initFetchInterceptor({
+      onRequest(id, resource, config) {
+        // console.log('onReq', id, resource, config)
+        if (typeof resource === 'string' && ['?__execute_event__=__reload__'].includes(resource)) {
+          isReloadingPage.value = true
+        }
+      },
+
+      onResponse(id, response, resource, config) {
+        // console.log('onRes', id, response, resource, config)
+        if (typeof resource === 'string' && ['?__execute_event__=__reload__'].includes(resource)) {
+          isReloadingPage.value = false
+        }
+      }
+    })
 
     onMounted(() => {
       updateRootTemplate(props.initialTemplate)
-
+      isReloadingPage.value = false
       window.addEventListener('fetchStart', () => {
         isFetching.value = true
       })
