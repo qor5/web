@@ -100,20 +100,23 @@ describe('app', () => {
     const form = ref(new FormData())
     mockFetchWithReturnTemplate(form, (url: any) => {
       if (url.includes('__reload__')) {
-        return { body: '<h6></h6>' }
+        return { body: '<h6>c</h6>' }
       } else {
-        return { body: '', pushState: { mergeQuery: true, query: { panel: ['1'] } } }
+        return { body: '<h6>b</h6>', pushState: { mergeQuery: true, query: { panel: ['1'] } } }
       }
     })
     const wrapper = mountTemplate(
       `
+      <h6>a</h6>
       <button @click='plaid().locals(locals).eventFunc("hello").go()'></button>
     `
     )
     await nextTick()
+    expect(wrapper.find('h6').html()).toEqual(`<h6>a</h6>`)
     console.log(wrapper.html())
     await wrapper.find('button').trigger('click')
     await flushPromises()
+    expect(wrapper.find('h6').html()).toEqual(`<h6>c</h6>`)
     console.log(wrapper.html())
   })
 

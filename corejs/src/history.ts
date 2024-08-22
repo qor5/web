@@ -11,8 +11,8 @@ const debug = false
 export class HistoryManager {
   private static instance: HistoryManager | null = null
 
-  private stack: HistoryRecord[] = []
-  private currentIndex = -1
+  private _stack: HistoryRecord[] = []
+  private _currentIndex = -1
 
   private originalPushState: typeof window.history.pushState
   private originalReplaceState: typeof window.history.replaceState
@@ -24,14 +24,14 @@ export class HistoryManager {
     window.history.replaceState = this.replaceState.bind(this)
     window.addEventListener('popstate', this.onPopState.bind(this))
 
-    this.stack.push({
+    this._stack.push({
       state: null,
       unused: '',
       url: parsePathAndQuery(window.location.href)
     })
-    this.currentIndex = 0
+    this._currentIndex = 0
     if (debug) {
-      console.log('init', this.stack, this.currentIndex)
+      console.log('init', this._stack, this._currentIndex)
       console.log('currentState', this.current())
       console.log('lastState', this.last())
     }
@@ -50,12 +50,12 @@ export class HistoryManager {
     }
     state.__uniqueId = generateUniqueId()
 
-    this.stack = this.stack.slice(0, this.currentIndex + 1)
-    this.stack.push({ state: state, unused: unused, url: url })
-    this.currentIndex++
+    this._stack = this._stack.slice(0, this._currentIndex + 1)
+    this._stack.push({ state: state, unused: unused, url: url })
+    this._currentIndex++
 
     if (debug) {
-      console.log('pushState', this.stack, this.currentIndex)
+      console.log('pushState', this._stack, this._currentIndex)
       console.log('currentState', this.current())
       console.log('lastState', this.last())
     }
@@ -64,15 +64,15 @@ export class HistoryManager {
   }
 
   private replaceState(state: any, unused: string, url?: string | URL | null): void {
-    if (this.currentIndex >= 0) {
+    if (this._currentIndex >= 0) {
       if (!state) {
         state = {}
       }
       state.__uniqueId = generateUniqueId()
 
-      this.stack[this.currentIndex] = { state: state, unused: unused, url: url }
+      this._stack[this._currentIndex] = { state: state, unused: unused, url: url }
       if (debug) {
-        console.log('replaceState', this.stack, this.currentIndex)
+        console.log('replaceState', this._stack, this._currentIndex)
         console.log('currentState', this.current())
         console.log('lastState', this.last())
       }
@@ -81,22 +81,22 @@ export class HistoryManager {
         'Invalid state index for replaceState ' +
           JSON.stringify(state) +
           ' stack:' +
-          JSON.stringify(this.stack)
+          JSON.stringify(this._stack)
       )
     }
     this.originalReplaceState(state, unused, url)
   }
 
   private onPopState(event: PopStateEvent): void {
-    const index = this.stack.findIndex(
+    const index = this._stack.findIndex(
       (v) =>
         (!event.state && !v.state) ||
         (v.state && event.state && v.state.__uniqueId === event.state.__uniqueId)
     )
     let behavior = ''
-    if (index < this.currentIndex) {
+    if (index < this._currentIndex) {
       behavior = 'Back'
-    } else if (index > this.currentIndex) {
+    } else if (index > this._currentIndex) {
       behavior = 'Forward'
     }
     if (index === -1) {
@@ -104,27 +104,35 @@ export class HistoryManager {
         'Invalid state index for popstate ' +
           JSON.stringify(event.state) +
           ' stack:' +
-          JSON.stringify(this.stack)
+          JSON.stringify(this._stack)
       )
     }
-    this.currentIndex = index
+    this._currentIndex = index
 
     if (debug) {
       console.log('popstate', event.state)
-      console.log('onPopState', behavior, this.stack, this.currentIndex)
+      console.log('onPopState', behavior, this._stack, this._currentIndex)
       console.log('currentState', this.current())
       console.log('lastState', this.last())
     }
   }
 
+  public stack(): HistoryRecord[] {
+    return this._stack
+  }
+
+  public currentIndex(): number {
+    return this._currentIndex
+  }
+
   public current(): HistoryRecord {
-    return this.stack[this.currentIndex]
+    return this._stack[this._currentIndex]
   }
 
   public last(): HistoryRecord | null {
-    if (this.currentIndex === 0) {
+    if (this._currentIndex === 0) {
       return null
     }
-    return this.stack[this.currentIndex - 1]
+    return this._stack[this._currentIndex - 1]
   }
 }
