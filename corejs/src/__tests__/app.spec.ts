@@ -111,7 +111,9 @@ describe('app', () => {
     `
     )
     await nextTick()
+    console.log(wrapper.html())
     await wrapper.find('button').trigger('click')
+    await flushPromises()
     console.log(wrapper.html())
   })
 

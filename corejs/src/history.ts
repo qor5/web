@@ -9,13 +9,15 @@ export interface HistoryRecord {
 const debug = false
 
 export class HistoryManager {
+  private static instance: HistoryManager | null = null
+
   private stack: HistoryRecord[] = []
   private currentIndex = -1
 
   private originalPushState: typeof window.history.pushState
   private originalReplaceState: typeof window.history.replaceState
 
-  constructor() {
+  private constructor() {
     this.originalPushState = window.history.pushState.bind(window.history)
     this.originalReplaceState = window.history.replaceState.bind(window.history)
     window.history.pushState = this.pushState.bind(this)
@@ -33,6 +35,13 @@ export class HistoryManager {
       console.log('currentState', this.current())
       console.log('lastState', this.last())
     }
+  }
+
+  public static getInstance(): HistoryManager {
+    if (!HistoryManager.instance) {
+      HistoryManager.instance = new HistoryManager()
+    }
+    return HistoryManager.instance
   }
 
   private pushState(state: any, unused: string, url?: string | URL | null): void {
@@ -68,7 +77,12 @@ export class HistoryManager {
         console.log('lastState', this.last())
       }
     } else {
-      throw new Error('Invalid state index')
+      throw new Error(
+        'Invalid state index for replaceState ' +
+          JSON.stringify(state) +
+          ' stack:' +
+          JSON.stringify(this.stack)
+      )
     }
     this.originalReplaceState(state, unused, url)
   }
@@ -86,7 +100,12 @@ export class HistoryManager {
       behavior = 'Forward'
     }
     if (index === -1) {
-      throw new Error('Invalid state index')
+      throw new Error(
+        'Invalid state index for popstate ' +
+          JSON.stringify(event.state) +
+          ' stack:' +
+          JSON.stringify(this.stack)
+      )
     }
     this.currentIndex = index
 

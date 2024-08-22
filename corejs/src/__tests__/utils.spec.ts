@@ -165,6 +165,7 @@ describe('utils', () => {
     expect(
       parsePathAndQuery('https://www.example.com/path/to/resource?name=value&key=value')
     ).toEqual('/path/to/resource?name=value&key=value')
+    expect(parsePathAndQuery('https://www.example.com')).toEqual('/')
     expect(parsePathAndQuery('/path/to/resource?name=value&key=value')).toEqual(
       '/path/to/resource?name=value&key=value'
     )

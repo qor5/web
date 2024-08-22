@@ -51,7 +51,7 @@ export const Root = defineComponent({
 
     const vars = reactive({
       __emitter: new TinyEmitter(),
-      __history: new HistoryManager()
+      __history: HistoryManager.getInstance()
     })
     const _plaid = (): Builder => {
       return plaid().updateRootTemplate(updateRootTemplate).vars(vars)
