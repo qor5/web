@@ -66,14 +66,14 @@ export const Root = defineComponent({
     initFetchInterceptor({
       onRequest(id, resource, config) {
         // console.log('onReq', id, resource, config)
-        if (typeof resource === 'string' && ['?__execute_event__=__reload__'].includes(resource)) {
+        if (typeof resource === 'string' && ['__execute_event__=__reload__'].includes(resource)) {
           isReloadingPage.value = true
         }
       },
 
       onResponse(id, response, resource, config) {
-        // console.log('onRes', id, response, resource, config)
-        if (typeof resource === 'string' && ['?__execute_event__=__reload__'].includes(resource)) {
+        // console.log('onRes', id, response, r esource, config)
+        if (typeof resource === 'string' && ['__execute_event__=__reload__'].includes(resource)) {
           isReloadingPage.value = false
         }
       }

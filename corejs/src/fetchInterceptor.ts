@@ -1,4 +1,5 @@
 import { generateUniqueId } from '@/utils'
+declare let window: any
 
 export type FetchInterceptor = {
   onRequest?: (id: string, resource: RequestInfo | URL, config?: RequestInit) => void
@@ -11,6 +12,9 @@ const requestMap = new Map<string, { resource: RequestInfo | URL; config?: Reque
 const originalFetch: typeof window.fetch = window.fetch
 
 export function initFetchInterceptor(customInterceptor: FetchInterceptor) {
+  // do not rewrite fetch in test env
+  if(typeof window.__vitest_environment__ !== 'undefined') return
+
   // eslint-disable-next-line no-debugger
   window.fetch = async function (
     ...args: [RequestInfo | URL, init?: RequestInit]
