@@ -27,6 +27,15 @@ describe('builder', () => {
     expect(pushedData).toEqual({ query: { name: 'felix' }, url: '/page1?name=felix' })
   })
 
+  it('pushState with pure url', () => {
+    const b = plaid().eventFunc('hello').url('/page1?hello=1&page=2')
+
+    expect(b.buildFetchURL()).toEqual('/page1?__execute_event__=hello&hello=1&page=2')
+    const [pushedData, , url] = b.buildPushStateArgs()
+    expect(url).toEqual('/page1?hello=1&page=2')
+    expect(pushedData).toEqual({ query: { hello: '1', page: '2' }, url: '/page1?hello=1&page=2' })
+  })
+
   it('pushState with clearMergeQuery will delete provided keys then mergeQuery', () => {
     const b = plaid()
       .url(

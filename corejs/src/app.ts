@@ -29,6 +29,7 @@ import {
   runOnUnmounted
 } from '@/lifecycle'
 import { TinyEmitter } from 'tiny-emitter'
+import { HistoryManager } from '@/history'
 
 export const Root = defineComponent({
   props: {
@@ -49,7 +50,8 @@ export const Root = defineComponent({
     provide('updateRootTemplate', updateRootTemplate)
 
     const vars = reactive({
-      __emitter: new TinyEmitter()
+      __emitter: new TinyEmitter(),
+      __history: HistoryManager.getInstance()
     })
     const _plaid = (): Builder => {
       return plaid().updateRootTemplate(updateRootTemplate).vars(vars)

@@ -1,3 +1,4 @@
 .idea
 .vscode
-./__*
+__*
+!__tests__

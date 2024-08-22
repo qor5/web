@@ -1,3 +1,4 @@
+import { generateUniqueId } from '@/utils'
 declare let window: any
 
 export type FetchInterceptor = {
@@ -8,16 +9,11 @@ export type FetchInterceptor = {
 // Global Map to store the mapping between request ID and Request info
 const requestMap = new Map<string, { resource: RequestInfo | URL; config?: RequestInit }>()
 
-// Function to generate a unique identifier (you can use a more complex strategy if needed)
-const generateUniqueId = (): string => {
-  return Math.random().toString(36).substr(2, 9) // Simple unique ID generation
-}
-
 const originalFetch: typeof window.fetch = window.fetch
 
 export function initFetchInterceptor(customInterceptor: FetchInterceptor) {
   // do not rewrite fetch in test env
-  if(typeof window.__vitest_environment__ !== 'undefined') return
+  if (typeof window.__vitest_environment__ !== 'undefined') return
 
   // eslint-disable-next-line no-debugger
   window.fetch = async function (
