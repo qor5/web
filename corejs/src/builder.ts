@@ -218,7 +218,7 @@ export class Builder {
     if (this._popstate !== true && this._pushState === true) {
       const args = this.buildPushStateArgs()
       if (args) {
-        if (args[2] === parsePathAndQuery(window.location.href)) {
+        if (args.length < 3 || args[2] === parsePathAndQuery(window.location.href)) {
           window.history.replaceState(...args)
           return
         }

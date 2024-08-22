@@ -13,7 +13,7 @@ const originalFetch: typeof window.fetch = window.fetch
 
 export function initFetchInterceptor(customInterceptor: FetchInterceptor) {
   // do not rewrite fetch in test env
-  if(typeof window.__vitest_environment__ !== 'undefined') return
+  if (typeof window.__vitest_environment__ !== 'undefined') return
 
   // eslint-disable-next-line no-debugger
   window.fetch = async function (
