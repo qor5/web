@@ -191,7 +191,10 @@ func postAction(ctx context.Context, c any, method any, request any, o *postActi
 	)))
 	b.StringQuery(web.Var(`(b) => b.__stringQuery__`))
 	b.PushState(web.Var(`(b) => b.__action__.sync_query`))
-	return b.FieldValue(fieldKeyAction, web.Var(`(b) => JSON.stringify(b.__action__, null, "\t")`))
+	return b.BeforeFetch(fmt.Sprintf(`({b, url, opts}) => {
+		opts.body.set(%q, JSON.stringify(b.__action__, null, "\t")); 
+		return [url, opts];
+	}`, fieldKeyAction))
 }
 
 var (

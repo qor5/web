@@ -25,6 +25,7 @@ export class Builder {
   _location?: Location
   _updateRootTemplate?: any
   _buildPushStateResult?: any
+  _beforeFetch?: Function
   parent?: Builder
   lodash: any = lodash
 
@@ -178,6 +179,11 @@ export class Builder {
     return this
   }
 
+  public beforeFetch(v: Function): Builder {
+    this._beforeFetch = v
+    return this
+  }
+
   public popstate(v: boolean): Builder {
     this._popstate = v
     return this
@@ -234,7 +240,7 @@ export class Builder {
 
     this.runPushState()
 
-    const fetchOpts: RequestInit = {
+    let fetchOpts: RequestInit = {
       method: 'POST',
       redirect: 'follow'
     }
@@ -250,7 +256,10 @@ export class Builder {
     }
 
     window.dispatchEvent(new Event('fetchStart'))
-    const fetchURL = this.buildFetchURL()
+    let fetchURL = this.buildFetchURL()
+    if (this._beforeFetch) {
+      ;[fetchURL, fetchOpts] = this._beforeFetch({ b: this, url: fetchURL, opts: fetchOpts })
+    }
     return fetch(fetchURL, fetchOpts)
       .then((r) => {
         if (r.redirected) {

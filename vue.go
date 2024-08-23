@@ -197,6 +197,16 @@ func (b *VueEventTagBuilder) FieldValue(name interface{}, v interface{}) (r *Vue
 	return b
 }
 
+// BeforeFetch
+// example: BeforeFetch(`({b, url, opts}) => { url+="#123"; opts.body.set("name", "felix"); return [url, opts] }`)
+func (b *VueEventTagBuilder) BeforeFetch(f string) (r *VueEventTagBuilder) {
+	b.calls = append(b.calls, jsCall{
+		method: "beforeFetch",
+		args:   []interface{}{Var(f)},
+	})
+	return b
+}
+
 func (b *VueEventTagBuilder) Run(v interface{}) (r *VueEventTagBuilder) {
 	b.calls = append(b.calls, jsCall{
 		method: "run",
