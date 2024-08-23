@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import { plaid } from '../builder'
+import { mockFetchWithReturnTemplate, mountTemplate } from './testutils'
+import { flushPromises } from '@vue/test-utils'
+import { nextTick, ref } from 'vue'
 
 describe('builder', () => {
   it('pushState with object will merge into url queries', () => {
@@ -244,6 +247,31 @@ describe('builder', () => {
       avatar: '_storedAvatar_',
       name: 'felix'
     })
+  })
+
+  it('beforeFetch', async () => {
+    const template = `
+      <button @click='plaid().pushState(true).beforeFetch(({url, opts}) => {
+        url = "/pagexxx";
+        opts.body.set("name", "felix");
+        return [url, opts]
+      }).go()'>go to /page1</button>
+    `
+    const wrapper = mountTemplate(template)
+    await nextTick()
+    console.log(wrapper.html())
+
+    let lastURL, lastOpts: any
+    const form = ref(new FormData())
+    mockFetchWithReturnTemplate(form, (url: any, opts: any) => {
+      lastURL = url
+      lastOpts = opts
+      return { body: template }
+    })
+    await wrapper.find('button').trigger('click')
+    await flushPromises()
+    expect(lastURL).toEqual('/pagexxx')
+    expect(lastOpts.body.get('name')).toEqual('felix')
   })
 
   it('stringifyOptions with encode true', () => {
