@@ -366,3 +366,11 @@ export function parsePathAndQuery(href: string) {
 export function generateUniqueId(): string {
   return Math.random().toString(36).slice(2, 9)
 }
+
+export function sleep(delay = 1000) {
+  return new Promise((resolve) => {
+    setTimeout(function () {
+      resolve(undefined)
+    }, delay)
+  })
+}

@@ -26,7 +26,6 @@ export function initFetchInterceptor(customInterceptor: FetchInterceptor) {
 
     // Store the request info in the Map
     requestMap.set(requestId, { resource, config })
-
     // Execute the request phase callback if provided
     if (customInterceptor.onRequest) {
       customInterceptor.onRequest(requestId, resource, config)

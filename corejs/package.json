@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
-    "watch-build": "nodemon --watch src --ext ts,scss --exec 'npm run build'",
+    "watch-build": "nodemon --watch src --ext ts,scss --exec '../build.sh'",
     "test": "vitest",
     "ci-test": "vitest run",
     "build-only": "vite build",
