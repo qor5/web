@@ -105,7 +105,7 @@ export const Root = defineComponent({
         <v-progress-linear 
           :active="vars.globalProgressBar.show"
           :model-value="vars.globalProgressBar.value"
-          height="2"
+          :height="vars.globalProgressBar.height"
           color="vars.globalProgressBar.color"
           style="position: fixed; z-index: 2000;"
         />
