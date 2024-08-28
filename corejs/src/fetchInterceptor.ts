@@ -35,22 +35,31 @@ export function initFetchInterceptor(customInterceptor: FetchInterceptor) {
       // Call the original fetch method to get the response
       const response = await originalFetch(...args)
 
-      // Find the corresponding request info during the response phase
-      const requestInfo = requestMap.get(requestId)
+      // Clone the response to preserve the original response for further use
+      const clonedResponse = response.clone()
 
-      // Execute the response phase callback if provided
-      if (customInterceptor.onResponse && requestInfo) {
-        // Ensure resource is of type RequestInfo before passing to onResponse
-        const resource =
-          requestInfo.resource instanceof URL
-            ? requestInfo.resource.toString()
-            : requestInfo.resource
+      // Start processing the response body without waiting
+      const processingPromise = clonedResponse.json()
 
-        customInterceptor.onResponse(requestId, response, resource, requestInfo.config)
-      }
+      processingPromise.then(() => {
+        const requestInfo = requestMap.get(requestId)
 
-      // After the request is completed, remove the request info from the Map
-      requestMap.delete(requestId)
+        if (customInterceptor.onResponse && requestInfo) {
+          const resource =
+            requestInfo.resource instanceof URL
+              ? requestInfo.resource.toString()
+              : requestInfo.resource
+
+          customInterceptor.onResponse(
+            requestId,
+            response, // Pass the original response
+            resource,
+            requestInfo.config
+          )
+        }
+
+        requestMap.delete(requestId)
+      })
 
       // Return the original response
       return response

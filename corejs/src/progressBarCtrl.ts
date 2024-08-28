@@ -88,8 +88,6 @@ export default class GlobalProgressBarControl {
     }
     // all loaded
     else {
-      // this.progressBarObj.value = 80
-      await sleep(100)
       this.progressBarObj.value = 100
       await sleep(150)
       this.progressBarObj.value = 0
