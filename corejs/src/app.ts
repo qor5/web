@@ -100,8 +100,7 @@ export const Root = defineComponent({
     })
 
     return {
-      current,
-      vars
+      current
     }
   },
 
