@@ -3,8 +3,6 @@ import { sleep } from './utils'
 interface progressBarPayload {
   show: boolean
   value: number
-  color: string
-  height: number
 }
 
 interface payload {

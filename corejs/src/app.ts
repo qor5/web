@@ -55,9 +55,7 @@ export const Root = defineComponent({
       __history: HistoryManager.getInstance(),
       globalProgressBar: {
         show: true,
-        value: 0,
-        color: 'amber',
-        height: 2
+        value: 0
       }
     })
     const _plaid = (): Builder => {
