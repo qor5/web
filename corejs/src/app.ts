@@ -30,6 +30,7 @@ import {
 } from '@/lifecycle'
 import { TinyEmitter } from 'tiny-emitter'
 import { HistoryManager } from '@/history'
+import progressBarController from './progressBarCtrl'
 
 export const Root = defineComponent({
   props: {
@@ -51,7 +52,11 @@ export const Root = defineComponent({
 
     const vars = reactive({
       __emitter: new TinyEmitter(),
-      __history: HistoryManager.getInstance()
+      __history: HistoryManager.getInstance(),
+      globalProgressBar: {
+        show: true,
+        value: 0
+      }
     })
     const _plaid = (): Builder => {
       return plaid().updateRootTemplate(updateRootTemplate).vars(vars)
@@ -59,29 +64,30 @@ export const Root = defineComponent({
     provide('plaid', _plaid)
     provide('vars', vars)
     const isFetching = ref(false)
-    const isReloadingPage = ref(true)
     provide('isFetching', isFetching)
-    provide('isReloadingPage', isReloadingPage)
+    const progressBarCtl = new progressBarController({
+      progressBarObj: vars.globalProgressBar,
+      fetchParamMatchList: ['__execute_event__=__reload__']
+    })
+    // for the first load
+    progressBarCtl.start()
 
     initFetchInterceptor({
       onRequest(id, resource, config) {
-        // console.log('onReq', id, resource, config)
-        if (typeof resource === 'string' && ['__execute_event__=__reload__'].includes(resource)) {
-          isReloadingPage.value = true
-        }
+        // for the ajax load
+        progressBarCtl.start({ resource })
       },
 
       onResponse(id, response, resource, config) {
-        // console.log('onRes', id, response, r esource, config)
-        if (typeof resource === 'string' && ['__execute_event__=__reload__'].includes(resource)) {
-          isReloadingPage.value = false
-        }
+        progressBarCtl.end({ resource })
       }
     })
 
     onMounted(() => {
       updateRootTemplate(props.initialTemplate)
-      isReloadingPage.value = false
+      // for the first load
+      progressBarCtl.end()
+
       window.addEventListener('fetchStart', () => {
         isFetching.value = true
       })
@@ -97,11 +103,8 @@ export const Root = defineComponent({
       current
     }
   },
-  template: `
-      <div id="app" v-cloak>
-        <component :is="current"></component>
-      </div>
-    `
+
+  template: `<component :is="current" />`
 })
 
 export const plaidPlugin = {
