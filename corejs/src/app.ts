@@ -67,21 +67,28 @@ export const Root = defineComponent({
     provide('vars', vars)
     const isFetching = ref(false)
     provide('isFetching', isFetching)
-    const progressBarCtl = new progressBarController(vars.globalProgressBar)
+    const progressBarCtl = new progressBarController({
+      progressBarObj: vars.globalProgressBar,
+      fetchParamMatchList: ['__execute_event__=__reload__']
+    })
+    // for the first load
+    progressBarCtl.start()
 
     initFetchInterceptor({
       onRequest(id, resource, config) {
-        progressBarCtl.start(resource)
+        // for the ajax load
+        progressBarCtl.start({ resource })
       },
 
       onResponse(id, response, resource, config) {
-        progressBarCtl.end(resource)
+        progressBarCtl.end({ resource })
       }
     })
 
     onMounted(() => {
       updateRootTemplate(props.initialTemplate)
-      vars.globalProgressBar.show = false
+      // for the first load
+      progressBarCtl.end()
 
       window.addEventListener('fetchStart', () => {
         isFetching.value = true
@@ -100,18 +107,7 @@ export const Root = defineComponent({
     }
   },
 
-  template: `
-      <div id="app" v-cloak>
-        <v-progress-linear 
-          :active="vars.globalProgressBar.show"
-          :model-value="vars.globalProgressBar.value"
-          :height="vars.globalProgressBar.height"
-          color="vars.globalProgressBar.color"
-          style="position: fixed; z-index: 2000;"
-        />
-        <component :is="current" />
-      </div>
-    `
+  template: `<component :is="current" />`
 })
 
 export const plaidPlugin = {

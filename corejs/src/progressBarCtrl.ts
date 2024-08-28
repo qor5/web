@@ -1,43 +1,112 @@
 import { sleep } from './utils'
 
-interface Payload {
+interface progressBarPayload {
   show: boolean
   value: number
   color: string
   height: number
 }
 
+interface payload {
+  progressBarObj: progressBarPayload
+  fetchParamMatchList: string[]
+}
+
+interface ctrlPayload {
+  resource?: RequestInfo | URL
+}
+
 export default class GlobalProgressBarControl {
-  globalProgressBar: Payload
+  private progressBarObj: progressBarPayload
+  private fetchParamMatchList: string[]
+  private maxStackCount: number
+  private curStackCount: number
+  private defaultProgress: number
 
-  constructor(globalProgressBar: Payload) {
-    this.globalProgressBar = globalProgressBar
+  constructor({ progressBarObj, fetchParamMatchList }: payload) {
+    this.progressBarObj = progressBarObj
+    // this.fetchParamMatchList = ['*'] // match all request
+    this.fetchParamMatchList = fetchParamMatchList
+    this.maxStackCount = 0
+    this.curStackCount = 0
+    this.defaultProgress = 20
   }
 
-  start(resource: RequestInfo | URL) {
-    if (typeof resource !== 'string') return
+  /**
+   * increment the progress (denominator) with each call
+   *  */
+  public start({ resource }: ctrlPayload = {}) {
+    if (!this.isMatchedKeyword(resource)) return
+    this.maxStackCount++
+    this.curStackCount++
 
-    if (resource.indexOf('__execute_event__=__reload__') === -1) return
-
-    this.globalProgressBar.show = true
-    this.globalProgressBar.value = 20
+    this.progressBarObj.show = true
+    this.progressBarObj.value = this.defaultProgress
   }
 
-  async end(resource: RequestInfo | URL) {
-    if (typeof resource !== 'string') return
+  /**
+   * reduce the progress (denominator) with each call
+   *  */
+  public end({ resource }: ctrlPayload = {}) {
+    if (!this.isMatchedKeyword(resource)) return
 
-    if (resource.indexOf('__execute_event__=__reload__') === -1) return
+    if (this.curStackCount === 0) return
 
-    this.globalProgressBar.value = 80
+    this.curStackCount--
 
-    await sleep(100)
+    this.increaseProgress()
+  }
 
-    this.globalProgressBar.value = 100
-    await sleep(150)
+  /**
+   * set the progress to 100% immediately (include animation effect)
+   */
+  public complete() {
+    this.curStackCount = 0
+    this.increaseProgress()
+  }
 
-    // nextTick(() => {
-    this.globalProgressBar.value = 0
-    this.globalProgressBar.show = false
-    // })
+  /**
+   * set the progress to 0% immediately (include animation effect)
+   */
+  public reset() {
+    this.progressBarObj.value = 0
+    this.curStackCount = 0
+    this.maxStackCount = 0
+  }
+
+  /**
+   * set hide progressBar and set all progress to 0
+   */
+  public hideAndReset() {
+    this.progressBarObj.show = false
+    this.reset()
+  }
+
+  protected async increaseProgress() {
+    if (this.curStackCount > 0) {
+      this.progressBarObj.value =
+        Number((((this.maxStackCount - this.curStackCount) / this.maxStackCount) * 80).toFixed(2)) +
+        this.defaultProgress
+    }
+    // all loaded
+    else {
+      // this.progressBarObj.value = 80
+      await sleep(100)
+      this.progressBarObj.value = 100
+      await sleep(150)
+      this.progressBarObj.value = 0
+      this.progressBarObj.show = false
+      this.maxStackCount = 0
+    }
+  }
+
+  protected isMatchedKeyword(resource?: URL | RequestInfo): boolean {
+    if (resource === undefined) return true
+
+    if (typeof resource !== 'string') return false
+
+    if (this.fetchParamMatchList[0] === '*') return true
+
+    return this.fetchParamMatchList.some((keyword) => resource.indexOf(keyword) > -1)
   }
 }
