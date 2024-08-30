@@ -178,4 +178,23 @@ describe('lifecycle', () => {
     console.log(wrapper.html())
     expect(wrapper.find('h1').text()).toEqual('x')
   })
+  it('computed', async () => {
+    const wrapper = mountTemplate(`
+      <go-plaid-scope :init='{hello: "555"}' v-slot="{locals}">
+        <div v-on-mounted="({computed}) => {
+          locals.computedExample = computed(() => {
+            return (locals.hello || '') + '_xxx';
+          })
+        }" />
+        <h1>{{locals.computedExample}}</h1>
+        <button id="btn1" @click='locals.hello = "123";' />
+      </go-plaid-scope>
+    `)
+    await nextTick()
+    console.log(wrapper.html())
+    expect(wrapper.find('h1').text()).toEqual('555_xxx')
+    const btn1: any = wrapper.find('#btn1')
+    await btn1.trigger('click')
+    expect(wrapper.find('h1').text()).toEqual('123_xxx')
+  })
 })
