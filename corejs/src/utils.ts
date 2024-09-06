@@ -2,6 +2,7 @@ import 'formdata-polyfill'
 import querystring from 'query-string'
 import union from 'lodash/union'
 import without from 'lodash/without'
+import unidecode from 'unidecode'
 import type { EventFuncID, ValueOp } from './types'
 import { type DefineComponent, defineComponent, inject, ref, type Ref } from 'vue'
 
@@ -373,4 +374,14 @@ export function sleep(delay = 1000) {
       resolve(undefined)
     }, delay)
   })
+}
+
+export function slug(value: string): string {
+  value = value.trim()
+  value = unidecode(value)
+  value = value.toLowerCase()
+  value = value.replace(/[^a-zA-Z0-9-_]/g, '-')
+  value = value.replace(/-+/g, '-')
+  value = value.replace(/^[-_]+|[-_]+$/g, '')
+  return value
 }

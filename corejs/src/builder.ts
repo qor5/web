@@ -4,7 +4,8 @@ import {
   objectToFormData,
   encodeObjectToQuery,
   isRawQuerySubset,
-  parsePathAndQuery
+  parsePathAndQuery,
+  slug
 } from '@/utils'
 import querystring from 'query-string'
 import jsonpatch from 'fast-json-patch'
@@ -382,6 +383,10 @@ export class Builder {
 
   public isRawQuerySubset(sup: string, sub: string, options?: querystring.ParseOptions): boolean {
     return isRawQuerySubset(sup, sub, options)
+  }
+
+  public slug(v: string): string {
+    return slug(v)
   }
 }
 
