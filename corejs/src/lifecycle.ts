@@ -28,12 +28,6 @@ const handleAutoUnmounting = (
     return createWrappedStop(watchEffect(...args))
   }
 
-  const wrappedComputed = (...args: Parameters<typeof computed>) => {
-    const result = computed(...args)
-    result.effect.stop = createWrappedStop(result.effect.stop)
-    return result
-  }
-
   callback({
     el,
     binding,
@@ -41,7 +35,7 @@ const handleAutoUnmounting = (
     window,
     watch: wrappedWatch,
     watchEffect: wrappedWatchEffect,
-    computed: wrappedComputed,
+    computed,
     ref,
     reactive
   })
