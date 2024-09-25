@@ -2,6 +2,25 @@ package web
 
 import "fmt"
 
+func ValidationGlobalError(err error) error {
+	return &validationGlobalError{
+		err: err,
+	}
+}
+
+func IsValidationGlobalError(err error) bool {
+	_, ok := err.(*validationGlobalError)
+	return ok
+}
+
+type validationGlobalError struct {
+	err error
+}
+
+func (e *validationGlobalError) Error() string {
+	return e.err.Error()
+}
+
 type ValidationErrors struct {
 	globalErrors []string
 	fieldErrors  map[string][]string
