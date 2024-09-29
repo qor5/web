@@ -341,7 +341,6 @@ export class Builder {
           alert('Unknown Error')
         }
 
-        throw error
         // document.location.reload();
       })
       .finally(() => {

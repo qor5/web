@@ -40,47 +40,52 @@ export function initFetchInterceptor(customInterceptor: FetchInterceptor) {
       const clonedResponse = response.clone()
 
       // Start processing the response body without waiting
-      await clonedResponse.json()
+      const processingPromise = clonedResponse.json()
 
-      const requestInfo = requestMap.get(requestId)
+      processingPromise
+        .then(() => {
+          const requestInfo = requestMap.get(requestId)
 
-      if (customInterceptor.onResponse && requestInfo) {
-        const resource =
-          requestInfo.resource instanceof URL
-            ? requestInfo.resource.toString()
-            : requestInfo.resource
+          if (customInterceptor.onResponse && requestInfo) {
+            const resource =
+              requestInfo.resource instanceof URL
+                ? requestInfo.resource.toString()
+                : requestInfo.resource
 
-        customInterceptor.onResponse(
-          requestId,
-          response, // Pass the original response
-          resource,
-          requestInfo.config
-        )
-      }
+            customInterceptor.onResponse(
+              requestId,
+              response, // Pass the original response
+              resource,
+              requestInfo.config
+            )
 
-      requestMap.delete(requestId)
+            requestMap.delete(requestId)
+          }
+        })
+        .catch((error: unknown) => {
+          errorHandler(error, requestId, customInterceptor)
+        })
 
       // Return the original response
       return response
     } catch (error) {
-      // Handle fetch errors
-      if (customInterceptor.onError) {
-        const requestInfo = requestMap.get(requestId)
-        let resource
-        if (requestInfo) {
-          resource =
-            requestInfo.resource instanceof URL
-              ? requestInfo.resource.toString()
-              : requestInfo.resource
-        }
-
-        customInterceptor.onError(error, requestId, resource)
-      }
-
-      // In case of request failure, also remove the request info from the Map
-      requestMap.delete(requestId)
+      errorHandler(error, requestId, customInterceptor)
 
       throw error // Rethrow the error
     }
   }
+}
+
+function errorHandler(error: unknown, requestId: string, customInterceptor: FetchInterceptor) {
+  const requestInfo = requestMap.get(requestId)
+
+  if (customInterceptor.onError && requestInfo) {
+    const resource =
+      requestInfo.resource instanceof URL ? requestInfo.resource.toString() : requestInfo.resource
+
+    customInterceptor.onError(error, requestId, resource)
+  }
+
+  // In case of request failure, also remove the request info from the Map
+  requestMap.delete(requestId)
 }
