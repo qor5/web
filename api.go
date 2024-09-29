@@ -157,11 +157,16 @@ func WrapEventContext(parent context.Context, ctx *EventContext) (r context.Cont
 }
 
 func MustGetEventContext(c context.Context) (r *EventContext) {
-	r, _ = c.Value(eventKey).(*EventContext)
+	r, _ = GetEventContext(c)
 	if r == nil {
 		panic("EventContext required")
 	}
 	return
+}
+
+func GetEventContext(c context.Context) (*EventContext, bool) {
+	r, ok := c.Value(eventKey).(*EventContext)
+	return r, ok
 }
 
 func Injector(c context.Context) (r *PageInjector) {
