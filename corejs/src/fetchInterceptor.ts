@@ -4,6 +4,7 @@ declare let window: any
 export type FetchInterceptor = {
   onRequest?: (id: string, resource: RequestInfo | URL, config?: RequestInit) => void
   onResponse?: (id: string, response: Response, resource: RequestInfo, config?: RequestInit) => void
+  onError?: (error: unknown, id: string, resource?: RequestInfo) => void
 }
 
 // Global Map to store the mapping between request ID and Request info
@@ -39,33 +40,42 @@ export function initFetchInterceptor(customInterceptor: FetchInterceptor) {
       const clonedResponse = response.clone()
 
       // Start processing the response body without waiting
-      const processingPromise = clonedResponse.json()
+      await clonedResponse.json()
 
-      processingPromise.then(() => {
-        const requestInfo = requestMap.get(requestId)
+      const requestInfo = requestMap.get(requestId)
 
-        if (customInterceptor.onResponse && requestInfo) {
-          const resource =
-            requestInfo.resource instanceof URL
-              ? requestInfo.resource.toString()
-              : requestInfo.resource
+      if (customInterceptor.onResponse && requestInfo) {
+        const resource =
+          requestInfo.resource instanceof URL
+            ? requestInfo.resource.toString()
+            : requestInfo.resource
 
-          customInterceptor.onResponse(
-            requestId,
-            response, // Pass the original response
-            resource,
-            requestInfo.config
-          )
-        }
+        customInterceptor.onResponse(
+          requestId,
+          response, // Pass the original response
+          resource,
+          requestInfo.config
+        )
+      }
 
-        requestMap.delete(requestId)
-      })
+      requestMap.delete(requestId)
 
       // Return the original response
       return response
     } catch (error) {
       // Handle fetch errors
-      console.error('Fetch error:', error)
+      if (customInterceptor.onError) {
+        const requestInfo = requestMap.get(requestId)
+        let resource
+        if (requestInfo) {
+          resource =
+            requestInfo.resource instanceof URL
+              ? requestInfo.resource.toString()
+              : requestInfo.resource
+        }
+
+        customInterceptor.onError(error, requestId, resource)
+      }
 
       // In case of request failure, also remove the request info from the Map
       requestMap.delete(requestId)
