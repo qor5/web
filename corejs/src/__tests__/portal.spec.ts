@@ -176,7 +176,7 @@ describe('portal', () => {
 
   it('portal auto reload', async () => {
     const form = ref(new FormData())
-    mockFetchWithReturnTemplate(form, { body: '<h3></h3>' })
+    mockFetchWithReturnTemplate(form, { body: '<h3>666</h3>' })
 
     const wrapper = mountTemplate(`
       <div class="mycomp">
@@ -197,7 +197,9 @@ describe('portal', () => {
     console.log(wrapper.html())
     await flushPromises()
     console.log(wrapper.html())
-    await wrapper.find('.mycomp h3').trigger('click')
+    expect(wrapper.find('.mycomp h3').text()).toEqual('666')
+    await wrapper.find('button').trigger('click')
+    await flushPromises()
   })
 
   it('reload portal should keep form value', async () => {

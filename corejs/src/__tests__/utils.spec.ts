@@ -4,9 +4,11 @@ import {
   encodeObjectToQuery,
   isRawQuerySubset,
   parsePathAndQuery,
-  generateUniqueId
+  generateUniqueId,
+  slug
 } from '../utils'
 import { describe, it, expect } from 'vitest'
+import { plaid } from '../builder'
 
 describe('utils', () => {
   it('setFormValue', () => {
@@ -180,5 +182,12 @@ describe('utils', () => {
     expect(a.length).toEqual(7)
     expect(b.length).toEqual(7)
     expect(a).not.toEqual(b)
+  })
+
+  it('slug', () => {
+    expect(plaid().slug('test title slug')).toEqual('test-title-slug')
+    expect(plaid().slug('test&title*~slug')).toEqual('test-title-slug')
+    expect(plaid().slug('TestSlug')).toEqual('testslug')
+    expect(plaid().slug('测试标题')).toEqual('ce-shi-biao-ti')
   })
 })
