@@ -337,10 +337,11 @@ export class Builder {
         return r
       })
       .catch((error) => {
-        console.log(error)
         if (!this.isIgnoreError(error)) {
           alert('Unknown Error')
         }
+
+        throw error
         // document.location.reload();
       })
       .finally(() => {

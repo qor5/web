@@ -80,6 +80,11 @@ export const Root = defineComponent({
 
       onResponse(id, response, resource, config) {
         progressBarCtl.end({ resource })
+      },
+
+      onError(error, id, resource) {
+        console.error(resource, error)
+        progressBarCtl.end({ resource })
       }
     })
 
