@@ -58,9 +58,9 @@ export function initFetchInterceptor(customInterceptor: FetchInterceptor) {
               resource,
               requestInfo.config
             )
-
-            requestMap.delete(requestId)
           }
+
+          requestMap.delete(requestId)
         })
         .catch((error: unknown) => {
           errorHandler(error, requestId, customInterceptor)
