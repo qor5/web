@@ -46,7 +46,7 @@
     "prettier": "^3.3.2",
     "resize-observer-polyfill": "^1.5.1",
     "typescript": "~5.3.3",
-    "vite": "^5.3.1",
+    "vite": "^5.3.6",
     "vitest": "^1.6.0",
     "vue-tsc": "^2.0.22",
     "vuetify": "^3.6.10"
