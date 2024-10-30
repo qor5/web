@@ -54,6 +54,9 @@ func (b *ValidationErrors) GetGlobalError() (r string) {
 	}
 	return b.globalErrors[0]
 }
+func (b *ValidationErrors) FieldErrors() map[string][]string {
+	return b.fieldErrors
+}
 
 func (b *ValidationErrors) GetGlobalErrors() (r []string) {
 	return b.globalErrors

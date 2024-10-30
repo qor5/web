@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import { inject, onMounted, reactive, watch } from 'vue'
+import { inject, onMounted, reactive, toRaw, watch } from 'vue'
 import debounce from 'lodash/debounce'
 
 const props = defineProps<{
@@ -38,12 +38,15 @@ onMounted(() => {
       const _watch = debounce((obj: any) => {
         emit('change-debounced', obj)
       }, debounceWait)
-      console.log('watched')
-      watch(locals, (value, oldValue) => {
-        _watch({ locals: value, form: form, oldLocals: oldValue, oldForm: form })
+      let oldForm = JSON.parse(JSON.stringify(toRaw(form)))
+      let oldLocals = JSON.parse(JSON.stringify(toRaw(locals)))
+      watch(locals, (value) => {
+        _watch({ locals: value, form: form, oldLocals: oldLocals, oldForm: form })
+        oldLocals = JSON.parse(JSON.stringify(toRaw(value)))
       })
-      watch(form, (value, oldValue) => {
-        _watch({ locals: locals, form: value, oldLocals: locals, oldForm: oldValue })
+      watch(form, (value) => {
+        _watch({ locals: locals, form: value, oldLocals: locals, oldForm: oldForm })
+        oldForm = JSON.parse(JSON.stringify(toRaw(value)))
       })
     }
   }, 0)
