@@ -32,7 +32,7 @@ func TestValidationErrorMerge(t *testing.T) {
 		WantGlobalErr []string
 		WantFieldErr  map[string][]string
 	}
-	var cases = []Case{
+	cases := []Case{
 		{
 			Name: "Add new global error",
 			CurrentErr: func() *web.ValidationErrors {
@@ -139,6 +139,7 @@ func TestValidationErrorMerge(t *testing.T) {
 			}
 		})
 	}
+}
 
 func TestValidationField(t *testing.T) {
 	err := web.ValidationErrors{}
