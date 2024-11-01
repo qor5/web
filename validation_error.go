@@ -1,6 +1,9 @@
 package web
 
-import "fmt"
+import (
+	"fmt"
+	"slices"
+)
 
 func ValidationGlobalError(err error) error {
 	return &validationGlobalError{
@@ -71,4 +74,28 @@ func (b *ValidationErrors) HaveErrors() bool {
 
 func (b *ValidationErrors) Error() string {
 	return fmt.Sprintf("validation error global: %+v, fields: %+v", b.globalErrors, b.fieldErrors)
+}
+
+func (b *ValidationErrors) Merge(other *ValidationErrors) *ValidationErrors {
+	for _, v := range other.globalErrors {
+		if slices.Contains(b.globalErrors, v) {
+			continue
+		}
+		b.GlobalError(v)
+	}
+	
+	if other.fieldErrors == nil {
+		return b
+	}
+
+	for fieldName, errors := range other.fieldErrors {
+		errList := b.GetFieldErrors(fieldName)
+		for _, e := range errors {
+			if !slices.Contains(errList, e) {
+				b.FieldError(fieldName, e)
+			}
+		}
+	}
+
+	return b
 }
