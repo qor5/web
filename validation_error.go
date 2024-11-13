@@ -17,10 +17,6 @@ type validationGlobalError struct {
 	err error
 }
 
-type FieldErrorOption struct {
-	CloseGlobalErr bool
-}
-
 func (e *validationGlobalError) Error() string {
 	return e.err.Error()
 }
@@ -30,17 +26,12 @@ type ValidationErrors struct {
 	fieldErrors  map[string][]string
 }
 
-func (b *ValidationErrors) FieldError(fieldName string, message string, opts ...FieldErrorOption) {
+func (b *ValidationErrors) FieldError(fieldName string, message string) {
 	if b.fieldErrors == nil {
 		b.fieldErrors = make(map[string][]string)
 	}
 	b.fieldErrors[fieldName] = append(b.fieldErrors[fieldName], message)
-
-	if len(opts) == 0 || !opts[0].CloseGlobalErr {
-		b.globalErrors = append(b.globalErrors, message)
-		return
-	}
-	b.globalErrors = nil
+	return
 }
 
 func (b *ValidationErrors) GlobalError(message string) {
@@ -63,7 +54,6 @@ func (b *ValidationErrors) GetGlobalError() (r string) {
 	}
 	return b.globalErrors[0]
 }
-
 func (b *ValidationErrors) FieldErrors() map[string][]string {
 	return b.fieldErrors
 }
