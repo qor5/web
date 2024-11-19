@@ -35,18 +35,27 @@ onMounted(() => {
   setTimeout(() => {
     if (props.useDebounce) {
       const debounceWait = props.useDebounce
-      const _watch = debounce((obj: any) => {
-        emit('change-debounced', obj)
+      let oldForm = {}
+      let oldLocals = {}
+      const setOldReactive = () => {
+        oldForm = JSON.parse(JSON.stringify(toRaw(form)))
+        oldLocals = JSON.parse(JSON.stringify(toRaw(locals)))
+      }
+      const _watch = debounce(() => {
+        emit('change-debounced', {
+          locals: locals,
+          form: form,
+          oldLocals: oldLocals,
+          oldForm: oldForm
+        })
+        setOldReactive()
       }, debounceWait)
-      let oldForm = JSON.parse(JSON.stringify(toRaw(form)))
-      let oldLocals = JSON.parse(JSON.stringify(toRaw(locals)))
-      watch(locals, (value) => {
-        _watch({ locals: value, form: form, oldLocals: oldLocals, oldForm: form })
-        oldLocals = JSON.parse(JSON.stringify(toRaw(value)))
+      setOldReactive()
+      watch(locals, () => {
+        _watch()
       })
-      watch(form, (value) => {
-        _watch({ locals: locals, form: value, oldLocals: locals, oldForm: oldForm })
-        oldForm = JSON.parse(JSON.stringify(toRaw(value)))
+      watch(form, () => {
+        _watch()
       })
     }
   }, 0)
