@@ -57,12 +57,20 @@ func (b *ValidationErrors) GetGlobalError() (r string) {
 	}
 	return b.globalErrors[0]
 }
+
 func (b *ValidationErrors) FieldErrors() map[string][]string {
 	return b.fieldErrors
 }
 
 func (b *ValidationErrors) GetGlobalErrors() (r []string) {
 	return b.globalErrors
+}
+
+func (b *ValidationErrors) HaveGlobalErrors() bool {
+	if len(b.globalErrors) > 0 {
+		return true
+	}
+	return false
 }
 
 func (b *ValidationErrors) HaveErrors() bool {
@@ -86,7 +94,7 @@ func (b *ValidationErrors) Merge(other *ValidationErrors) *ValidationErrors {
 		}
 		b.GlobalError(v)
 	}
-	
+
 	if other.fieldErrors == nil {
 		return b
 	}
