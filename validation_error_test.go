@@ -158,3 +158,14 @@ func TestValidationField(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestValidationErrorsHaveGlobalErrors(t *testing.T) {
+	err := web.ValidationErrors{}
+	if err.HaveGlobalErrors() {
+		t.Fail()
+	}
+	err.FieldError("Name", "field name error")
+	if !err.HaveGlobalErrors() {
+		t.Fail()
+	}
+}
