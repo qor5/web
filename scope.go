@@ -50,7 +50,7 @@ func (b *ScopeBuilder) Init(vs ...interface{}) (r *ScopeBuilder) {
 	return b
 }
 func (b *ScopeBuilder) DashInit(vs ...interface{}) (r *ScopeBuilder) {
-	b.init(":dashInit", vs...)
+	b.init(":dash-init", vs...)
 	return b
 }
 
