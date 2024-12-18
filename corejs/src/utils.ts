@@ -194,6 +194,7 @@ export function componentByTemplate(
   template: string,
   form: any,
   locals: any = {},
+  dash: any = {},
   portal: Ref = ref()
 ): DefineComponent {
   return defineComponent({
@@ -204,7 +205,8 @@ export function componentByTemplate(
         isFetching: inject('isFetching'),
         updateRootTemplate: inject('updateRootTemplate'),
         form: form,
-        locals: locals
+        locals: locals,
+        dash: dash
       }
     },
     mounted() {

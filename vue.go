@@ -36,7 +36,8 @@ func Plaid() (r *VueEventTagBuilder) {
 	}
 	r.Vars(Var("vars")).
 		Locals(Var("locals")).
-		Form(Var("form"))
+		Form(Var("form")).
+		Dash(Var("dash"))
 	return
 }
 
@@ -91,6 +92,13 @@ func (b *VueEventTagBuilder) Vars(v interface{}) (r *VueEventTagBuilder) {
 func (b *VueEventTagBuilder) Locals(v interface{}) (r *VueEventTagBuilder) {
 	b.calls = append(b.calls, jsCall{
 		method: "locals",
+		args:   []interface{}{v},
+	})
+	return b
+}
+func (b *VueEventTagBuilder) Dash(v interface{}) (r *VueEventTagBuilder) {
+	b.calls = append(b.calls, jsCall{
+		method: "dash",
 		args:   []interface{}{v},
 	})
 	return b

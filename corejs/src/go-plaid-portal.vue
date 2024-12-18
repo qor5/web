@@ -1,7 +1,7 @@
 <template>
   <div class="go-plaid-portal" v-if="visible" ref="portal">
     <component :is="current" v-if="current">
-      <slot :form="form" :locals="locals"></slot>
+      <slot :form="form" :locals="locals" :dash="dash"></slot>
     </component>
   </div>
 </template>
@@ -18,6 +18,7 @@ import {
 } from 'vue'
 import { componentByTemplate } from '@/utils'
 import type { EventResponse } from '@/types'
+
 declare let window: any
 window.__goplaid = window.__goplaid ?? {}
 window.__goplaid.portals = window.__goplaid.portals ?? {}
@@ -28,6 +29,7 @@ const props = defineProps({
   loader: Object,
   locals: Object,
   form: Object,
+  dash: Object,
   visible: Boolean,
   afterLoaded: Function,
   portalName: String,
@@ -38,7 +40,7 @@ const current = shallowRef<DefineComponent | null>(null)
 const autoReloadIntervalID = ref<number>(0)
 
 const updatePortalTemplate = (template: string) => {
-  current.value = componentByTemplate(template, props.form, props.locals, portal)
+  current.value = componentByTemplate(template, props.form, props.locals, props.dash, portal)
 }
 const slots = useSlots()
 
@@ -46,8 +48,9 @@ const slots = useSlots()
 const reload = () => {
   if (slots.default) {
     current.value = componentByTemplate(
-      '<slot :form="form" :locals="locals"></slot>',
+      '<slot :form="form" :locals="locals" :dash="dash"></slot>',
       props.locals,
+      props.dash,
       portal
     )
     return
