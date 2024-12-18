@@ -1,8 +1,9 @@
 package examples
 
 import (
-	"github.com/qor5/web/v3"
 	. "github.com/theplant/htmlgo"
+
+	"github.com/qor5/web/v3"
 )
 
 // @snippet_begin(WebScopeUseLocalsSample1)
@@ -34,7 +35,8 @@ if (locals.btnLabel == "Add") {
 	locals.btnLabel = "Add";
 }`),
 		).Init(`{ selectedItem: 0, btnLabel:"Add", items: [{text: "A", icon: "mdi-clock"}]}`).
-			VSlot("{ locals }"),
+			DashInit("{hello:123}").
+			VSlot("{ locals ,dash }"),
 	)
 	return
 }
