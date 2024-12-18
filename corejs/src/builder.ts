@@ -1,9 +1,9 @@
 import type { EventFuncID, EventResponse, Location, Queries, QueryValue } from './types'
 import {
   buildPushState,
-  objectToFormData,
   encodeObjectToQuery,
   isRawQuerySubset,
+  objectToFormData,
   parsePathAndQuery,
   slug
 } from '@/utils'
@@ -19,6 +19,7 @@ export class Builder {
   _method?: string
   _vars?: any
   _locals?: any
+  _dash?: any
   _loadPortalBody: boolean = false
   _form?: any = {}
   _popstate?: boolean
@@ -83,6 +84,12 @@ export class Builder {
   public locals(v: any): Builder {
     // console.log("locals", v)
     this._locals = v
+    return this
+  }
+
+  public dash(v: any): Builder {
+    // console.log("dash", v)
+    this._dash = v
     return this
   }
 
@@ -272,15 +279,17 @@ export class Builder {
       })
       .then((r: EventResponse) => {
         if (r.runScript) {
-          new Function('vars', 'locals', 'form', 'plaid', r.runScript).apply(this, [
+          new Function('vars', 'locals', 'form', 'dash', 'plaid', r.runScript).apply(this, [
             this._vars,
             this._locals,
             this._form,
+            this._dash,
             (): Builder => {
               const b = plaid()
                 .vars(this._vars)
                 .locals(this._locals)
                 .form(this._form)
+                .dash(this._dash)
                 .updateRootTemplate(this._updateRootTemplate)
               b.parent = this
               return b

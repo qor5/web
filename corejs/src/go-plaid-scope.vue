@@ -1,5 +1,5 @@
 <template>
-  <slot :locals="locals" :form="form" :plaid="plaid" :vars="vars"></slot>
+  <slot :locals="locals" :form="form" :plaid="plaid" :vars="vars" :dash="dash"></slot>
 </template>
 
 <script setup lang="ts">
@@ -9,6 +9,7 @@ import debounce from 'lodash/debounce'
 const props = defineProps<{
   init?: object | any[]
   formInit?: object | any[]
+  dashInit?: object | any[]
   useDebounce?: number
 }>()
 
@@ -21,6 +22,12 @@ if (Array.isArray(initObj)) {
   initObj = Object.assign({}, ...initObj)
 }
 const locals = reactive({ ...initObj })
+
+let dashInitObj = props.dashInit
+if (Array.isArray(dashInitObj)) {
+  dashInitObj = Object.assign({}, ...dashInitObj)
+}
+const dash = reactive({ ...dashInitObj })
 
 let initForm = props.formInit
 if (Array.isArray(initForm)) {

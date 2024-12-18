@@ -10,11 +10,12 @@ import (
 	"strings"
 	"testing"
 
-	. "github.com/qor5/web/v3"
-	"github.com/qor5/web/v3/multipartestutils"
 	h "github.com/theplant/htmlgo"
 	"github.com/theplant/htmltestingutils"
 	"github.com/theplant/testingutils"
+
+	. "github.com/qor5/web/v3"
+	"github.com/qor5/web/v3/multipartestutils"
 )
 
 type User struct {
@@ -268,8 +269,8 @@ var mountCases = []struct {
 		bodyFunc: nil,
 		expected: `
 <div>
-	<a href="#" v-on:click='plaid().vars(vars).locals(locals).form(form).eventFunc("bookmark").go()'>xgb123</a>
-	<a href="#" v-on:blur='alert(1); plaid().vars(vars).locals(locals).form(form).fieldValue("Text1", $event).eventFunc("doIt").go()'>hello</a>
+	<a href="#" v-on:click='plaid().vars(vars).locals(locals).form(form).dash(dash).eventFunc("bookmark").go()'>xgb123</a>
+	<a href="#" v-on:blur='alert(1); plaid().vars(vars).locals(locals).form(form).dash(dash).fieldValue("Text1", $event).eventFunc("doIt").go()'>hello</a>
 </div>
 `,
 	},

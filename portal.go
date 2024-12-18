@@ -14,7 +14,7 @@ func Portal(children ...h.HTMLComponent) (r *PortalBuilder) {
 	r = &PortalBuilder{
 		tag: h.Tag("go-plaid-portal").Children(children...),
 	}
-	r.Visible("true").Form("form").Locals("locals")
+	r.Visible("true").Form("form").Locals("locals").Dash("dash")
 	return
 }
 
@@ -43,6 +43,10 @@ func (b *PortalBuilder) Locals(v string) (r *PortalBuilder) {
 	return b
 }
 
+func (b *PortalBuilder) Dash(v string) (r *PortalBuilder) {
+	b.tag.Attr(":dash", v)
+	return b
+}
 func (b *PortalBuilder) AutoReloadInterval(v interface{}) (r *PortalBuilder) {
 	b.tag.Attr(":auto-reload-interval", v)
 	return b

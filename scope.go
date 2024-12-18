@@ -49,6 +49,10 @@ func (b *ScopeBuilder) Init(vs ...interface{}) (r *ScopeBuilder) {
 	b.init(":init", vs...)
 	return b
 }
+func (b *ScopeBuilder) DashInit(vs ...interface{}) (r *ScopeBuilder) {
+	b.init(":dashInit", vs...)
+	return b
+}
 
 func (b *ScopeBuilder) FormInit(vs ...interface{}) (r *ScopeBuilder) {
 	b.init(":form-init", vs...)
