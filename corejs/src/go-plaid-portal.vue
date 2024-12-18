@@ -49,6 +49,7 @@ const reload = () => {
   if (slots.default) {
     current.value = componentByTemplate(
       '<slot :form="form" :locals="locals" :dash="dash"></slot>',
+      props.form,
       props.locals,
       props.dash,
       portal
