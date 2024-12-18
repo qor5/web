@@ -147,6 +147,37 @@ describe('scope', () => {
     await flushPromises()
     expect(wrapper.html()).toContain('123')
   })
+  it('scope locals update dash', async () => {
+    const Root = {
+      template: `
+              <go-plaid-scope :dash-init="{hello:'1234'}" v-slot="{dash }">
+                <go-plaid-portal portal-name="test" :dash="dash" :visible="true">
+                </go-plaid-portal>
+                <button
+                    @click='update'>
+                </button>
+              </go-plaid-scope>
+
+            `,
+      setup() {
+        return {
+          update: () => {
+            window.__goplaid = window.__goplaid ?? {}
+            window.__goplaid.portals = window.__goplaid.portals ?? {}
+            const { updatePortalTemplate } = window.__goplaid.portals['test']
+            updatePortalTemplate(`<div id="test">{{dash.hello}}</div>`)
+          }
+        }
+      }
+    }
+    const wrapper = mountTemplate(`<Root></Root>`, { components: { Root } })
+    await nextTick()
+    await flushPromises()
+    await wrapper.find('button').trigger('click')
+    await nextTick()
+    await flushPromises()
+    expect(wrapper.html()).toContain('1234')
+  })
 
   it('simulate computed via locals', async () => {
     const wrapper = mountTemplate(`
