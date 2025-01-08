@@ -53,6 +53,7 @@ export const Root = defineComponent({
     const vars = reactive({
       __emitter: new TinyEmitter(),
       __history: HistoryManager.getInstance(),
+      __window: window,
       globalProgressBar: {
         show: true,
         value: 0
