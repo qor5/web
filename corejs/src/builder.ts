@@ -7,6 +7,7 @@ import {
   parsePathAndQuery,
   slug
 } from '@/utils'
+import * as Vue from 'vue'
 import querystring from 'query-string'
 import jsonpatch from 'fast-json-patch'
 import lodash from 'lodash'
@@ -30,6 +31,7 @@ export class Builder {
   _beforeFetch?: Function
   parent?: Builder
   lodash: any = lodash
+  vue: any = Vue
 
   readonly ignoreErrors = [
     'Failed to fetch', // Chrome
