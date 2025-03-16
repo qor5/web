@@ -2,6 +2,7 @@ package web
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -95,6 +96,13 @@ func (e *EventContext) ParamAsInt(key string) (r int) {
 		return
 	}
 	val, _ := strconv.ParseInt(strVal, 10, 64)
+
+	// Check if the int64 value fits within the range of int
+	// This is especially important on 32-bit systems where int is 32 bits
+	if val > int64(^uint(0)>>1) || val < -int64(^uint(0)>>1)-1 {
+		panic(fmt.Sprintf("int64 value %d out of range for int", val))
+	}
+
 	r = int(val)
 	return
 }
