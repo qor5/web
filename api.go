@@ -94,8 +94,7 @@ func (e *EventContext) ParamAsInt(key string) (r int) {
 	if len(strVal) == 0 {
 		return
 	}
-	val, _ := strconv.ParseInt(strVal, 10, 64)
-	r = int(val)
+	r, _ = strconv.Atoi(strVal)
 	return
 }
 
