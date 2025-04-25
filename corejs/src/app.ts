@@ -17,7 +17,7 @@ import ParentSizeObserver from '@/parent-size-observer.vue'
 import { componentByTemplate } from '@/utils'
 import { Builder, plaid } from '@/builder'
 import { keepScroll } from '@/keepScroll'
-import { assignOnMounted } from '@/assign'
+import { assignOnMounted, assignModelOnMounted } from '@/assign'
 import { initFetchInterceptor } from './fetchInterceptor'
 import {
   runOnCreated,
@@ -121,6 +121,7 @@ export const plaidPlugin = {
     app.component('ParentSizeObserver', ParentSizeObserver)
     app.directive('keep-scroll', keepScroll)
     app.directive('assign', assignOnMounted)
+    app.directive('assign-model', assignModelOnMounted)
     app.directive('on-created', runOnCreated)
     app.directive('before-mount', runBeforeMount)
     app.directive('on-mounted', runOnMounted)

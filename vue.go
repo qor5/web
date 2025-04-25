@@ -327,12 +327,31 @@ func VAssign(varName string, v interface{}) []interface{} {
 	}
 }
 
+
+func VAssignModel(varName string, v interface{}) []interface{} {
+	varVal, ok := v.(string)
+	if !ok {
+		varVal = h.JSONString(v)
+	}
+	return []interface{}{
+		"v-assign-model",
+		fmt.Sprintf("[%s, %s]", varName, varVal),
+	}
+}
+
 func VField(name string, value interface{}) []interface{} {
 	objValue := map[string]interface{}{name: value}
 	return append([]interface{}{
 		"v-model",
 		fmt.Sprintf("form[%s]", h.JSONString(name)),
 	}, VAssign("form", objValue)...)
+}
+
+func VModel(name string, value interface{}) []interface{} {
+	return []interface{}{
+		"v-model",
+		fmt.Sprintf("form[%s]", h.JSONString(name)),
+	}
 }
 
 func GlobalEvents() *h.HTMLTagBuilder {
