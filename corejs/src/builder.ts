@@ -5,7 +5,8 @@ import {
   isRawQuerySubset,
   objectToFormData,
   parsePathAndQuery,
-  slug
+  slug,
+  findScrollableParent
 } from '@/utils'
 import * as Vue from 'vue'
 import querystring from 'query-string'
@@ -383,6 +384,10 @@ export class Builder {
 
   public applyJsonPatch(obj: any, patch: any): any {
     return jsonpatch.applyPatch(obj, patch)
+  }
+
+  public findScrollableParent(element: Element | null): Element | null {
+    return findScrollableParent(element)
   }
 
   public encodeObjectToQuery(

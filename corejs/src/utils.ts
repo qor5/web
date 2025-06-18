@@ -387,3 +387,33 @@ export function slug(value: string): string {
   value = value.replace(/^[-_]+|[-_]+$/g, '')
   return value
 }
+
+export function findScrollableParent(element: Element | null): Element | null {
+  if (!element) return null
+
+  let parent = element.parentElement
+
+  while (parent && parent !== document.body && parent !== document.documentElement) {
+    const style = window.getComputedStyle(parent)
+
+    const overflowY = style.overflowY
+    const overflow = style.overflow
+    if (
+      overflowY === 'scroll' ||
+      overflowY === 'auto' ||
+      overflow === 'scroll' ||
+      overflow === 'auto'
+    ) {
+      if (parent.scrollHeight > parent.clientHeight) {
+        return parent
+      }
+    }
+
+    if (parent.scrollHeight > parent.clientHeight && parent.scrollTop >= 0) {
+      return parent
+    }
+
+    parent = parent.parentElement
+  }
+  return document.scrollingElement || document.documentElement
+}
