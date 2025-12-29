@@ -27,7 +27,7 @@ func TestWebScope(t *testing.T) {
 			},
 			EventResponseMatch: func(t *testing.T, er *multipartestutils.TestEventResponse) {
 				if !strings.Contains(er.Body, `:init='{ selectedItem: 0, btnLabel:"Add", items: [{text: "A", icon: "mdi-clock"}]}' :dash-init='{hello:123}' v-slot='{ locals ,dash }'`) {
-					t.Errorf(er.Body)
+					t.Errorf("%v", er.Body)
 				}
 			},
 		},

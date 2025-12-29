@@ -29,7 +29,7 @@ func TestExamples(t *testing.T) {
 			},
 			EventResponseMatch: func(t *testing.T, er *multipartestutils.TestEventResponse) {
 				if !strings.Contains(er.Body, "Hello World") {
-					t.Errorf(er.Body)
+					t.Errorf("%v", er.Body)
 				}
 			},
 		},
@@ -46,7 +46,7 @@ func TestExamples(t *testing.T) {
 			},
 			EventResponseMatch: func(t *testing.T, er *multipartestutils.TestEventResponse) {
 				if !strings.Contains(er.Body, "Hello World") {
-					t.Errorf(er.Body)
+					t.Errorf("%v", er.Body)
 				}
 			},
 		},
@@ -67,7 +67,7 @@ func TestExamples(t *testing.T) {
 			},
 			PageMatch: func(t *testing.T, body *bytes.Buffer) {
 				if !strings.Contains(body.String(), "<article>") {
-					t.Errorf(body.String())
+					t.Errorf("%v", body.String())
 				}
 			},
 		},
