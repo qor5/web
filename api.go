@@ -122,18 +122,23 @@ func (ctx *EventContext) MustUnmarshalForm(v interface{}) {
 
 func (ctx *EventContext) UnmarshalForm(v interface{}) (err error) {
 	mf := ctx.R.MultipartForm
-	if ctx.R.MultipartForm == nil {
+	var values map[string][]string
+	if mf != nil {
+		values = mf.Value
+	} else if ctx.R.Form != nil {
+		values = ctx.R.Form
+	} else {
 		return
 	}
 
 	dec := form.NewDecoder()
-	err = dec.Decode(v, mf.Value)
+	err = dec.Decode(v, values)
 	if err != nil {
 		// panic(err)
 		return
 	}
 
-	if len(mf.File) > 0 {
+	if mf != nil && len(mf.File) > 0 {
 		for k, vs := range mf.File {
 			_ = reflectutils.Set(v, k, vs)
 		}
