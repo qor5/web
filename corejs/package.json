@@ -22,7 +22,7 @@
     "query-string": "^9.1.1",
     "tiny-emitter": "^2.1.0",
     "unidecode": "^1.1.0",
-    "vue": "^3.5.13",
+    "vue": "^3.5.40",
     "vue-global-events": "^3.0.1",
     "whatwg-fetch": "^3.6.20"
   },
@@ -61,7 +61,12 @@
       "minimatch@<3.1.4": "3.1.5",
       "minimatch@9": "9.0.9",
       "flatted@<3.4.2": "3.4.2",
-      "picomatch@<2.3.2": "2.3.2"
+      "picomatch@<2.3.2": "2.3.2",
+      "@vue/shared": "3.5.40",
+      "@vue/server-renderer": "3.5.40",
+      "@vue/compiler-core": "3.5.40",
+      "@vue/compiler-dom": "3.5.40",
+      "@vue/compiler-ssr": "3.5.40"
     }
   }
 }
