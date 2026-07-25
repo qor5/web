@@ -62,11 +62,11 @@
       "minimatch@9": "9.0.9",
       "flatted@<3.4.2": "3.4.2",
       "picomatch@<2.3.2": "2.3.2",
-      "@vue/shared": "3.5.40",
-      "@vue/server-renderer": "3.5.40",
       "@vue/compiler-core": "3.5.40",
       "@vue/compiler-dom": "3.5.40",
-      "@vue/compiler-ssr": "3.5.40"
+      "@vue/compiler-ssr": "3.5.40",
+      "@vue/shared": "3.5.40",
+      "@vue/server-renderer": "3.5.40"
     }
   }
 }
