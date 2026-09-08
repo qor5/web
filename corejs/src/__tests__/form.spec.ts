@@ -68,10 +68,11 @@ describe('form', () => {
       `
 
     const form = ref(new FormData())
-    mockFetchWithReturnTemplate(form, { body: '<h3></h3>' })
+    mockFetchWithReturnTemplate(form, {})
     const wrapper = mountTemplate(template)
     await nextTick()
     await wrapper.find('button').trigger('click')
+    await flushPromises()
     expect(form.value.getAll('ChipGroup1')).toEqual(['NY', 'HZ'])
 
     await wrapper.find('#id_hz').trigger('click')
