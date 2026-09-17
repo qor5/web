@@ -12,6 +12,39 @@ const requestMap = new Map<string, { resource: RequestInfo | URL; config?: Reque
 
 const originalFetch: typeof window.fetch = window.fetch
 
+function isCrossOrigin(resource: RequestInfo | URL): boolean {
+  let urlStr: string
+  if (typeof resource === 'string') {
+    urlStr = resource
+  } else if (resource instanceof URL) {
+    urlStr = resource.toString()
+  } else if (typeof Request !== 'undefined' && resource instanceof Request) {
+    urlStr = resource.url
+  } else {
+    return false
+  }
+  try {
+    const url = new URL(urlStr, window.location.href)
+    return url.origin !== window.location.origin
+  } catch {
+    return false
+  }
+}
+
+function notifyResponse(
+  requestId: string,
+  response: Response,
+  customInterceptor: FetchInterceptor
+) {
+  const requestInfo = requestMap.get(requestId)
+  if (customInterceptor.onResponse && requestInfo) {
+    const resource =
+      requestInfo.resource instanceof URL ? requestInfo.resource.toString() : requestInfo.resource
+    customInterceptor.onResponse(requestId, response, resource, requestInfo.config)
+  }
+  requestMap.delete(requestId)
+}
+
 export function initFetchInterceptor(customInterceptor: FetchInterceptor) {
   // Do not rewrite fetch in the test env. The specs install their own
   // `global.fetch` mock, and this wrapper closes over `originalFetch` as it
@@ -31,6 +64,12 @@ export function initFetchInterceptor(customInterceptor: FetchInterceptor) {
   ): Promise<Response> {
     const [resource, config] = args
 
+    // Skip cross-origin requests (e.g. Google Analytics): we have no insight
+    // into them and forcing a JSON parse on their bodies just produces noise.
+    if (isCrossOrigin(resource)) {
+      return originalFetch(...args)
+    }
+
     // Generate a unique ID for the request
     const requestId = generateUniqueId()
 
@@ -48,31 +87,13 @@ export function initFetchInterceptor(customInterceptor: FetchInterceptor) {
       // Clone the response to preserve the original response for further use
       const clonedResponse = response.clone()
 
-      // Start processing the response body without waiting
-      const processingPromise = clonedResponse.json()
-
-      processingPromise
-        .then(() => {
-          const requestInfo = requestMap.get(requestId)
-
-          if (customInterceptor.onResponse && requestInfo) {
-            const resource =
-              requestInfo.resource instanceof URL
-                ? requestInfo.resource.toString()
-                : requestInfo.resource
-
-            customInterceptor.onResponse(
-              requestId,
-              response, // Pass the original response
-              resource,
-              requestInfo.config
-            )
-          }
-
-          requestMap.delete(requestId)
-        })
-        .catch((error: unknown) => {
-          errorHandler(error, requestId, customInterceptor)
+      // Start processing the response body without waiting. A non-JSON or
+      // empty body is not an error — only the request lifecycle matters here.
+      clonedResponse
+        .json()
+        .catch(() => undefined)
+        .finally(() => {
+          notifyResponse(requestId, response, customInterceptor)
         })
 
       // Return the original response
