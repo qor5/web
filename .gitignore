@@ -4,3 +4,8 @@ __*
 !__tests__
 
 .cursor
+
+# macOS Finder metadata. corejs/.gitignore already carries this line (Vite
+# scaffold default), which is why only that subtree was covered; a bare pattern
+# here matches at any depth and covers the Go side too.
+.DS_Store
