@@ -13,8 +13,17 @@ const requestMap = new Map<string, { resource: RequestInfo | URL; config?: Reque
 const originalFetch: typeof window.fetch = window.fetch
 
 export function initFetchInterceptor(customInterceptor: FetchInterceptor) {
-  // do not rewrite fetch in test env
-  if (typeof window.__vitest_environment__ !== 'undefined') return
+  // Do not rewrite fetch in the test env. The specs install their own
+  // `global.fetch` mock, and this wrapper closes over `originalFetch` as it
+  // was at module-load time — i.e. the real one — so wrapping would route
+  // every request past the mock and out to undici.
+  //
+  // The sentinel is Vite's own `import.meta.env.MODE`: 'test' under vitest
+  // (3 and 4 alike) and statically replaced with the build mode in the
+  // browser bundle, so this branch is dead code there. It replaces
+  // `window.__vitest_environment__`, which vitest 4 no longer defines —
+  // that guard did not error, it just stopped firing.
+  if (import.meta.env.MODE === 'test') return
 
   // eslint-disable-next-line no-debugger
   window.fetch = async function (
