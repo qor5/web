@@ -55,11 +55,11 @@ func (b *Builder) PacksHandler(contentType string, packs ...ComponentsPack) http
 		buf.WriteString("\n\n")
 	}
 
-	body := bytes.NewReader(buf.Bytes())
+	bodyBytes := buf.Bytes()
 
 	return gziphandler.GzipHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", contentType)
-		http.ServeContent(w, r, "", startTime, body)
+		http.ServeContent(w, r, "", startTime, bytes.NewReader(bodyBytes))
 	}))
 }
 
